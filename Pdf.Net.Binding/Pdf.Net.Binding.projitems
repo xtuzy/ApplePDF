@@ -1,0 +1,24 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects Condition="'$(MSBuildVersion)' == '' Or '$(MSBuildVersion)' &lt; '16.0'">$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>134f745b-3a99-40d3-9bbf-7614cf994aa9</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>Pdf.Net.Binding</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)CppSharpRuntime\MarshalUtil.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CppSharpRuntime\Pointer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CppSharpRuntime\SafeUnmanagedMemoryHandle.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CppSharpRuntime\SymbolResolver.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CppSharpRuntime\UTF32Marshaller.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CppSharpRuntime\UTF8Marshaller.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CppSharpRuntime\VTables.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Custom.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PDFiumCore.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RenderFlags.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)StreamManager.cs" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="runtimes/**" PackagePath="runtimes" Visible="true" />
+    <Content Include="build/netstandard2.0/Pdf.Net.Desktop.targets" Pack="true" PackagePath="build/net45/" />
+  </ItemGroup>
+
+  <Import Project="..\Pdf.Net.Binding\Pdf.Net.Binding.projitems" Label="Shared" />
+
+</Project>
