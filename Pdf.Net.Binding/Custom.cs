@@ -3,28 +3,126 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Security;
 
+
 namespace PDFiumCore
 {
     /// <summary>
-    /// 从流读取
+    /// Flags:
+    /// 1 - Incremental
+    /// 2 - NoIncremental
+    /// 3 - RemoveSecurity.
     /// </summary>
-    public unsafe partial class fpdfview
+    internal class fpdfsave
     {
-        //外部调用
-        public static FpdfDocumentT FPDF_LoadCustomDocument(Stream stream, string password,int id)
+        [SuppressUnmanagedCodeSecurity]
+        [DllImport("pdfium", CallingConvention = CallingConvention.Cdecl, EntryPoint = "FPDF_SaveAsCopy")]
+        internal static extern int FPDF_SaveAsCopy(IntPtr document, FpdfStreamWriter pFileWrite, uint flags);
+
+        [SuppressUnmanagedCodeSecurity]
+        [DllImport("pdfium", CallingConvention = CallingConvention.Cdecl, EntryPoint = "FPDF_SaveWithVersion")]
+        private static extern int FPDF_SaveWithVersion(IntPtr document, FpdfStreamWriter pFileWrite, uint flags, int fileVersion);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        internal delegate bool StreamWriteHandler(IntPtr writerPtr, IntPtr data, int size);
+
+        [StructLayout(LayoutKind.Sequential)]
+        internal class FpdfStreamWriter
         {
-            var getBlock = _getBlockDelegate;
-            //https://github.com/pvginkel/PdfiumViewer/blob/master/PdfiumViewer/NativeMethods.Pdfium.cs
-            var access = new FPDF_FILEACCESS
+            public int version = 1;
+
+            [MarshalAs(UnmanagedType.FunctionPtr)]
+            public readonly StreamWriteHandler Handler;
+
+            public FpdfStreamWriter(StreamWriteHandler handler)
             {
-                MFileLen = (uint)stream.Length,
-                MGetBlock = getBlock,
-                MParam = (IntPtr)id
+                Handler = handler;
+            }
+        }
+
+        public static bool FPDF_SaveAsCopy(FpdfDocumentT document, Stream stream)
+        {
+            byte[] buffer = null;
+
+            var fileWrite = new FpdfStreamWriter((writerPtr, data, size) =>
+            {
+                if (buffer == null || buffer.Length < size)
+                {
+                    buffer = new byte[size];
+                }
+
+                Marshal.Copy(data, buffer, 0, size);
+
+                stream.Write(buffer, 0, size);
+
+                return true;
+            });
+
+            var result = FPDF_SaveAsCopy(document.__Instance, fileWrite, 3);
+
+            GC.KeepAlive(fileWrite);
+
+            return result == 1;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public class CustomFPDF_FILEWRITE
+        {
+            public int version;
+            public IntPtr WriteBlock;
+            public IntPtr stream;
+        }
+    }
+
+    /// <summary>
+    /// CHANGED,模仿PdfiumViewer项目从流读取
+    /// </summary>
+    public partial class fpdfview
+    {
+        public partial struct __Internal
+        {
+            [SuppressUnmanagedCodeSecurity]
+            [DllImport("pdfium", CallingConvention = CallingConvention.Cdecl,
+    EntryPoint = "FPDF_LoadCustomDocument")]
+            internal static extern IntPtr FPDF_LoadStreamDocument([MarshalAs(UnmanagedType.LPStruct)] CustomFPDF_FILEACCESS pFileAccess,
+    [MarshalAs(UnmanagedType.LPStr)] string password);
+        }
+
+        //外部调用
+        public static FpdfDocumentT FPDF_LoadDocument(Stream stream, string password,int id)
+        {
+            var getBlock = Marshal.GetFunctionPointerForDelegate(_getBlockDelegate);
+           var access = new CustomFPDF_FILEACCESS
+            {
+                m_FileLen = (uint)stream.Length,
+                m_GetBlock = getBlock,
+                m_Param = (IntPtr)id
             };
-            FpdfDocumentT __result0 = FPDF_LoadCustomDocument(access, password);
+            //var __arg0 = ReferenceEquals(pFileAccess, null) ? IntPtr.Zero : pFileAccess.__Instance;
+            var __ret = __Internal.FPDF_LoadStreamDocument(access, password);
+            FpdfDocumentT __result0;
+            if (__ret == IntPtr.Zero)
+                __result0 = null;
+            else if (FpdfDocumentT.NativeToManagedMap.ContainsKey(__ret))
+                __result0 = (FpdfDocumentT)FpdfDocumentT
+                    .NativeToManagedMap[__ret];
+            else
+                __result0 = FpdfDocumentT.__CreateInstance(__ret);
             return __result0;
         }
-        private static readonly unsafe Delegates.Func_int___IntPtr_uint_bytePtr_uint _getBlockDelegate = FPDF_GetBlock;
+
+        /// <summary>
+        /// CppSharp自动转换的不能读取文档
+        /// https://github.com/pvginkel/PdfiumViewer/blob/master/PdfiumViewer/NativeMethods.Pdfium.cs
+        /// </summary>
+        /// <param name="param"></param>
+        /// <param name="position"></param>
+        /// <param name="buffer"></param>
+        /// <param name="size"></param>
+        /// <returns></returns>
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate int FPDF_GetBlockDelegate(IntPtr param, uint position, IntPtr buffer, uint size);
+
+        private static readonly FPDF_GetBlockDelegate _getBlockDelegate = FPDF_GetBlock;
 
         /// <summary>
         /// CHANGED
@@ -34,7 +132,7 @@ namespace PDFiumCore
         /// <param name="buffer"></param>
         /// <param name="size"></param>
         /// <returns></returns>
-        public static unsafe int FPDF_GetBlock(IntPtr param, uint position, byte* buffer, uint size)
+        public static int FPDF_GetBlock(IntPtr param, uint position, IntPtr buffer, uint size)
         {
             var stream = StreamManager.Get((int)param);
             if (stream == null)
@@ -45,9 +143,21 @@ namespace PDFiumCore
             int read = stream.Read(managedBuffer, 0, (int)size);
             if (read != size)
                 return 0;
-            
-            Marshal.Copy(managedBuffer, 0, new IntPtr(buffer), (int)size);
+
+            Marshal.Copy(managedBuffer, 0, buffer, (int)size);
             return 1;
         }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public class CustomFPDF_FILEACCESS
+        {
+            public uint m_FileLen;
+            public IntPtr m_GetBlock;
+            public IntPtr m_Param;
+        }
+
     }
+
+
+   
 }

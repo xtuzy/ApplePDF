@@ -44,6 +44,7 @@ namespace Pdf.Net.Android.Test
             };
             Instance = this;
             LoadApplication(nunit);
+            //new TestClass().TestPdfiumBinding();
         }
     }
 }

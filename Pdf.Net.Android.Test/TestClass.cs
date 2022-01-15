@@ -27,9 +27,11 @@ namespace Pdf.Net.Android.Test
             fpdfview.FPDF_InitLibrary();
             //https://github.com/pvginkel/PdfiumViewer/blob/master/PdfiumViewer/PdfFile.cs
             var _id = StreamManager.Register(stream);
-            //var doc = fpdfview.FPDF_LoadCustomDocument(stream, null,_id);
-            //var count = fpdfview.FPDF_GetPageCount(doc);
-            //Assert.IsTrue(count > 0);
+            //var doc = Docnet.Core.Bindings.fpdf_view.FPDF_LoadCustomDocument(stream, null,_id);
+            var doc = fpdfview.FPDF_LoadDocument(stream, null,_id);
+
+            var count = fpdfview.FPDF_GetPageCount(doc);
+            Assert.IsTrue(count > 0);
         }
     }
 }
