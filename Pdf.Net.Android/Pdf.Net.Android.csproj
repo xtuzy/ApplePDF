@@ -17,8 +17,11 @@
     <AndroidResgenFile>Resources\Resource.designer.cs</AndroidResgenFile>
     <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
     <AndroidUseLatestPlatformSdk>false</AndroidUseLatestPlatformSdk>
-    <TargetFrameworkVersion>v12.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v11.0</TargetFrameworkVersion>
     <AndroidUseAapt2>true</AndroidUseAapt2>
+  </PropertyGroup>
+  <PropertyGroup>
+    <LangVersion>latestMajor</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -48,12 +51,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Class1.cs" />
     <Compile Include="Resources\Resource.designer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-<None Include="lib\arm64-v8a\libc++_chrome.cr.so" />
+    <None Include="lib\arm64-v8a\libc++_chrome.cr.so" />
     <EmbeddedNativeLibrary Include="lib\arm64-v8a\libchrome_zlib.cr.so">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedNativeLibrary>
@@ -103,10 +105,14 @@
     <EmbeddedNativeLibrary Include="lib\x86_64\libicuuc.cr.so">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedNativeLibrary>
-    
     <None Include="Resources\AboutResources.txt" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="StyleCop.Analyzers">
+      <Version>1.2.0-beta.376</Version>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
     <PackageReference Include="Xamarin.AndroidX.AppCompat" Version="1.2.0.5" />
   </ItemGroup>
   <ItemGroup>
@@ -115,7 +121,12 @@
   <ItemGroup>
     <Folder Include="Resources\drawable\" />
   </ItemGroup>
-  <Import Project="..\Pdf.Net.Binding\Pdf.Net.Binding.projitems" Label="Shared" />
+  <ItemGroup>
+    <ProjectReference Include="..\Pdf.Net\Pdf.Net.csproj">
+      <Project>{bc58ccce-aae9-4aec-8977-4db418235163}</Project>
+      <Name>Pdf.Net</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

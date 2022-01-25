@@ -6,6 +6,7 @@ using System.Security;
 
 namespace PDFiumCore
 {
+
     /// <summary>
     /// Flags:
     /// 1 - Incremental
@@ -80,6 +81,19 @@ namespace PDFiumCore
     {
         public partial struct __Internal
         {
+            /// <summary>
+            /// <para>Function: FPDF_LoadCustomDocument</para>
+            /// <para>Load PDF document from a custom access descriptor.</para>
+            /// <para>Parameters:</para>
+            /// <para>pFileAccess -   A structure for accessing the file.</para>
+            /// <para>password    -   Optional password for decrypting the PDF file.</para>
+            /// <para>Return value:</para>
+            /// <para>A handle to the loaded document, or NULL on failure.</para>
+            /// <para>Comments: The application must keep the file resources |pFileAccess| points to valid until the returned FPDF_DOCUMENT is closed. |pFileAccess| itself does not need to outlive the FPDF_DOCUMENT.</para>
+            /// <para>The loaded document can be closed with FPDF_CloseDocument().</para>
+            /// <para>See the comments for FPDF_LoadDocument() regarding the encoding for |password|.</para>
+            /// <para>Notes: If PDFium is built with the XFA module, the application should call FPDF_LoadXFA() function after the PDF document loaded to support XFA fields defined in the fpdfformfill.h file.</para>
+            /// </summary>
             [SuppressUnmanagedCodeSecurity]
             [DllImport("pdfium", CallingConvention = CallingConvention.Cdecl,
     EntryPoint = "FPDF_LoadCustomDocument")]
@@ -87,7 +101,7 @@ namespace PDFiumCore
     [MarshalAs(UnmanagedType.LPStr)] string password);
         }
 
-        //外部调用
+        
         public static FpdfDocumentT FPDF_LoadDocument(Stream stream, string password,int id)
         {
             var getBlock = Marshal.GetFunctionPointerForDelegate(_getBlockDelegate);
@@ -157,7 +171,4 @@ namespace PDFiumCore
         }
 
     }
-
-
-   
 }

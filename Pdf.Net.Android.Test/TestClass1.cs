@@ -1,20 +1,22 @@
 ﻿using NUnit.Framework;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Pdf.Net.iOS.Test
+namespace Pdf.Net.Android.Test
 {
     [TestFixture]
-    public class TestClass
+    public class TestClass1
     {
         [Test]
         public void TestMethod()
         {
             // TODO: Add your test code here
-            Assert.Pass("Your first passing test");
+            var answer = 42;
+            Assert.That(answer, Is.EqualTo(42), "Some useful error message");
         }
     }
 }

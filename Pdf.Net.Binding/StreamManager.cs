@@ -41,5 +41,7 @@ namespace PDFiumCore
                 return stream;
             }
         }
+
+
     }
 }

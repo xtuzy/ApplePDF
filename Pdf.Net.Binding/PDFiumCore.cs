@@ -3178,7 +3178,7 @@ namespace PDFiumCore
         /// <para>Prefer FPDF_GetPageHeightF() above. This will be deprecated in the</para>
         /// <para>future.</para>
         /// </summary>
-        public static double FPDF_GetPageHeight(global::PDFiumCore.FpdfPageT page)
+        public static double FPDF_GetPageHeighF(global::PDFiumCore.FpdfPageT page)
         {
             var __arg0 = page is null ? __IntPtr.Zero : page.__Instance;
             var __ret = __Internal.FPDF_GetPageHeight(__arg0);

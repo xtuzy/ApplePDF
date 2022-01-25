@@ -16,7 +16,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)CppSharpRuntime\UTF32Marshaller.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CppSharpRuntime\UTF8Marshaller.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CppSharpRuntime\VTables.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Custom.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CustomApi.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CustomEnums.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PDFiumCore.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RenderFlags.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)StreamManager.cs" />

@@ -1,0 +1,8 @@
+﻿<Application
+    x:Class="Pdf.Net.Desktop.Windows.App"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="clr-namespace:Pdf.Net.Desktop.Windows"
+    StartupUri="MainWindow.xaml">
+    <Application.Resources />
+</Application>
