@@ -120,6 +120,26 @@ namespace Pdf.Net.PdfKit
             return result;
         }
 
+        /// <summary>
+        /// get page size by not open page.
+        /// </summary>
+        /// <param name="pageIndex"></param>
+        /// <returns></returns>
+        public SizeF GetPageSize(int pageIndex)
+        {
+            var size = new FS_SIZEF_();
+            // var result = fpdfview.FPDF_GetPageSizeByIndex(Document, pageIndex, ref width, ref height);
+            var result = fpdfview.FPDF_GetPageSizeByIndexF(Document, pageIndex, size);
+            if (result == 0)
+            {
+                return new SizeF(0, 0);
+            }
+            else
+            {
+                return new SizeF(size.Width, size.Height);
+            }
+        }
+
 
         public PdfOutline OutlineRoot
         {

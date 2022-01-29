@@ -19,7 +19,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)CustomApi.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CustomEnums.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PDFiumCore.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)RenderFlags.cs" />
+    <Compile Include="..\Pdf.Net.Binding\RenderFlags_1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)StreamManager.cs" />
   </ItemGroup>
 </Project>

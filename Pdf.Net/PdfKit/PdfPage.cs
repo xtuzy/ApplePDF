@@ -372,7 +372,7 @@ namespace Pdf.Net.PdfKit
                         clipping.Bottom = 0;
                         clipping.Top = height;
 
-                        fpdfview.FPDF_RenderPageBitmapWithMatrix(bitmap, Page, matrix, clipping, (int)RenderFlags.RenderAnnotations);
+                        fpdfview.FPDF_RenderPageBitmapWithMatrix(bitmap, Page, matrix, clipping, renderFlag);
                     }
                 }
                 catch (Exception ex)

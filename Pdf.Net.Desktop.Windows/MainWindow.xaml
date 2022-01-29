@@ -5,9 +5,11 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:Pdf.Net.Desktop.Windows"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:ui="http://schemas.modernwpf.com/2019"
     Title="MainWindow"
     Width="800"
     Height="450"
+    ui:WindowHelper.UseModernWindowStyle="True"
     mc:Ignorable="d">
     <WrapPanel />
 </Window>

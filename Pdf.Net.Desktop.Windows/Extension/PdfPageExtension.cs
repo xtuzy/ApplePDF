@@ -96,7 +96,7 @@ namespace Pdf.Net.Desktop.Windows.Extension
             return bitmap;
         }
 
-        public static Bitmap RenderPageBySKBitmap(PdfPage page, float density = 2)
+        public static Bitmap RenderPageBySKBitmap(PdfPage page, float density = 2,int renderFlags=(int)RenderFlags.RenderAnnotations)
         {
             SKBitmap bmp;
 
@@ -108,7 +108,7 @@ namespace Pdf.Net.Desktop.Windows.Extension
             var info = new SKImageInfo(width, height, SKColorType.Bgra8888, SKAlphaType.Premul);
             bmp = new SKBitmap(info);
 
-            page.GetImage(bmp.GetPixels(), density, density, 0,(int) RenderFlags.RenderAnnotations);
+            page.GetImage(bmp.GetPixels(), density, density, 0,renderFlags);
 
             return bmp.ToBitmap();
         }

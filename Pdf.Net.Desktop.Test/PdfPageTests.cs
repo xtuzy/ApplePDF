@@ -5,7 +5,7 @@ using Pdf.Net.PdfKit;
 using NUnit.Framework;
 using PDFiumCore;
 
-namespace Docnet.Tests.Integration
+namespace Pdf.Net.Test
 {
     [TestFixture]
     public sealed class PdfPageTests
@@ -14,7 +14,7 @@ namespace Docnet.Tests.Integration
 
         public PdfPageTests()
         {
-          
+
         }
 
         private void ExecuteForDocument(string filePath, string password, int pageIndex, Action<PdfPage> action)
@@ -26,7 +26,7 @@ namespace Docnet.Tests.Integration
             }
         }
 
-      
+
         [Theory]
         public void PageIndex_WhenCalled_ShouldReturnCorrectIndex()
         {
@@ -225,15 +225,15 @@ namespace Docnet.Tests.Integration
         {
             ExecuteForDocument("Docs/annotation_0.pdf", null, 0, pageReader =>
            {
-                // verify pixel in center of image is the correct yellow color
-                var bytes = pageReader.GetImage(1, 1, (int)RenderFlags.RenderAnnotations).ToArray();
+               // verify pixel in center of image is the correct yellow color
+               var bytes = pageReader.GetImage(1, 1, (int)RenderFlags.RenderAnnotations).ToArray();
                const int bpp = 4;
                var center = bytes.Length / bpp / 2 * bpp; // note integer division by 2 here.  we're getting the first byte in the central pixel
-                Assert.AreEqual(133, bytes[center]); // Blue
-                Assert.AreEqual(244, bytes[center + 1]); // Green
-                Assert.AreEqual(252, bytes[center + 2]); // Red
-                Assert.AreEqual(255, bytes[center + 3]); // Alpha
-            });
+               Assert.AreEqual(133, bytes[center]); // Blue
+               Assert.AreEqual(244, bytes[center + 1]); // Green
+               Assert.AreEqual(252, bytes[center + 2]); // Red
+               Assert.AreEqual(255, bytes[center + 3]); // Alpha
+           });
         }
 
         [Test]
@@ -241,16 +241,16 @@ namespace Docnet.Tests.Integration
         {
             ExecuteForDocument("Docs/annotation_0.pdf", null, 0, pageReader =>
            {
-                // verify pixel in center of image is the correct gray color
-                var bytes = pageReader.GetImage(1, 1, (int)(RenderFlags.RenderAnnotations | RenderFlags.Grayscale)).ToArray();
+               // verify pixel in center of image is the correct gray color
+               var bytes = pageReader.GetImage(1, 1, (int)(RenderFlags.RenderAnnotations | RenderFlags.Grayscale)).ToArray();
                const int bpp = 4;
                var center = bytes.Length / bpp / 2 * bpp; // note integer division by 2 here. we're getting the first byte in the central pixel
-                Assert.AreEqual(234, bytes[center]); // Blue
-                Assert.AreEqual(234, bytes[center + 1]); // Green
-                Assert.AreEqual(234, bytes[center + 2]); // Red
-                Assert.AreEqual(255, bytes[center + 3]); // Alpha
+               Assert.AreEqual(234, bytes[center]); // Blue
+               Assert.AreEqual(234, bytes[center + 1]); // Green
+               Assert.AreEqual(234, bytes[center + 2]); // Red
+               Assert.AreEqual(255, bytes[center + 3]); // Alpha
 
-            });
+           });
         }
 
         private static int GetNonZeroByteCount(string filePath, Pdfium fixture)
@@ -273,6 +273,18 @@ namespace Docnet.Tests.Integration
                     return pageReader.GetImage(scale, scale, 0).Count(x => x != 0);
                 }
             }
+        }
+     
+        [TestCase("Docs/mytest_4_highlightannotation.pdf", 4)]
+        [TestCase("Docs/mytest_5_lineannotation.pdf", 5)]
+        [TestCase("Docs/mytest_4_textannotation.pdf", 4)]
+        public void Annotations_WhenCalled_ShouldGetCurrectAnnotationsCount(string filePath,int annotationsCount)
+        {
+            ExecuteForDocument(filePath, null, 0, pageReader =>
+            {
+                var annots = pageReader.Annotations;
+                Assert.AreEqual(annotationsCount, annots.Count);
+            });
         }
     }
 }

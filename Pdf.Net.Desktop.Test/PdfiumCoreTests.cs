@@ -26,8 +26,8 @@ namespace Pdf.Net.Test
 #endif
         }
 
-        [TestCase("Docs/XamarinBinding.pdf")]
-        public void TestFPDF_GetPageCount(string filePath)
+        [TestCase("Docs/mytest_10_pagecount.pdf",10)]
+        public void PdfiumCore_WhenCalled_ShouldGetCorrectPageCount(string filePath,int pageCount)
         {
             using (var stream = ReadPdf(filePath))
             {
@@ -38,7 +38,7 @@ namespace Pdf.Net.Test
                 var count = fpdfview.FPDF_GetPageCount(doc);
                 fpdfview.FPDF_CloseDocument(doc);
                 fpdfview.FPDF_DestroyLibrary();
-                Assert.AreEqual(10, count);
+                Assert.AreEqual(pageCount, count);
             }  
         }
     }
