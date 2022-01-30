@@ -7,12 +7,23 @@ namespace Pdf.Net.PdfKit.Annotation
 {
     public class PdfInkAnnotation : PdfAnnotation
     {
-        public PdfInkAnnotation(PdfPage page, PdfAnnotationSubtype type) : base(page, type)
+        public PdfInkAnnotation(PdfAnnotationSubtype type) : base(type)
         {
         }
 
-        internal PdfInkAnnotation(PdfPage page, int index) : base(page, index)
+        internal PdfInkAnnotation(PdfPage page,FpdfAnnotationT annotation, PdfAnnotationSubtype type, int index)
+            : base(page,annotation,type, index)
         {
+        }
+
+        internal override void AddToPage(PdfPage page)
+        {
+           base.AddToPage(page);
+        }
+
+        public void AddInkPoints()
+        {
+           
         }
     }
 }

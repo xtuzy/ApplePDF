@@ -276,8 +276,10 @@ namespace Pdf.Net.Test
         }
      
         [TestCase("Docs/mytest_4_highlightannotation.pdf", 4)]
-        [TestCase("Docs/mytest_5_lineannotation.pdf", 5)]
-        [TestCase("Docs/mytest_4_textannotation.pdf", 4)]
+        [TestCase("Docs/mytest_5_inkannotation.pdf", 5)]
+        [TestCase("Docs/mytest_4_freetextannotation.pdf", 4)]
+        [TestCase("Docs/mytest_4_rectangleannotation.pdf", 4)]
+        [TestCase("Docs/mytest_4_linkannotation.pdf", 4)]
         public void Annotations_WhenCalled_ShouldGetCurrectAnnotationsCount(string filePath,int annotationsCount)
         {
             ExecuteForDocument(filePath, null, 0, pageReader =>

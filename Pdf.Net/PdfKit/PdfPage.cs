@@ -6,12 +6,13 @@ namespace Pdf.Net.PdfKit
     using System.Diagnostics;
     using System.Drawing;
     using System.Runtime.InteropServices;
+    using Pdf.Net.PdfKit.Annotation;
     using PDFiumCore;
 
     public class PdfPage : IPdfPage, IDisposable
     {
         private static readonly object @lock = new object();
-        private PdfDocument doc;
+        public PdfDocument Document { get;private set; }
         private FpdfPageT page;
         private FpdfTextpageT textPage;
         private RectangleF bounds;
@@ -24,7 +25,7 @@ namespace Pdf.Net.PdfKit
         /// <param name="index">page index in doc</param>
         public PdfPage(PdfDocument doc, int index)
         {
-            this.doc = doc;
+            this.Document = doc;
             this.PageIndex = index;
             lock (@lock)
             {
@@ -52,9 +53,17 @@ namespace Pdf.Net.PdfKit
 
         public FpdfPageT Page => page;
 
-        public PdfRotate Rotation { get => (PdfRotate)fpdf_edit.FPDFPageGetRotation(Page); set => fpdf_edit.FPDFPageSetRotation(Page,(int)value); }
+        public PdfRotate Rotation { get => (PdfRotate)fpdf_edit.FPDFPageGetRotation(Page); set => fpdf_edit.FPDFPageSetRotation(Page, (int)value); }
 
         #region 注释
+
+        public int AnnotationCount
+        {
+            get
+            {
+                return fpdf_annot.FPDFPageGetAnnotCount(Page);
+            }
+        }
 
         public List<PdfAnnotation> Annotations
         {
@@ -62,9 +71,49 @@ namespace Pdf.Net.PdfKit
             {
                 var count = fpdf_annot.FPDFPageGetAnnotCount(Page);
                 List<PdfAnnotation> annotations = new List<PdfAnnotation>();
+
                 for (var index = 0; index < count; index++)
                 {
-                    annotations.Add(new PdfAnnotation(this, index));
+                    var annotation = fpdf_annot.FPDFPageGetAnnot(this.Page, index);
+                    var annotationType = (PdfAnnotationSubtype)fpdf_annot.FPDFAnnotGetSubtype(annotation);
+                    switch (annotationType)
+                    {
+                        case PdfAnnotationSubtype.Text:
+                            break;
+                        case PdfAnnotationSubtype.Link:
+                            annotations.Add(new PdfLinkAnnotation(this,annotation,annotationType,index));
+                            break;
+                        case PdfAnnotationSubtype.FreeText:
+                            annotations.Add(new PdfFreeTextAnnotation(this, annotation, annotationType, index));
+                            break;
+                        case PdfAnnotationSubtype.Line:
+                            annotations.Add(new PdfLineAnnotation(this, annotation, annotationType, index));
+                            break;
+                        case PdfAnnotationSubtype.Square:
+                            annotations.Add(new PdfSquareAnnotation(this, annotation, annotationType, index));
+                            break;
+                        case PdfAnnotationSubtype.Circle:
+                            annotations.Add(new PdfCircleAnnotation(this, annotation, annotationType, index));
+                            break;
+                        case PdfAnnotationSubtype.Highlight:
+                            annotations.Add(new PdfHighlightAnnotation(this, annotation, annotationType, index));
+                            break;
+                        case PdfAnnotationSubtype.Underline:
+                            annotations.Add(new PdfUnderlineAnnotation(this, annotation, annotationType, index));
+                            break;
+                        case PdfAnnotationSubtype.StrikeOut:
+                            break;
+                        case PdfAnnotationSubtype.Ink:
+                            annotations.Add(new PdfInkAnnotation(this, annotation, annotationType, index));
+                            break;
+                        case PdfAnnotationSubtype.Stamp:
+                            annotations.Add(new PdfStampAnnotation(this, annotation, annotationType, index));
+                            break;
+                        case PdfAnnotationSubtype.Popup:
+                            break;
+                        case PdfAnnotationSubtype.Widget:
+                            break;
+                    }
                 }
                 return annotations;
             }
@@ -72,12 +121,7 @@ namespace Pdf.Net.PdfKit
 
         public void AddAnnotation(PdfAnnotation annotation)
         {
-            if (annotation.Page != this)
-                throw new ArgumentException("Add Annotation to uncorrect page.");
-            var anno = fpdf_annot.FPDFPageCreateAnnot(this.Page, (int)annotation.AnnotationType);
-            annotation.Annotation = anno;
-            var index = fpdf_annot.FPDFPageGetAnnotIndex(Page, annotation.Annotation);
-            annotation.Index = index;
+            annotation.AddToPage(this);
             Annotations.Add(annotation);
         }
 
@@ -402,7 +446,7 @@ namespace Pdf.Net.PdfKit
                     fpdfview.FPDF_ClosePage(page);
                     page = null;
                 }
-                doc = null;
+                Document = null;
             }
         }
 

@@ -101,17 +101,22 @@ namespace Pdf.Net.PdfKit
             }
         }
         //TODO:find a way save big file by use small memory.
-        public void Save(PdfDocument doc,Stream stream)
+        public void Save(PdfDocument doc,Stream stream,PdfSaveFlag saveFlag=PdfSaveFlag.NoIncremental)
         {
             lock (@lock)
             {
-                var success = fpdfsave.FPDF_SaveAsCopy(doc.Document, stream);
-
+                var success = fpdfsave.FPDF_SaveAsCopy(doc.Document, stream,saveFlag);
+                
                 if (!success)
                 {
                     throw new Exception("failed to save the document");
                 }
             }
+        }
+
+        public void Save(PdfDocument doc,string filePath)
+        {
+            Save(doc, File.OpenWrite(filePath));
         }
 
         public void DestoryLibrary()

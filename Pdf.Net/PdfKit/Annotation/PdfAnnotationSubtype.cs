@@ -10,12 +10,18 @@ namespace Pdf.Net.PdfKit.Annotation
         Link=FPDF_AnnotationSubtype.FPDF_ANNOT_LINK,
         FreeText=FPDF_AnnotationSubtype.FPDF_ANNOT_FREETEXT,
         Line= FPDF_AnnotationSubtype.FPDF_ANNOT_LINE,
+        /// <summary>
+        /// 方形
+        /// </summary>
         Square=FPDF_AnnotationSubtype.FPDF_ANNOT_SQUARE,
         Circle=FPDF_AnnotationSubtype.FPDF_ANNOT_CIRCLE,
         Highlight=FPDF_AnnotationSubtype.FPDF_ANNOT_HIGHLIGHT,
         Underline=FPDF_AnnotationSubtype.FPDF_ANNOT_UNDERLINE,
         StrikeOut=FPDF_AnnotationSubtype.FPDF_ANNOT_STRIKEOUT,
         Ink=FPDF_AnnotationSubtype.FPDF_ANNOT_INK,
+        /// <summary>
+        /// 图章
+        /// </summary>
         Stamp=FPDF_AnnotationSubtype.FPDF_ANNOT_STAMP,
         Popup=FPDF_AnnotationSubtype.FPDF_ANNOT_POPUP,
         Widget=FPDF_AnnotationSubtype.FPDF_ANNOT_WIDGET,

@@ -82,4 +82,14 @@ namespace PDFiumCore
         Degree180 = 2,
         Degree270 = 3,
     }
+
+    /// <summary>
+    /// Pdf save flag
+    /// </summary>
+    public enum PdfSaveFlag
+    {
+        Incremental=1,
+        NoIncremental=2,
+        RemoveSecurity=3,
+    }
 }

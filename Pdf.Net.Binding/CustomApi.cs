@@ -15,6 +15,16 @@ namespace PDFiumCore
     /// </summary>
     internal class fpdfsave
     {
+        /// <summary>
+        /// <para>Function: FPDF_SaveAsCopy</para>
+        /// <para>Saves the copy of specified document in custom way.</para>
+        /// <para>Parameters:</para>
+        /// <para>document        -   Handle to document, as returned by FPDF_LoadDocument() or FPDF_CreateNewDocument().</para>
+        /// <para>pFileWrite      -   A pointer to a custom file write structure.</para>
+        /// <para>flags           -   The creating flags.</para>
+        /// <para>Return value:</para>
+        /// <para>TRUE for succeed, FALSE for failed.</para>
+        /// </summary>
         [SuppressUnmanagedCodeSecurity]
         [DllImport("pdfium", CallingConvention = CallingConvention.Cdecl, EntryPoint = "FPDF_SaveAsCopy")]
         internal static extern int FPDF_SaveAsCopy(IntPtr document, FpdfStreamWriter pFileWrite, uint flags);
@@ -40,7 +50,7 @@ namespace PDFiumCore
             }
         }
 
-        public static bool FPDF_SaveAsCopy(FpdfDocumentT document, Stream stream)
+        public static bool FPDF_SaveAsCopy(FpdfDocumentT document, Stream stream,PdfSaveFlag saveFlag=PdfSaveFlag.NoIncremental)
         {
             byte[] buffer = null;
 
@@ -58,7 +68,7 @@ namespace PDFiumCore
                 return true;
             });
 
-            var result = FPDF_SaveAsCopy(document.__Instance, fileWrite, 3);
+            var result = FPDF_SaveAsCopy(document.__Instance, fileWrite, (uint)saveFlag);
 
             GC.KeepAlive(fileWrite);
 
