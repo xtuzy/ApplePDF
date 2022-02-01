@@ -12,10 +12,10 @@ namespace Pdf.Net.PdfKit
     public class PdfPage : IPdfPage, IDisposable
     {
         private static readonly object @lock = new object();
-        public PdfDocument Document { get;private set; }
+        public PdfDocument Document { get; private set; }
         private FpdfPageT page;
         private FpdfTextpageT textPage;
-        private RectangleF bounds;
+        private SizeF size;
         public int PageIndex { private set; get; }
 
         /// <summary>
@@ -81,7 +81,7 @@ namespace Pdf.Net.PdfKit
                         case PdfAnnotationSubtype.Text:
                             break;
                         case PdfAnnotationSubtype.Link:
-                            annotations.Add(new PdfLinkAnnotation(this,annotation,annotationType,index));
+                            annotations.Add(new PdfLinkAnnotation(this, annotation, annotationType, index));
                             break;
                         case PdfAnnotationSubtype.FreeText:
                             annotations.Add(new PdfFreeTextAnnotation(this, annotation, annotationType, index));
@@ -161,18 +161,45 @@ namespace Pdf.Net.PdfKit
         /// </summary>
         /// <param name="box"></param>
         /// <returns></returns>
-        public RectangleF GetBoundsForBox(PdfDisplayBox box = PdfDisplayBox.Media)
+        public SizeF GetSize()
         {
             lock (@lock)
             {
-                if (bounds == default)
+                if (size == default)
                 {
                     var w = fpdfview.FPDF_GetPageWidthF(this.page);
                     var h = fpdfview.FPDF_GetPageHeightF(this.page);
-                    bounds = new RectangleF(0, 0, w, h);
+                    size = new SizeF( w, h);
                 }
-                return bounds;
+                return size;
             }
+        }
+
+        public RectangleF BoundsOfBox(PdfDisplayBox pdfDisplayBox)
+        {
+            float left = 0;
+            float top = 0;
+            float right = 0;
+            float bottom = 0;
+            switch (pdfDisplayBox)
+            {
+                case PdfDisplayBox.Media:
+                    fpdf_transformpage.FPDFPageGetMediaBox(Page, ref left, ref bottom, ref right, ref top);
+                    break;
+                case PdfDisplayBox.Crop:
+                    fpdf_transformpage.FPDFPageGetCropBox(Page, ref left, ref bottom, ref right, ref top);
+                    break;
+                case PdfDisplayBox.Bleed:
+                    fpdf_transformpage.FPDFPageGetBleedBox(Page,ref left, ref bottom, ref right, ref top);
+                    break;
+                case PdfDisplayBox.Trim:
+                    fpdf_transformpage.FPDFPageGetTrimBox(Page, ref left,ref bottom, ref right, ref top);
+                    break;
+                case PdfDisplayBox.Art:
+                    fpdf_transformpage.FPDFPageGetArtBox(Page, ref left,ref bottom, ref right, ref top);
+                    break;
+            }
+            return RectangleF.FromLTRB(left,top,right,bottom);
         }
 
         public RectangleF GetCharacterBounds(int index)
@@ -240,7 +267,7 @@ namespace Pdf.Net.PdfKit
         {
             lock (@lock)
             {
-                var bounds = GetBoundsForBox();
+                var bounds = GetSize();
                 var width = (int)bounds.Width;
                 var height = (int)bounds.Height;
 
@@ -325,7 +352,7 @@ namespace Pdf.Net.PdfKit
             lock (@lock)
             {
                 // Get Metrics
-                var bounds = GetBoundsForBox();
+                var bounds = GetSize();
                 int width = (int)(bounds.Width * xScale);
                 int height = (int)(bounds.Height * yScale);
                 var bitmap = fpdfview.FPDFBitmapCreate(width, height, 1);
@@ -385,7 +412,7 @@ namespace Pdf.Net.PdfKit
             lock (@lock)
             {
                 // Get Metrics
-                var bounds = GetBoundsForBox();
+                var bounds = GetSize();
                 int width = (int)(bounds.Width * xScale);
                 int height = (int)(bounds.Height * yScale);
                 var bitmap = fpdfview.FPDFBitmapCreateEx(width, height, (int)FPDFBitmapFormat.BGRA, imageBufferPointer, width * 4);

@@ -23,7 +23,7 @@ namespace Pdf.Net.Desktop.Windows.Extension
 
             //Skiasharp方法
             // pin the managed array so that the GC doesn't move it
-            var bounds = page.GetBoundsForBox();
+            var bounds = page.GetSize();
             var rawBytes = page.GetImage(density, density,(int)RenderFlags.RenderAnnotations);
             var gcHandle = GCHandle.Alloc(rawBytes, GCHandleType.Pinned);
             // install the pixels with the color type of the pixel data
@@ -37,7 +37,7 @@ namespace Pdf.Net.Desktop.Windows.Extension
 
         public static Bitmap RenderPageToBitmap(PdfPage page, float density = 2)
         {
-            var size = page.GetBoundsForBox();
+            var size = page.GetSize();
             return GetImage(page, size.Width, size.Height, density, density, 0, PDFiumCore.RenderFlags.RenderAnnotations);
         }
 
@@ -102,7 +102,7 @@ namespace Pdf.Net.Desktop.Windows.Extension
 
             //Skiasharp方法
             // pin the managed array so that the GC doesn't move it
-            var bounds = page.GetBoundsForBox();
+            var bounds = page.GetSize();
             int width = (int)(bounds.Width * density);
             int height = (int)(bounds.Height * density);
             var info = new SKImageInfo(width, height, SKColorType.Bgra8888, SKAlphaType.Premul);

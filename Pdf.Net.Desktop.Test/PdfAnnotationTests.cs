@@ -83,9 +83,9 @@ namespace Pdf.Net.Test
                 var annots = pageReader.Annotations;
                 Assert.AreEqual(0,annots.Count);
                 var annot = new PdfHighlightAnnotation(PdfAnnotationSubtype.Highlight);
-                var bounds = pageReader.GetBoundsForBox();
-                var annotSize = new SizeF(100, 30);
-                annot.Position = new RectangleF(bounds.Width/2-annotSize.Width/2, bounds.Height-10-annotSize.Height/2, annotSize.Width, annotSize.Height);
+                var bounds = pageReader.GetSize();
+                var annotSize = new SizeF(100, 100);
+                annot.Position = new RectangleF(bounds.Width/2-annotSize.Width/2, bounds.Height-50-annotSize.Height/2, annotSize.Width, annotSize.Height);
                 annot.Color = Color.Cyan;
                 pageReader.AddAnnotation(annot);
                 annot.AppendAnnotationPoint(annot.Position);

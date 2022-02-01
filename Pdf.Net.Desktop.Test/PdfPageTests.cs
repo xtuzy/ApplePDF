@@ -201,7 +201,7 @@ namespace Pdf.Net.Test
         {
             ExecuteForDocument(filePath, password, 0, (Action<PdfPage>)(pageReader =>
            {
-               var rect = pageReader.GetBoundsForBox();
+               var rect = pageReader.GetSize();
                var width = rect.Width * scaling;
                var height = rect.Height * scaling;
 
@@ -261,7 +261,7 @@ namespace Pdf.Net.Test
             {
                 using (var pageReader = reader.GetPage(0))
                 {
-                    var rect = pageReader.GetBoundsForBox();
+                    var rect = pageReader.GetSize();
                     var width = rect.Width;
                     var height = rect.Height;
 

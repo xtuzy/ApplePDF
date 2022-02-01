@@ -22,7 +22,7 @@ namespace Pdf.Net.PdfKit
         //NSObject Copy(NSZone? zone);
         //void Draw(PdfDisplayBox box, CGContext context);
         PdfAnnotation? GetAnnotations(Point point);
-        RectangleF GetBoundsForBox(PdfDisplayBox box);
+        SizeF GetSize();
         RectangleF GetCharacterBounds(int index);
         int GetCharacterIndex(Point point);
         PdfSelection? GetSelection(Point startPoint, Point endPoint);

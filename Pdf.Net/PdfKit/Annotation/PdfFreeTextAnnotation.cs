@@ -15,6 +15,9 @@ namespace Pdf.Net.PdfKit.Annotation
         {
         }
 
+        public string Text { get; set; }
+
+
         internal override void AddToPage(PdfPage page)
         {
             base.AddToPage(page);
