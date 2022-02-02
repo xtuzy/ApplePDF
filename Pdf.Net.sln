@@ -21,6 +21,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Pdf.Net.Desktop.Windows", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Pdf.Net", "Pdf.Net\Pdf.Net.csproj", "{BC58CCCE-AAE9-4AEC-8977-4DB418235163}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{1E446887-593F-44EA-8F13-A7E67E145A6A}"
+	ProjectSection(SolutionItems) = preProject
+		reference\fpdf_annot_embeddertest.cpp = reference\fpdf_annot_embeddertest.cpp
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		Pdf.Net.Binding\Pdf.Net.Binding.projitems*{134f745b-3a99-40d3-9bbf-7614cf994aa9}*SharedItemsImports = 13

@@ -43,7 +43,7 @@ namespace PDFiumCore
     /// <summary>
     /// https://github.com/chromium/pdfium/blob/3e36f68831431bf497babc74075cd69af5fd9823/public/fpdf_annot.h#L24
     /// </summary>
-    public  enum  FPDF_AnnotationSubtype
+    public enum FPDF_AnnotationSubtype
     {
         FPDF_ANNOT_UNKNOWN = 0,
         FPDF_ANNOT_TEXT = 1,
@@ -88,8 +88,19 @@ namespace PDFiumCore
     /// </summary>
     public enum PdfSaveFlag
     {
-        Incremental=1,
-        NoIncremental=2,
-        RemoveSecurity=3,
+        Incremental = 1,
+        NoIncremental = 2,
+        RemoveSecurity = 3,
+    }
+
+    public enum PdfPageObjectFlag
+    {
+        // The page object constants.
+        UNKNOWN = 0,
+        TEXT = 1,
+        PATH = 2,
+        IMAGE = 3,
+        SHADING = 4,
+        FORM = 5,
     }
 }

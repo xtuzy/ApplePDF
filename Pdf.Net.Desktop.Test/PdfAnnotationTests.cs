@@ -31,7 +31,7 @@ namespace Pdf.Net.Test
         [TestCase("Docs/mytest_4_freetextannotation.pdf", PdfAnnotationSubtype.FreeText)]
         [TestCase("Docs/mytest_4_rectangleannotation.pdf", PdfAnnotationSubtype.Square)]
         [TestCase("Docs/mytest_4_linkannotation.pdf", PdfAnnotationSubtype.Link)]
-        public void Type_WhenCalled_ShouldGetCorrectAnnotationType(string filePath,PdfAnnotationSubtype type)
+        public void Type_WhenCalled_ShouldGetCorrectAnnotationType(string filePath, PdfAnnotationSubtype type)
         {
             ExecuteForDocument(filePath, null, 0, pageReader =>
             {
@@ -46,16 +46,52 @@ namespace Pdf.Net.Test
         [TestCase("Docs/mytest_4_freetextannotation.pdf", PdfAnnotationSubtype.FreeText)]
         [TestCase("Docs/mytest_4_rectangleannotation.pdf", PdfAnnotationSubtype.Square)]
         [TestCase("Docs/mytest_4_linkannotation.pdf", PdfAnnotationSubtype.Link)]
-        public void Color_WhenCalled_ShouldGetAnnotationColor(string filePath, PdfAnnotationSubtype type)
+        [TestCase("Result.pdf", PdfAnnotationSubtype.Highlight)]
+        public void AnnotColor_WhenCalled_ShouldNotAllCasePass(string filePath, PdfAnnotationSubtype type)
         {
             ExecuteForDocument(filePath, null, 0, pageReader =>
             {
                 var annots = pageReader.Annotations;
                 var annot = annots[0];
-               // Assert.Positive(annot.Color.A);
-                Assert.Positive(annot.Color.R);
-                Assert.Positive(annot.Color.G);
-                Assert.Positive(annot.Color.B);
+                Assert.IsTrue(
+                    annot.AnnotColor.Value.A>0 ||annot.AnnotColor.Value.R>0 || annot.AnnotColor.Value.G>0 || annot.AnnotColor.Value.B>0
+                    );
+            });
+        }
+
+        [TestCase("Docs/mytest_4_highlightannotation.pdf", PdfAnnotationSubtype.Highlight)]
+        [TestCase("Docs/mytest_5_inkannotation.pdf", PdfAnnotationSubtype.Ink)]
+        [TestCase("Docs/mytest_4_freetextannotation.pdf", PdfAnnotationSubtype.FreeText)]
+        [TestCase("Docs/mytest_4_rectangleannotation.pdf", PdfAnnotationSubtype.Square)]
+        [TestCase("Docs/mytest_4_linkannotation.pdf", PdfAnnotationSubtype.Link)]
+        [TestCase("Result.pdf", PdfAnnotationSubtype.Highlight)]
+        public void FillColor_WhenCalled_ShouldNotAllCasePass(string filePath, PdfAnnotationSubtype type)
+        {
+            ExecuteForDocument(filePath, null, 0, pageReader =>
+            {
+                var annots = pageReader.Annotations;
+                var annot = annots[0];
+                Assert.IsTrue(
+                    annot.FillColor.Value.A > 0 || annot.FillColor.Value.R > 0 || annot.FillColor.Value.G > 0 || annot.FillColor.Value.B > 0
+                    );
+            });
+        }
+
+        [TestCase("Docs/mytest_4_highlightannotation.pdf", PdfAnnotationSubtype.Highlight)]
+        [TestCase("Docs/mytest_5_inkannotation.pdf", PdfAnnotationSubtype.Ink)]
+        [TestCase("Docs/mytest_4_freetextannotation.pdf", PdfAnnotationSubtype.FreeText)]
+        [TestCase("Docs/mytest_4_rectangleannotation.pdf", PdfAnnotationSubtype.Square)]
+        [TestCase("Docs/mytest_4_linkannotation.pdf", PdfAnnotationSubtype.Link)]
+        [TestCase("Result.pdf", PdfAnnotationSubtype.Highlight)]
+        public void StrokeColor_WhenCalled_ShouldNotAllCasePass(string filePath, PdfAnnotationSubtype type)
+        {
+            ExecuteForDocument(filePath, null, 0, pageReader =>
+            {
+                var annots = pageReader.Annotations;
+                var annot = annots[0];
+                Assert.IsTrue(
+                    annot.StrokeColor.Value.A > 0 || annot.StrokeColor.Value.R > 0 || annot.StrokeColor.Value.G > 0 || annot.StrokeColor.Value.B > 0
+                    );
             });
         }
 
@@ -81,19 +117,58 @@ namespace Pdf.Net.Test
             ExecuteForDocument(filePath, null, 0, pageReader =>
             {
                 var annots = pageReader.Annotations;
-                Assert.AreEqual(0,annots.Count);
+                Assert.AreEqual(0, annots.Count);
                 var annot = new PdfHighlightAnnotation(PdfAnnotationSubtype.Highlight);
                 var bounds = pageReader.GetSize();
                 var annotSize = new SizeF(100, 100);
-                annot.Position = new RectangleF(bounds.Width/2-annotSize.Width/2, bounds.Height-50-annotSize.Height/2, annotSize.Width, annotSize.Height);
-                annot.Color = Color.Cyan;
+                annot.Position = new RectangleF(bounds.Width / 2 - annotSize.Width / 2, bounds.Height - 50 - annotSize.Height / 2, annotSize.Width, annotSize.Height);
+                //annot.Color = Color.Cyan;
                 pageReader.AddAnnotation(annot);
                 annot.AppendAnnotationPoint(annot.Position);
                 annot.Dispose();
                 Pdfium.Instance.Save(pageReader.Document, "Result.pdf");
                 Debug.WriteLine(pageReader.AnnotationCount);
-                Assert.Less(0,pageReader.AnnotationCount);
+                Assert.Less(0, pageReader.AnnotationCount);
             });
         }
+
+        #region FreeText
+
+        [TestCase("Docs/mytest_4_freetextannotation.pdf", PdfAnnotationSubtype.FreeText)]
+        public void GetText_WhenCalled_ShouldGetText(string filePath, PdfAnnotationSubtype type)
+        {
+            ExecuteForDocument(filePath, null, 0, pageReader =>
+            {
+                var annots = pageReader.Annotations;
+                foreach (var annot in annots)
+                {
+                    Assert.IsTrue(annot is PdfFreeTextAnnotation);
+                    Assert.IsNotEmpty((annot as PdfFreeTextAnnotation).Text);
+                    Debug.WriteLine((annot as PdfFreeTextAnnotation).Text);
+                }
+            });
+        }
+
+        [TestCase("Docs/mytest_edit_annotation.pdf", PdfAnnotationSubtype.Link)]
+        public void SetText_WhenCalled_ShouldShowTextAnnotation(string filePath, PdfAnnotationSubtype type)
+        {
+            ExecuteForDocument(filePath, null, 0, pageReader =>
+            {
+                var annots = pageReader.Annotations;
+                Assert.AreEqual(0, annots.Count);
+                var annot = new PdfFreeTextAnnotation(PdfAnnotationSubtype.FreeText);
+                var bounds = pageReader.GetSize();
+                var annotSize = new SizeF(100, 100);
+                annot.Position = new RectangleF(bounds.Width / 2 - annotSize.Width / 2, bounds.Height - 50 - annotSize.Height / 2, annotSize.Width, annotSize.Height);
+                annot.AnnotColor = Color.Red;
+                annot.Text = "This is a free tect annot";
+                pageReader.AddAnnotation(annot);
+                annot.Dispose();
+                Pdfium.Instance.Save(pageReader.Document, "Result.pdf");
+                Debug.WriteLine(pageReader.AnnotationCount);
+                Assert.Less(0, pageReader.AnnotationCount);
+            });
+        }
+        #endregion
     }
 }
