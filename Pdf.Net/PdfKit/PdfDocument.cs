@@ -95,31 +95,6 @@ namespace Pdf.Net.PdfKit
 
         public int MinorVersion => throw new NotImplementedException();
 
-        private void LoadBookmarks(List<PdfOutline> bookmarks, FpdfBookmarkT bookmark)
-        {
-            if (bookmark == null)
-                return;
-
-            bookmarks.Add(LoadBookmark(bookmark));
-            while ((bookmark = fpdf_doc.FPDFBookmarkGetNextSibling(Document, bookmark)) != null)
-                bookmarks.Add(LoadBookmark(bookmark));
-        }
-
-        private PdfOutline LoadBookmark(FpdfBookmarkT bookmark)
-        {
-            var result = new PdfOutline(this, bookmark);
-
-            //Action = NativeMethods.FPDF_BookmarkGetAction(_bookmark);
-            //if (Action != IntPtr.Zero)
-            //    ActionType = NativeMethods.FPDF_ActionGetType(Action);
-
-            var child = fpdf_doc.FPDFBookmarkGetFirstChild(Document, bookmark);
-            if (child != null)
-                LoadBookmarks(result.Children, child);
-
-            return result;
-        }
-
         /// <summary>
         /// get page size by not open page.
         /// </summary>
@@ -149,8 +124,12 @@ namespace Pdf.Net.PdfKit
                 {
                     if (outlineRoot == null)
                     {
-                        outlineRoot = new PdfOutline(this, fpdf_doc.FPDFBookmarkGetFirstChild(this.Document, null));
-                        LoadBookmarks(outlineRoot.Children, outlineRoot.Outline);
+                       var bookmark = fpdf_doc.FPDFBookmarkGetFirstChild(this.Document, null);
+                        if (bookmark != null)
+                        {
+                            outlineRoot = new PdfOutline(this,bookmark);
+                            outlineRoot.LoadChildren();
+                        }
                     }
 
                     return outlineRoot;

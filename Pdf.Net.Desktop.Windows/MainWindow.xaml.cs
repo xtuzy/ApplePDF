@@ -11,6 +11,7 @@ using System.Drawing;
 using System.Diagnostics;
 using SharpConstraintLayout.Wpf;
 using PDFiumCore;
+using System.Collections.Generic;
 
 namespace Pdf.Net.Desktop.Windows
 {
@@ -27,13 +28,34 @@ namespace Pdf.Net.Desktop.Windows
         private Label PageCountLable;
         private Label PageScaleLable;
         private TextBox PageScaleTextBox;
+        private TreeView DocTreeView;
         private ScrollViewer PageScrollViewer;
         private System.Windows.Controls.Image PageImage;
-
+        string englishdoc = @"H:\Download\Android UI Design by Jessica Thornsby (z-lib.org).pdf";
+        string nobookmarkdoc = @"H:\Download\深度学习-李宏毅-Chinese-已转档.pdf";
+        string imagedoc = @"J:\学习书籍\7年制度临床医学专业本科教材\病理学（第8版）.pdf";
         public MainWindow()
         {
             InitializeComponent();
-            doc = Pdfium.Instance.LoadPdfDocument("XamarinBinding.pdf", null);
+            var stream = File.OpenRead(englishdoc);
+            doc = Pdfium.Instance.LoadPdfDocument(stream, null);
+            var rootBookmark = doc.OutlineRoot;
+            List<string> bookmarks = new List<string>();
+            if (rootBookmark != null)
+            {
+                Debug.WriteLine(rootBookmark.Label);
+                bookmarks.Add(rootBookmark.Label);
+                foreach (var child in rootBookmark.Children)
+                {
+                    Debug.WriteLine(child.Label);
+                    bookmarks.Add(child.Label);
+                    foreach (var child2 in child.Children)
+                    {
+                        Debug.WriteLine(child2.Label);
+                        bookmarks.Add(child2.Label);
+                    }
+                }
+            }
 
             WindowPage = new ConstraintLayout() { Background = new SolidColorBrush(Colors.DarkGray) };
             Content = WindowPage;
@@ -44,6 +66,7 @@ namespace Pdf.Net.Desktop.Windows
             PageCountLable = new Label() { Content = $"总页数:{doc.PageCount}" };
             PageScaleLable = new Label() { Content = "放大倍数" };
             PageScaleTextBox = new TextBox() { Text = "1" };
+            DocTreeView = new TreeView();
             PageScrollViewer = new ScrollViewer() { Background = new SolidColorBrush(Colors.AliceBlue), HorizontalScrollBarVisibility = ScrollBarVisibility.Auto };
             PageImage = new System.Windows.Controls.Image() { Stretch = Stretch.None };
 
@@ -53,17 +76,26 @@ namespace Pdf.Net.Desktop.Windows
             WindowPage.Children.Add(PageCountLable);
             WindowPage.Children.Add(PageScaleLable);
             WindowPage.Children.Add(PageScaleTextBox);
+            WindowPage.Children.Add(DocTreeView);
             WindowPage.Children.Add(PageScrollViewer);
 
             ShowPdfButton.LeftToLeft(WindowPage, 20).TopToTop(WindowPage, 20);
             PageIndexLable.LeftToRight(ShowPdfButton, 20).BaselineToBaseline(ShowPdfButton);
             PageIndexTextBox.LeftToRight(PageIndexLable, 20).BaselineToBaseline(PageIndexLable);
             PageCountLable.LeftToRight(PageIndexTextBox, 20).BaselineToBaseline(PageIndexTextBox);
-            PageScaleLable.LeftToRight(PageCountLable,20).BaselineToBaseline(PageCountLable);
-            PageScaleTextBox.LeftToRight(PageScaleLable,20).BaselineToBaseline(PageScaleLable);
-            PageScrollViewer.LeftToLeft(WindowPage, 20).RightToRight(WindowPage, 20).TopToBottom(ShowPdfButton, 20).BottomToBottom(WindowPage, 20).HeightEqualTo(ConstraintSet.SizeType.MatchConstraint);
+            PageScaleLable.LeftToRight(PageCountLable, 20).BaselineToBaseline(PageCountLable);
+            PageScaleTextBox.LeftToRight(PageScaleLable, 20).BaselineToBaseline(PageScaleLable);
+            DocTreeView.LeftToLeft(ShowPdfButton).TopToBottom(ShowPdfButton,20).WidthEqualTo(200);
+            PageScrollViewer
+                .LeftToRight(DocTreeView, 20)
+                .RightToRight(WindowPage, 20)
+                .TopToBottom(ShowPdfButton, 20)
+                .BottomToBottom(WindowPage, 20)
+                .WidthEqualTo(ConstraintSet.SizeType.MatchConstraint)
+                .HeightEqualTo(ConstraintSet.SizeType.MatchConstraint);
 
             PageScrollViewer.Content = PageImage;
+            DocTreeView.ItemsSource = bookmarks;
 
             ShowPdfButton.Click += ShowPdfButton_Click;
         }
@@ -88,15 +120,18 @@ namespace Pdf.Net.Desktop.Windows
             }
         }
 
+        Bitmap img;
         private void ShowPdfButton_Click(object sender, RoutedEventArgs e)
         {
+            if (img != null)
+                img.Dispose();
             var index = int.Parse(PageIndexTextBox.Text);
-            var scale = int.Parse(PageScaleTextBox.Text);
+            var scale = float.Parse(PageScaleTextBox.Text);
             var density = DeviceDisplay.MainDisplayInfo.Density;
 
             //var img = RenderPageExtension.RenderPageToPdfNativeBitmap(doc,index, (float)DeviceDisplay.MainDisplayInfo.Density*2f);
             //var img = RenderPageExtension.RenderPageToBitmap(doc, index, (float)DeviceDisplay.MainDisplayInfo.Density*2);
-            var img = PdfPageExtension.RenderPageBySKBitmap(doc.GetPage(index), scale,
+            img = PdfPageExtension.RenderPageBySKBitmap(doc.GetPage(index), scale,
                 // (int)(RenderFlags.OptimizeTextForLcd|RenderFlags.RenderAnnotations|RenderFlags.DisableTextAntialiasing|RenderFlags.DisableImageAntialiasing)
                 (int)(RenderFlags.OptimizeTextForLcd | RenderFlags.RenderAnnotations | RenderFlags.RenderForPrinting)
                 );
@@ -104,6 +139,7 @@ namespace Pdf.Net.Desktop.Windows
             var bitmapImage = BitmapToBitmapImage(img);
             Debug.WriteLine($"BitmapImage(Dp:{bitmapImage.Width},{bitmapImage.Height};Pixel:{bitmapImage.PixelWidth},{bitmapImage.PixelHeight};{bitmapImage.DpiX})");
             PageImage.Source = bitmapImage;
+            WindowPage.UpdateLayout();
         }
     }
 }

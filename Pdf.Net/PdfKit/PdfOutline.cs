@@ -49,7 +49,37 @@ namespace Pdf.Net.PdfKit
                 result = result.Substring(0, result.Length - 1);
             return result;
         }
-      
+
+        internal void LoadChildren()
+        {
+            LoadChildrenBookmarks(Children,Outline);
+        }
+
+        private void LoadChildrenBookmarks(List<PdfOutline> bookmarks, FpdfBookmarkT bookmark)
+        {
+            if (bookmark == null)
+                return;
+
+            bookmarks.Add(LoadBookmark(bookmark));
+            while ((bookmark = fpdf_doc.FPDFBookmarkGetNextSibling(Document.Document, bookmark)) != null)
+                bookmarks.Add(LoadBookmark(bookmark));
+        }
+
+        private PdfOutline LoadBookmark(FpdfBookmarkT bookmark)
+        {
+            var result = new PdfOutline(Document, bookmark);
+
+            //Action = NativeMethods.FPDF_BookmarkGetAction(_bookmark);
+            //if (Action != IntPtr.Zero)
+            //    ActionType = NativeMethods.FPDF_ActionGetType(Action);
+
+            var child = fpdf_doc.FPDFBookmarkGetFirstChild(Document.Document, bookmark);
+            if (child != null)
+                LoadChildrenBookmarks(result.Children, child);
+
+            return result;
+        }
+
         public PdfAction Action
         {
             get
@@ -76,8 +106,10 @@ namespace Pdf.Net.PdfKit
 
         public PdfDocument Document => document;
 
+        [Obsolete]
         public int Index => throw new NotImplementedException();
 
+        [Obsolete]
         public bool IsOpen { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
         public string Label
@@ -91,6 +123,7 @@ namespace Pdf.Net.PdfKit
             set => throw new NotImplementedException();
         }
 
+        [Obsolete]
         public PdfOutline Parent => throw new NotImplementedException();
 
         public PdfOutline Child(int index)

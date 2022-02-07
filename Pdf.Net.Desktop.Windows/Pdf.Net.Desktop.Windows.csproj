@@ -19,10 +19,4 @@
     <ProjectReference Include="..\Pdf.Net.Desktop\Pdf.Net.Desktop.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <None Update="XamarinBinding.pdf">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-
 </Project>
