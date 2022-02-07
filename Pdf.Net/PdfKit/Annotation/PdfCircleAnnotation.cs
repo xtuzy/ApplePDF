@@ -13,6 +13,7 @@ namespace Pdf.Net.PdfKit.Annotation
 
         internal PdfCircleAnnotation(PdfPage page,FpdfAnnotationT annotation, PdfAnnotationSubtype type, int index) : base(page,annotation,type, index)
         {
+            
         }
 
         internal override void AddToPage(PdfPage page)

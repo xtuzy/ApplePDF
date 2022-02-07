@@ -6,24 +6,32 @@ namespace Pdf.Net.PdfKit.Annotation
     /// </summary>
     public enum PdfAnnotationSubtype
     {
-        Text=FPDF_AnnotationSubtype.FPDF_ANNOT_TEXT,
-        Link=FPDF_AnnotationSubtype.FPDF_ANNOT_LINK,
-        FreeText=FPDF_AnnotationSubtype.FPDF_ANNOT_FREETEXT,
-        Line= FPDF_AnnotationSubtype.FPDF_ANNOT_LINE,
+        Text= PDFiumCore.FPDFAnnotationSubtype.TEXT,
+        Link= PDFiumCore.FPDFAnnotationSubtype.LINK,
+        FreeText= PDFiumCore.FPDFAnnotationSubtype.FREETEXT,
+        Line= PDFiumCore.FPDFAnnotationSubtype.LINE,
         /// <summary>
         /// 方形
         /// </summary>
-        Square=FPDF_AnnotationSubtype.FPDF_ANNOT_SQUARE,
-        Circle=FPDF_AnnotationSubtype.FPDF_ANNOT_CIRCLE,
-        Highlight=FPDF_AnnotationSubtype.FPDF_ANNOT_HIGHLIGHT,
-        Underline=FPDF_AnnotationSubtype.FPDF_ANNOT_UNDERLINE,
-        StrikeOut=FPDF_AnnotationSubtype.FPDF_ANNOT_STRIKEOUT,
-        Ink=FPDF_AnnotationSubtype.FPDF_ANNOT_INK,
+        Square= PDFiumCore.FPDFAnnotationSubtype.SQUARE,
+        Circle= PDFiumCore.FPDFAnnotationSubtype.CIRCLE,
+        Highlight= PDFiumCore.FPDFAnnotationSubtype.HIGHLIGHT,
+        Underline= PDFiumCore.FPDFAnnotationSubtype.UNDERLINE,
+        StrikeOut= PDFiumCore.FPDFAnnotationSubtype.STRIKEOUT,
+        Ink= PDFiumCore.FPDFAnnotationSubtype.INK,
         /// <summary>
         /// 图章
         /// </summary>
-        Stamp=FPDF_AnnotationSubtype.FPDF_ANNOT_STAMP,
-        Popup=FPDF_AnnotationSubtype.FPDF_ANNOT_POPUP,
-        Widget=FPDF_AnnotationSubtype.FPDF_ANNOT_WIDGET,
+        Stamp= PDFiumCore.FPDFAnnotationSubtype.STAMP,
+        Popup= PDFiumCore.FPDFAnnotationSubtype.FPDF_ANNOT_POPUP,
+        Widget= PDFiumCore.FPDFAnnotationSubtype.FPDF_ANNOT_WIDGET,
+        /// <summary>
+        /// 多边形
+        /// </summary>
+        Polygon = PDFiumCore.FPDFAnnotationSubtype.POLYGON,
+        /// <summary>
+        /// 折线
+        /// </summary>
+        Polyline = PDFiumCore.FPDFAnnotationSubtype.PDPOLYLINE
     }
 }

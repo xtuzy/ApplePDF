@@ -38,32 +38,13 @@ namespace Pdf.Net.PdfKit
             else
                 Debug.WriteLine("Get Annotation Color fail.");
 
-            //颜色
-            var objectCount = fpdf_annot.FPDFAnnotGetObjectCount(Annotation);
-            if (objectCount > 0)
-            {
-                var o = fpdf_annot.FPDFAnnotGetObject(Annotation, 0);
-                if (o != null)
-                {
-                    var objectType = fpdf_edit.FPDFPageObjGetType(o);
-                    success = fpdf_edit.FPDFPageObjGetFillColor(o, ref R, ref G, ref B, ref A) == 1;
-                    if (success)
-                        FillColor = System.Drawing.Color.FromArgb((int)A, (int)R, (int)G, (int)B);
-                    else
-                        Debug.WriteLine("No fill color");
-                    success = fpdf_edit.FPDFPageObjGetStrokeColor(o, ref R, ref G, ref B, ref A) == 1;
-
-                    if (success)
-                        StrokeColor = System.Drawing.Color.FromArgb((int)A, (int)R, (int)G, (int)B);
-                    else
-                        Debug.WriteLine("No stroke color");
-                }
-            }
             // 位置
             var position = new FS_RECTF_();
             success = fpdf_annot.FPDFAnnotGetRect(Annotation, position) == 1;
-            if (!success) Debug.WriteLine("Get Annotation Position fail.");
-            Position = new RectangleF(position.Left, position.Top, position.Right - position.Left, position.Top - position.Bottom);
+            if (success)
+                AnnotBox = new RectangleF(position.Left, position.Top, position.Right - position.Left, position.Top - position.Bottom);
+            else
+                Debug.WriteLine("Get Annotation Position fail.");
         }
 
         public PdfAnnotation(PdfAnnotationSubtype type)
@@ -80,14 +61,20 @@ namespace Pdf.Net.PdfKit
         /// Default color is yellow.
         /// </summary>
         public Color? AnnotColor { get; set; }
-        public RectangleF Position { get; set; }
+
+        /// <summary>
+        /// The annot 's edge box?
+        /// I don't know the different of AnnotBox and Annot Points,maybe add point will auto update box?
+        /// </summary>
+        public RectangleF AnnotBox { get; set; }
+
         #endregion 用户设置
         internal virtual void AddToPage(PdfPage page)
         {
             this.Page = page;
-            //创建注释，并将注释的属性都添加到页面
-            var anno = fpdf_annot.FPDFPageCreateAnnot(page.Page, (int)this.AnnotationType);
-            this.Annotation = anno;
+            //创建注释
+            var annot = fpdf_annot.FPDFPageCreateAnnot(page.Page, (int)this.AnnotationType);
+            this.Annotation = annot;
             var index = fpdf_annot.FPDFPageGetAnnotIndex(page.Page, this.Annotation);
             this.Index = index;
             bool success = false;
@@ -100,10 +87,10 @@ namespace Pdf.Net.PdfKit
             //位置
             fpdf_annot.FPDFAnnotSetRect(Annotation, new FS_RECTF_()
             {
-                Left = Position.Left,
-                Top = Position.Top,
-                Right = Position.Right,
-                Bottom = Position.Bottom
+                Left = AnnotBox.Left,
+                Top = AnnotBox.Top,
+                Right = AnnotBox.Right,
+                Bottom = AnnotBox.Bottom
             });
             //Flag?
             success = fpdf_annot.FPDFAnnotSetFlags(Annotation, 4) == 1;

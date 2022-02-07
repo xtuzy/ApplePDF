@@ -94,7 +94,7 @@ namespace Pdf.Net.Test
                     );
             });
         }
-
+ 
         [TestCase("Docs/mytest_4_highlightannotation.pdf", PdfAnnotationSubtype.Highlight)]
         [TestCase("Docs/mytest_5_inkannotation.pdf", PdfAnnotationSubtype.Ink)]
         [TestCase("Docs/mytest_4_freetextannotation.pdf", PdfAnnotationSubtype.FreeText)]
@@ -106,8 +106,8 @@ namespace Pdf.Net.Test
             {
                 var annots = pageReader.Annotations;
                 var annot = annots[0];
-                Assert.Positive(annot.Position.Width);
-                Assert.Positive(annot.Position.Height);
+                Assert.Positive(annot.AnnotBox.Width);
+                Assert.Positive(annot.AnnotBox.Height);
             });
         }
 
@@ -121,10 +121,10 @@ namespace Pdf.Net.Test
                 var annot = new PdfHighlightAnnotation(PdfAnnotationSubtype.Highlight);
                 var bounds = pageReader.GetSize();
                 var annotSize = new SizeF(100, 100);
-                annot.Position = new RectangleF(bounds.Width / 2 - annotSize.Width / 2, bounds.Height - 50 - annotSize.Height / 2, annotSize.Width, annotSize.Height);
+                annot.AnnotBox = new RectangleF(bounds.Width / 2 - annotSize.Width / 2, bounds.Height - 50 - annotSize.Height / 2, annotSize.Width, annotSize.Height);
                 //annot.Color = Color.Cyan;
                 pageReader.AddAnnotation(annot);
-                annot.AppendAnnotationPoint(annot.Position);
+                annot.AppendAnnotationPoint(annot.AnnotBox);
                 annot.Dispose();
                 Pdfium.Instance.Save(pageReader.Document, "Result.pdf");
                 Debug.WriteLine(pageReader.AnnotationCount);
@@ -159,7 +159,7 @@ namespace Pdf.Net.Test
                 var annot = new PdfFreeTextAnnotation(PdfAnnotationSubtype.FreeText);
                 var bounds = pageReader.GetSize();
                 var annotSize = new SizeF(100, 100);
-                annot.Position = new RectangleF(bounds.Width / 2 - annotSize.Width / 2, bounds.Height - 50 - annotSize.Height / 2, annotSize.Width, annotSize.Height);
+                annot.AnnotBox = new RectangleF(bounds.Width / 2 - annotSize.Width / 2, bounds.Height - 50 - annotSize.Height / 2, annotSize.Width, annotSize.Height);
                 annot.AnnotColor = Color.Red;
                 annot.Text = "This is a free tect annot";
                 pageReader.AddAnnotation(annot);
@@ -169,6 +169,58 @@ namespace Pdf.Net.Test
                 Assert.Less(0, pageReader.AnnotationCount);
             });
         }
+        #endregion
+
+        #region Highlight
+
+
+
+        #endregion
+
+        #region Ink
+
+      
+        [TestCase("Docs/mytest_5_inkannotation.pdf", PdfAnnotationSubtype.Ink)]
+        public void GetInks_WhenCalled_ShouldGetInk(string filePath, PdfAnnotationSubtype type)
+        {
+            ExecuteForDocument(filePath, null, 0, pageReader =>
+            {
+                var annots = pageReader.Annotations;
+                var annot = annots[0];
+                if(annot is PdfInkAnnotation)
+                {
+                    var annotation = (PdfInkAnnotation)annot;
+                    annotation.GetInks();
+                    Assert.IsNotEmpty(annotation.Inks);
+                    Assert.AreEqual(1, annotation.Inks.Count);
+                }else
+                    Assert.Fail();
+            });
+        }
+
+        #endregion
+
+        #region LineAnnotation
+
+        [TestCase("Docs/mytest_4_lineannotation.pdf", PdfAnnotationSubtype.Line)]
+        public void StartLocation_WhenCalledWithLineAnnotionPdf_ShouldGetLinePosition(string filePath, PdfAnnotationSubtype type)
+        {
+            ExecuteForDocument(filePath, null, 0, pageReader =>
+            {
+                var annots = pageReader.Annotations;
+                var annot = annots[0];
+                if (annot is PdfLineAnnotation)
+                {
+                    var annotation = (PdfLineAnnotation)annot;
+                  
+                    Assert.IsTrue(annotation.StartLocation!=default);
+                }
+                else
+                    Assert.Fail();
+            });
+        }
+
+
         #endregion
     }
 }
