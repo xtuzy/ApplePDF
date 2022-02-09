@@ -199,6 +199,9 @@ namespace Pdf.Net.PdfKit
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// Close this pdf
+        /// </summary>
         public void Dispose()
         {
             lock (@lock)
