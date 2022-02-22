@@ -1,0 +1,36 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+<LangVersion>latestMajor</LangVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <NoWarn>1701;1702;1591;0649</NoWarn>
+
+    <version>$(VersionSuffix)</version>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+
+    <Authors>Modestas Petravicius</Authors>
+    <Product>ApplePDF</Product>
+    <Copyright>MIT</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageTags>PDF; Reader; netstandard; PDFium; JPEG; JPG</PackageTags>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+  </PropertyGroup>
+
+ 
+  <ItemGroup>
+    <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.376">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+ 
+  <Import Project="..\ApplePDF.Binding\ApplePDF.Binding.projitems" Label="Shared" />
+
+ 
+ 
+</Project>
