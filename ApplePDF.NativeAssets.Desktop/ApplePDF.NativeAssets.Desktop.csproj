@@ -9,6 +9,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Content Include="runtimes/**" PackagePath="runtimes" Visible="true" />
+   
     <None Remove="build\netstandard2.0\ApplePDF.Desktop.targets" />
     <None Remove="runtimes\win-arm64\pdfium.dll" />
     <Content Include="build\netstandard2.0\ApplePDF.Desktop.targets" Pack="true" PackagePath="build/net45/" />

@@ -6,7 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 
-namespace ApplePDF.Desktop.Windows
+namespace ApplePDF.Demo.Desktop.Windows
 {
     /// <summary>
     /// Interaction logic for App.xaml

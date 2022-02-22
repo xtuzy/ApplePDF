@@ -12,7 +12,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ApplePDF.Desktop.Windows.Extension
+namespace ApplePDF.Demo.Desktop.Windows.Extension
 {
     public static class PdfPageExtension
     {

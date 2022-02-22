@@ -16,6 +16,7 @@
 
   <ItemGroup>
     <ProjectReference Condition="$(TargetFramework.Contains('-windows'))" Include="..\ApplePDF.NativeAssets.Desktop\ApplePDF.NativeAssets.Desktop.csproj" />
+    <ProjectReference Condition="$(TargetFramework.Contains('-mac'))" Include="..\ApplePDF.NativeAssets.Desktop\ApplePDF.NativeAssets.Desktop.csproj" />
     <ProjectReference Include="..\ApplePDF\ApplePDF.csproj" />
   </ItemGroup>
 

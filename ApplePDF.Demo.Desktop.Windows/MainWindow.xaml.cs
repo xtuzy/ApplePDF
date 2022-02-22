@@ -1,4 +1,4 @@
-﻿using ApplePDF.Desktop.Windows.Extension;
+﻿using ApplePDF.Demo.Desktop.Windows.Extension;
 using ApplePDF.PdfKit;
 using System.Windows;
 using System.Windows.Controls;
@@ -13,7 +13,7 @@ using SharpConstraintLayout.Wpf;
 using PDFiumCore;
 using System.Collections.Generic;
 
-namespace ApplePDF.Desktop.Windows
+namespace ApplePDF.Demo.Desktop.Windows
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml

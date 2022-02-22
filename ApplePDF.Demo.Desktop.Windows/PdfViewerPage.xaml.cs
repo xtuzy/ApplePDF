@@ -1,4 +1,4 @@
-﻿using ApplePDF.Desktop.Windows.Extension;
+﻿using ApplePDF.Demo.Desktop.Windows.Extension;
 using ApplePDF.PdfKit;
 using PDFiumCore;
 using SharpConstraintLayout.Wpf;
@@ -22,7 +22,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Xamarin.Essentials;
 
-namespace ApplePDF.Desktop.Windows
+namespace ApplePDF.Demo.Desktop.Windows
 {
     /// <summary>
     /// Interaction logic for PdfViewerPage.xaml
