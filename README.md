@@ -18,3 +18,9 @@ This library use .NET Standard P/Invoke bindings for PDFium form
 [DJGosnell's PDFiumCore](https://github.com/Dtronix/PDFiumCore)
 
 Very thanks them!
+
+## Some Resource
+- [pdfium source](https://github.com/QPDFium/pdfium/tree/master/fpdfsdk)
+    You can know how to use pdfium form test files.
+- [QuestPDF]()
+    You can use it draw pdf.
