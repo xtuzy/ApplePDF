@@ -102,6 +102,10 @@
       <Project>{6f0baffd-0041-4722-91e5-556909147e79}</Project>
       <Name>ApplePDF.NativeAssets.Android</Name>
     </ProjectReference>
+    <ProjectReference Include="..\ApplePDF\ApplePDF.csproj">
+      <Project>{bc58ccce-aae9-4aec-8977-4db418235163}</Project>
+      <Name>ApplePDF</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

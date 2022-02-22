@@ -29,5 +29,8 @@
   </ItemGroup>
 
  
-  <Import Project="..\ApplePDF.Binding\Pdf.Net.Binding.projitems" Label="Shared" />
+  <Import Project="..\ApplePDF.Binding\ApplePDF.Binding.projitems" Label="Shared" />
+
+ 
+ 
 </Project>

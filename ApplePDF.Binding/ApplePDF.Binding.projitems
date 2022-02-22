@@ -6,7 +6,7 @@
     <SharedGUID>134f745b-3a99-40d3-9bbf-7614cf994aa9</SharedGUID>
   </PropertyGroup>
   <PropertyGroup Label="Configuration">
-    <Import_RootNamespace>Pdf.Net.Binding</Import_RootNamespace>
+    <Import_RootNamespace>ApllePDF.Binding</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)CppSharpRuntime\MarshalUtil.cs" />
@@ -19,7 +19,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)CustomApi.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CustomEnums.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PDFiumCore.cs" />
-    <Compile Include="..\Pdf.Net.Binding\RenderFlags_1.cs" />
+    <Compile Include="..\ApplePDF.Binding\RenderFlags_1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)StreamManager.cs" />
   </ItemGroup>
 </Project>
