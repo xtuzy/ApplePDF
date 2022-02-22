@@ -40,6 +40,7 @@ namespace ApplePDF.iOS.Test
             PdfAnnotationWidgetSubtype widgetSubtype;
             PdfAnnotationWidgetSubtypeExtensions pdfAnnotationWidgetSubtype;
             PdfTextAnnotationIconType annotationIconType;
+            
         }
 
         

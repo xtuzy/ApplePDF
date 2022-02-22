@@ -33,9 +33,9 @@ namespace ApplePDF.Demo.Desktop.Windows
         private ConstraintLayout WindowPage;
         private Button SelectFileButton;
         private Button ShowPdfButton;
-        private Label PageIndexLable;
-        private TextBox PageIndexTextBox;
-        private Label PageCountLable;
+        private Label PageFirstIndexLable;
+        private Slider PageIndexSlider;
+        private Label PageLastIndexLable;
         private Label PageScaleLable;
         private TextBox PageScaleTextBox;
         private TreeView DocTreeView;
@@ -53,20 +53,21 @@ namespace ApplePDF.Demo.Desktop.Windows
 
             SelectFileButton = new Button() { Content = "选择" };
             ShowPdfButton = new Button() { Content = "打开" };
-            PageIndexLable = new Label() { Content = "页码" };
-            PageIndexTextBox = new TextBox() { Text = "1" };
-            PageCountLable = new Label() {Content="0" };
             PageScaleLable = new Label() { Content = "放大倍数" };
             PageScaleTextBox = new TextBox() { Text = "1" };
+            PageFirstIndexLable = new Label() { Content = "1" };
+            PageIndexSlider = new Slider() { Value = 1 };
+            PageLastIndexLable = new Label() {Content="1" };
+            
             DocTreeView = new TreeView();
             PageScrollViewer = new ScrollViewer() { HorizontalScrollBarVisibility = ScrollBarVisibility.Auto };
             PageImage = new System.Windows.Controls.Image() { Stretch = Stretch.None };
 
             WindowPage.Children.Add(SelectFileButton);
             WindowPage.Children.Add(ShowPdfButton);
-            WindowPage.Children.Add(PageIndexLable);
-            WindowPage.Children.Add(PageIndexTextBox);
-            WindowPage.Children.Add(PageCountLable);
+            WindowPage.Children.Add(PageFirstIndexLable);
+            WindowPage.Children.Add(PageIndexSlider);
+            WindowPage.Children.Add(PageLastIndexLable);
             WindowPage.Children.Add(PageScaleLable);
             WindowPage.Children.Add(PageScaleTextBox);
             WindowPage.Children.Add(DocTreeView);
@@ -74,11 +75,13 @@ namespace ApplePDF.Demo.Desktop.Windows
 
             SelectFileButton.LeftToLeft(WindowPage, 20).TopToTop(WindowPage, 20);
             ShowPdfButton.LeftToRight(SelectFileButton, 20).TopToTop(SelectFileButton);
-            PageIndexLable.LeftToRight(ShowPdfButton, 20).BaselineToBaseline(ShowPdfButton);
-            PageIndexTextBox.LeftToRight(PageIndexLable, 20).BaselineToBaseline(PageIndexLable);
-            PageCountLable.LeftToRight(PageIndexTextBox, 20).BaselineToBaseline(PageIndexTextBox);
-            PageScaleLable.LeftToRight(PageCountLable, 20).BaselineToBaseline(PageCountLable);
-            PageScaleTextBox.LeftToRight(PageScaleLable, 20).BaselineToBaseline(PageScaleLable);
+            PageScaleLable.LeftToRight(ShowPdfButton, 20).BaselineToBaseline(ShowPdfButton);
+            PageScaleTextBox.LeftToRight(PageScaleLable, 20).BaselineToBaseline(ShowPdfButton);
+            PageFirstIndexLable.LeftToRight(PageScaleTextBox, 20).BaselineToBaseline(ShowPdfButton);
+            PageIndexSlider.LeftToRight(PageFirstIndexLable, 20).CenterYTo(ShowPdfButton)
+                .RightToLeft(PageLastIndexLable).WidthEqualTo(ConstraintSet.SizeType.MatchConstraint);
+            PageLastIndexLable.LeftToRight(PageIndexSlider, 20).RightToRight(WindowPage,20).BaselineToBaseline(ShowPdfButton);
+            
             DocTreeView
                 .LeftToLeft(SelectFileButton)
                 .TopToBottom(SelectFileButton, 5)
@@ -97,6 +100,7 @@ namespace ApplePDF.Demo.Desktop.Windows
 
             SelectFileButton.Click += SelectFileButton_ClickAsync;
             ShowPdfButton.Click += ShowPdfButton_Click;
+            PageIndexSlider.ValueChanged += ShowPdfButton_Click;
         }
 
         private async void SelectFileButton_ClickAsync(object sender, RoutedEventArgs e)
@@ -110,7 +114,9 @@ namespace ApplePDF.Demo.Desktop.Windows
             if (doc != null)
                 doc.Dispose();
             doc = Pdfium.Instance.LoadPdfDocument(stream, null);
-            PageCountLable.Content = $"总页数:{doc.PageCount}";
+            PageLastIndexLable.Content = $"{doc.PageCount}";
+            PageIndexSlider.Maximum = doc.PageCount;
+            PageIndexSlider.InvalidateVisual();
             var rootBookmark = doc.OutlineRoot;
             List<string> bookmarks = new List<string>();
             if (rootBookmark != null)
@@ -153,7 +159,9 @@ namespace ApplePDF.Demo.Desktop.Windows
 
         private void ShowPdfButton_Click(object sender, RoutedEventArgs e)
         {
-            var index = int.Parse(PageIndexTextBox.Text);
+            var index = (int)PageIndexSlider.Value-1;
+            if(index < 0) index=0;
+
             var scaleStr = PageScaleTextBox.Text;
             var scale = float.Parse(scaleStr==String.Empty?"1":scaleStr);
            
