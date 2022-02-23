@@ -99,10 +99,6 @@
     <PackageReference Include="Xamarin.AndroidX.Migration" Version="1.0.5" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ApplePDF.NativeAssets.Android\ApplePDF.NativeAssets.Android.csproj">
-      <Project>{6f0baffd-0041-4722-91e5-556909147e79}</Project>
-      <Name>ApplePDF.NativeAssets.Android</Name>
-    </ProjectReference>
     <ProjectReference Include="..\ApplePDF\ApplePDF.csproj">
       <Project>{bc58ccce-aae9-4aec-8977-4db418235163}</Project>
       <Name>ApplePDF</Name>

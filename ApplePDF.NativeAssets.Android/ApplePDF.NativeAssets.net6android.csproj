@@ -7,6 +7,13 @@
     <BaseIntermediateOutputPath>obj\net6.0-android</BaseIntermediateOutputPath>
     <BaseOutputPath></BaseOutputPath>
   </PropertyGroup>
+  <PropertyGroup>
+    <LangVersion>latestMajor</LangVersion>
+    <Description>compiled pdfium file</Description>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <Copyright>MIT</Copyright>
+    <RepositoryUrl>https://github.com/xtuzy/ApplePDF/tree/ApplePDF</RepositoryUrl>
+  </PropertyGroup>
   <ItemGroup>
     <AndroidLibrary Remove="obj\**" />
     <AndroidLibrary Remove="Properties\**" />
