@@ -41,9 +41,7 @@ namespace ApplePDF.Demo.Desktop.Windows
         private TreeView DocTreeView;
         private ScrollViewer PageScrollViewer;
         private System.Windows.Controls.Image PageImage;
-        string englishdoc = @"H:\Download\Android UI Design by Jessica Thornsby (z-lib.org).pdf";
-        string nobookmarkdoc = @"H:\Download\深度学习-李宏毅-Chinese-已转档.pdf";
-        string imagedoc = @"J:\学习书籍\7年制度临床医学专业本科教材\病理学（第8版）.pdf";
+        string defaultDoc = "pdfBible.pdf";
         public PdfViewerPage()
         {
             InitializeComponent();
@@ -101,14 +99,13 @@ namespace ApplePDF.Demo.Desktop.Windows
             SelectFileButton.Click += SelectFileButton_ClickAsync;
             ShowPdfButton.Click += ShowPdfButton_Click;
             PageIndexSlider.ValueChanged += ShowPdfButton_Click;
+
+            ReadPDF(defaultDoc);
+
         }
 
-        private async void SelectFileButton_ClickAsync(object sender, RoutedEventArgs e)
+        void ReadPDF(string filePath)
         {
-            var result = await Xamarin.Essentials.FilePicker.PickAsync(Xamarin.Essentials.PickOptions.Default);
-            if (result == null)
-                return;
-            string filePath = result.FullPath;
             this.WindowTitle = filePath;
             var stream = File.OpenRead(filePath);
             if (doc != null)
@@ -135,6 +132,14 @@ namespace ApplePDF.Demo.Desktop.Windows
                 }
             }
             DocTreeView.ItemsSource = bookmarks;
+        }
+
+        private async void SelectFileButton_ClickAsync(object sender, RoutedEventArgs e)
+        {
+            var result = await Xamarin.Essentials.FilePicker.PickAsync(Xamarin.Essentials.PickOptions.Default);
+            if (result == null)
+                return;
+            ReadPDF(result.FullPath);
         }
 
         // Bitmap --> BitmapImage
