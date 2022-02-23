@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>netstandard2.0;net6.0</TargetFrameworks>
 <LangVersion>latestMajor</LangVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <NoWarn>1701;1702;1591;0649</NoWarn>
@@ -9,16 +9,27 @@
     <version>$(VersionSuffix)</version>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
 
-    <Authors>Modestas Petravicius</Authors>
+    <Authors>zhouyang</Authors>
     <Product>ApplePDF</Product>
     <Copyright>MIT</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageTags>PDF; Reader; netstandard; PDFium; JPEG; JPG</PackageTags>
+    <PackageTags>PDF; Reader; netstandard; net6; PDFium; JPEG; JPG</PackageTags>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
 
     <IncludeSymbols>true</IncludeSymbols>
-    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+   
+    <Description>ApplePDF is a pdf library base on pdfium,it use api like pdfkit at xamarin.ios</Description>
+    <PackageProjectUrl></PackageProjectUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <RepositoryUrl>https://github.com/xtuzy/ApplePDF</RepositoryUrl>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
 
  
   <ItemGroup>
