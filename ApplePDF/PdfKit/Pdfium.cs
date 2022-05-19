@@ -49,7 +49,7 @@ namespace ApplePDF.PdfKit
         {
             lock (@lock)
             {
-               return new PdfDocument(stream, password);
+                return new PdfDocument(stream, password);
             }
         }
 
@@ -60,8 +60,8 @@ namespace ApplePDF.PdfKit
                 return new PdfDocument(filePath, password);
             }
         }
-        
-        public void Merge(PdfDocument firstDoc,PdfDocument secondDoc,Stream stream)
+
+        public void Merge(PdfDocument firstDoc, PdfDocument secondDoc, Stream stream)
         {
 
             var pageCountOne = firstDoc.PageCount;
@@ -80,9 +80,9 @@ namespace ApplePDF.PdfKit
             Save(firstDoc, stream);
         }
 
-        public void Split(PdfDocument doc,int fromePageIndex,int toPageIndex,Stream  stream)
+        public void Split(PdfDocument doc, int fromePageIndex, int toPageIndex, Stream stream)
         {
-            var pageRange= $"{fromePageIndex + 1} - {toPageIndex + 1}";
+            var pageRange = $"{fromePageIndex + 1} - {toPageIndex + 1}";
             using (var childDoc = new PdfDocument())
             {
 
@@ -101,12 +101,12 @@ namespace ApplePDF.PdfKit
             }
         }
         //TODO:find a way save big file by use small memory.
-        public void Save(PdfDocument doc,Stream stream,PdfSaveFlag saveFlag=PdfSaveFlag.NoIncremental)
+        public void Save(PdfDocument doc, Stream stream, PdfSaveFlag saveFlag = PdfSaveFlag.NoIncremental)
         {
             lock (@lock)
             {
-                var success = fpdfsave.FPDF_SaveAsCopy(doc.Document, stream,saveFlag);
-                
+                var success = fpdfsave.FPDF_SaveAsCopy(doc.Document, stream, saveFlag);
+
                 if (!success)
                 {
                     throw new Exception("failed to save the document");
@@ -114,7 +114,7 @@ namespace ApplePDF.PdfKit
             }
         }
 
-        public void Save(PdfDocument doc,string filePath)
+        public void Save(PdfDocument doc, string filePath)
         {
             Save(doc, File.OpenWrite(filePath));
         }

@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;net6.0</TargetFrameworks>
-<LangVersion>latestMajor</LangVersion>
+    <TargetFrameworks>netstandard2.0;net6.0;net6.0-ios;net6.0-android</TargetFrameworks>
+    <LangVersion>latestMajor</LangVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <NoWarn>1701;1702;1591;0649</NoWarn>
 
@@ -17,11 +17,12 @@
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
 
     <IncludeSymbols>true</IncludeSymbols>
-   
+
     <Description>ApplePDF is a pdf library base on pdfium,it use api like pdfkit at xamarin.ios</Description>
     <PackageProjectUrl></PackageProjectUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/xtuzy/ApplePDF</RepositoryUrl>
+    <Platforms>AnyCPU;x64</Platforms>
   </PropertyGroup>
 
   <ItemGroup>
@@ -31,7 +32,6 @@
     </None>
   </ItemGroup>
 
- 
   <ItemGroup>
     <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.376">
       <PrivateAssets>all</PrivateAssets>
@@ -39,9 +39,6 @@
     </PackageReference>
   </ItemGroup>
 
- 
   <Import Project="..\ApplePDF.Binding\ApplePDF.Binding.projitems" Label="Shared" />
 
- 
- 
 </Project>

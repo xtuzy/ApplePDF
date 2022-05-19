@@ -19,6 +19,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)CustomApi.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CustomEnums.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PDFiumCore.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Setting.cs" />
     <Compile Include="..\ApplePDF.Binding\RenderFlags_1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)StreamManager.cs" />
   </ItemGroup>

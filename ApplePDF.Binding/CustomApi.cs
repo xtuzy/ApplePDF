@@ -1,8 +1,8 @@
+using ApllePDF.Binding;
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Security;
-
 
 namespace PDFiumCore
 {
@@ -26,11 +26,11 @@ namespace PDFiumCore
         /// <para>TRUE for succeed, FALSE for failed.</para>
         /// </summary>
         [SuppressUnmanagedCodeSecurity]
-        [DllImport("pdfium", CallingConvention = CallingConvention.Cdecl, EntryPoint = "FPDF_SaveAsCopy")]
+        [DllImport(Setting.DllName, CallingConvention = CallingConvention.Cdecl, EntryPoint = "FPDF_SaveAsCopy")]
         internal static extern int FPDF_SaveAsCopy(IntPtr document, FpdfStreamWriter pFileWrite, uint flags);
 
         [SuppressUnmanagedCodeSecurity]
-        [DllImport("pdfium", CallingConvention = CallingConvention.Cdecl, EntryPoint = "FPDF_SaveWithVersion")]
+        [DllImport(Setting.DllName, CallingConvention = CallingConvention.Cdecl, EntryPoint = "FPDF_SaveWithVersion")]
         private static extern int FPDF_SaveWithVersion(IntPtr document, FpdfStreamWriter pFileWrite, uint flags, int fileVersion);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
@@ -50,7 +50,7 @@ namespace PDFiumCore
             }
         }
 
-        public static bool FPDF_SaveAsCopy(FpdfDocumentT document, Stream stream,PdfSaveFlag saveFlag=PdfSaveFlag.NoIncremental)
+        public static bool FPDF_SaveAsCopy(FpdfDocumentT document, Stream stream, PdfSaveFlag saveFlag = PdfSaveFlag.NoIncremental)
         {
             byte[] buffer = null;
 
@@ -105,17 +105,16 @@ namespace PDFiumCore
             /// <para>Notes: If PDFium is built with the XFA module, the application should call FPDF_LoadXFA() function after the PDF document loaded to support XFA fields defined in the fpdfformfill.h file.</para>
             /// </summary>
             [SuppressUnmanagedCodeSecurity]
-            [DllImport("pdfium", CallingConvention = CallingConvention.Cdecl,
+            [DllImport(Setting.DllName, CallingConvention = CallingConvention.Cdecl,
     EntryPoint = "FPDF_LoadCustomDocument")]
             internal static extern IntPtr FPDF_LoadStreamDocument([MarshalAs(UnmanagedType.LPStruct)] CustomFPDF_FILEACCESS pFileAccess,
     [MarshalAs(UnmanagedType.LPStr)] string password);
         }
 
-        
-        public static FpdfDocumentT FPDF_LoadDocument(Stream stream, string password,int id)
+        public static FpdfDocumentT FPDF_LoadDocument(Stream stream, string password, int id)
         {
             var getBlock = Marshal.GetFunctionPointerForDelegate(_getBlockDelegate);
-           var access = new CustomFPDF_FILEACCESS
+            var access = new CustomFPDF_FILEACCESS
             {
                 m_FileLen = (uint)stream.Length,
                 m_GetBlock = getBlock,

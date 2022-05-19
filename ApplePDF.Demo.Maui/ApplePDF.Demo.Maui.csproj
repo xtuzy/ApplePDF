@@ -1,0 +1,108 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net6.0-android;net6.0-ios;net6.0-maccatalyst</TargetFrameworks>
+    <TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net6.0-windows10.0.19041.0</TargetFrameworks>
+    <!-- Uncomment to also build the tizen app. You will need to install tizen by following this: https://github.com/Samsung/Tizen.NET -->
+    <!-- <TargetFrameworks>$(TargetFrameworks);net6.0-tizen</TargetFrameworks> -->
+    <OutputType>Exe</OutputType>
+    <RootNamespace>ApplePDF.Demo.Maui</RootNamespace>
+    <UseMaui>true</UseMaui>
+    <SingleProject>true</SingleProject>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <!-- Display name -->
+    <ApplicationTitle>ApplePDF.Demo.Maui</ApplicationTitle>
+
+    <!-- App Identifier -->
+    <ApplicationId>com.companyname.applepdf.demo.maui</ApplicationId>
+    <ApplicationIdGuid>CFBA7205-57FD-4C69-B360-8ACE782A567E</ApplicationIdGuid>
+
+    <!-- Versions -->
+    <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
+    <ApplicationVersion>1</ApplicationVersion>
+
+    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">14.2</SupportedOSPlatformVersion>
+    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">14.0</SupportedOSPlatformVersion>
+    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">21.0</SupportedOSPlatformVersion>
+    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
+    <TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
+    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'tizen'">6.5</SupportedOSPlatformVersion>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net6.0-android|AnyCPU'">
+    <MtouchLink>None</MtouchLink>
+    <CodesignExtraArgs>cxx -gcc_flags "-L${ProjectDir} -lpdfium -force_load ${ProjectDir}/libpdfium.a"</CodesignExtraArgs>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net6.0-android|AnyCPU'">
+    <MtouchLink>None</MtouchLink>
+    <CodesignExtraArgs>cxx -gcc_flags "-L${ProjectDir} -lpdfium -force_load ${ProjectDir}/libpdfium.a"</CodesignExtraArgs>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net6.0-ios|AnyCPU'">
+    <MtouchLink>None</MtouchLink>
+    <CodesignExtraArgs>cxx -gcc_flags "-L${ProjectDir} -lpdfium -force_load ${ProjectDir}/libpdfium.a"</CodesignExtraArgs>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net6.0-ios|AnyCPU'">
+    <MtouchLink>None</MtouchLink>
+    <CodesignExtraArgs>cxx -gcc_flags "-L${ProjectDir} -lpdfium -force_load ${ProjectDir}/libpdfium.a"</CodesignExtraArgs>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net6.0-maccatalyst|AnyCPU'">
+    <MtouchLink>None</MtouchLink>
+    <CodesignExtraArgs>cxx -gcc_flags "-L${ProjectDir} -lpdfium -force_load ${ProjectDir}/libpdfium.a"</CodesignExtraArgs>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net6.0-maccatalyst|AnyCPU'">
+    <MtouchLink>None</MtouchLink>
+    <CodesignExtraArgs>cxx -gcc_flags "-L${ProjectDir} -lpdfium -force_load ${ProjectDir}/libpdfium.a"</CodesignExtraArgs>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net6.0-windows10.0.19041.0|AnyCPU'">
+    <MtouchLink>None</MtouchLink>
+    <CodesignExtraArgs>cxx -gcc_flags "-L${ProjectDir} -lpdfium -force_load ${ProjectDir}/libpdfium.a"</CodesignExtraArgs>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net6.0-windows10.0.19041.0|AnyCPU'">
+    <MtouchLink>None</MtouchLink>
+    <CodesignExtraArgs>cxx -gcc_flags "-L${ProjectDir} -lpdfium -force_load ${ProjectDir}/libpdfium.a"</CodesignExtraArgs>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- App Icon -->
+    <MauiIcon Include="Resources\appicon.svg" ForegroundFile="Resources\appiconfg.svg" Color="#512BD4" />
+
+    <!-- Splash Screen -->
+    <MauiSplashScreen Include="Resources\appiconfg.svg" Color="#512BD4" BaseSize="128,128" />
+
+    <!-- Images -->
+    <MauiImage Include="Resources\Images\*" />
+    <MauiImage Update="Resources\Images\dotnet_bot.svg" BaseSize="168,208" />
+
+    <!-- Custom Fonts -->
+    <MauiFont Include="Resources\Fonts\*" />
+
+    <!-- Raw Assets (also remove the "Resources\Raw" prefix) -->
+    <MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!--ObjcBindingNativeLibrary Include="..\ApplePDF.NativeAssets.iOS\libs\libpdfium.a" Link="libpdfium.a" /-->
+    <None Include="..\ApplePDF.NativeAssets.iOS\libs\libpdfium.a" Link="libpdfium.a" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="SharpConstraintLayout.Maui" Version="2.1.1.1" />
+    <PackageReference Include="SkiaSharp" Version="2.88.0-preview.266" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Condition="$(TargetFramework.Contains('-android'))" Include="..\ApplePDF.NativeAssets.Android\ApplePDF.NativeAssets.net6android.csproj" />
+    <!--ProjectReference Condition="$(TargetFramework.Contains('-ios'))" Include="..\ApplePDF.NativeAssets.iOS\ApplePDF.NativeAssets.net6iOS.csproj" /-->
+    <ProjectReference Condition="$(TargetFramework.Contains('-windows'))" Include="..\ApplePDF.NativeAssets.Desktop\ApplePDF.NativeAssets.Desktop.csproj" />
+    <ProjectReference Condition="$(TargetFramework.Contains('-mac'))" Include="..\ApplePDF.NativeAssets.Desktop\ApplePDF.NativeAssets.Desktop.csproj" />
+    <ProjectReference Include="..\ApplePDF\ApplePDF.csproj" />
+  </ItemGroup>
+
+</Project>
