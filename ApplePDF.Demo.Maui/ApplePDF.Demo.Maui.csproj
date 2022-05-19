@@ -31,42 +31,42 @@
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net6.0-android|AnyCPU'">
     <MtouchLink>None</MtouchLink>
-    <CodesignExtraArgs>cxx -gcc_flags "-L${ProjectDir} -lpdfium -force_load ${ProjectDir}/libpdfium.a"</CodesignExtraArgs>
+    <CodesignExtraArgs>-cxx -gcc_flags "-L${ProjectDir} -lpdfium -force_load ${ProjectDir}/libpdfium.a"</CodesignExtraArgs>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net6.0-android|AnyCPU'">
     <MtouchLink>None</MtouchLink>
-    <CodesignExtraArgs>cxx -gcc_flags "-L${ProjectDir} -lpdfium -force_load ${ProjectDir}/libpdfium.a"</CodesignExtraArgs>
+    <CodesignExtraArgs>-cxx -gcc_flags "-L${ProjectDir} -lpdfium -force_load ${ProjectDir}/libpdfium.a"</CodesignExtraArgs>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net6.0-ios|AnyCPU'">
     <MtouchLink>None</MtouchLink>
-    <CodesignExtraArgs>cxx -gcc_flags "-L${ProjectDir} -lpdfium -force_load ${ProjectDir}/libpdfium.a"</CodesignExtraArgs>
+    <CodesignExtraArgs>-cxx -gcc_flags "-L${ProjectDir} -lpdfium -force_load ${ProjectDir}/libpdfium.a"</CodesignExtraArgs>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net6.0-ios|AnyCPU'">
     <MtouchLink>None</MtouchLink>
-    <CodesignExtraArgs>cxx -gcc_flags "-L${ProjectDir} -lpdfium -force_load ${ProjectDir}/libpdfium.a"</CodesignExtraArgs>
+    <CodesignExtraArgs>-cxx -gcc_flags "-L${ProjectDir} -lpdfium -force_load ${ProjectDir}/libpdfium.a"</CodesignExtraArgs>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net6.0-maccatalyst|AnyCPU'">
     <MtouchLink>None</MtouchLink>
-    <CodesignExtraArgs>cxx -gcc_flags "-L${ProjectDir} -lpdfium -force_load ${ProjectDir}/libpdfium.a"</CodesignExtraArgs>
+    <CodesignExtraArgs>-cxx -gcc_flags "-L${ProjectDir} -lpdfium -force_load ${ProjectDir}/libpdfium.a"</CodesignExtraArgs>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net6.0-maccatalyst|AnyCPU'">
     <MtouchLink>None</MtouchLink>
-    <CodesignExtraArgs>cxx -gcc_flags "-L${ProjectDir} -lpdfium -force_load ${ProjectDir}/libpdfium.a"</CodesignExtraArgs>
+    <CodesignExtraArgs>-cxx -gcc_flags "-L${ProjectDir} -lpdfium -force_load ${ProjectDir}/libpdfium.a"</CodesignExtraArgs>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net6.0-windows10.0.19041.0|AnyCPU'">
     <MtouchLink>None</MtouchLink>
-    <CodesignExtraArgs>cxx -gcc_flags "-L${ProjectDir} -lpdfium -force_load ${ProjectDir}/libpdfium.a"</CodesignExtraArgs>
+    <CodesignExtraArgs>-cxx -gcc_flags "-L${ProjectDir} -lpdfium -force_load ${ProjectDir}/libpdfium.a"</CodesignExtraArgs>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net6.0-windows10.0.19041.0|AnyCPU'">
     <MtouchLink>None</MtouchLink>
-    <CodesignExtraArgs>cxx -gcc_flags "-L${ProjectDir} -lpdfium -force_load ${ProjectDir}/libpdfium.a"</CodesignExtraArgs>
+    <CodesignExtraArgs>-cxx -gcc_flags "-L${ProjectDir} -lpdfium -force_load ${ProjectDir}/libpdfium.a"</CodesignExtraArgs>
   </PropertyGroup>
 
   <ItemGroup>
@@ -89,7 +89,9 @@
 
   <ItemGroup>
     <!--ObjcBindingNativeLibrary Include="..\ApplePDF.NativeAssets.iOS\libs\libpdfium.a" Link="libpdfium.a" /-->
-    <None Include="..\ApplePDF.NativeAssets.iOS\libs\libpdfium.a" Link="libpdfium.a" />
+    <None Include="..\ApplePDF.NativeAssets.iOS\libs\libpdfium.a" Link="libpdfium.a">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
   <ItemGroup>
