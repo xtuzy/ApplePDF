@@ -29,42 +29,12 @@
     <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'tizen'">6.5</SupportedOSPlatformVersion>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net6.0-android|AnyCPU'">
-    <MtouchLink>None</MtouchLink>
-    <CodesignExtraArgs>-cxx -gcc_flags "-L${ProjectDir} -lpdfium -force_load ${ProjectDir}/libpdfium.a"</CodesignExtraArgs>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net6.0-android|AnyCPU'">
-    <MtouchLink>None</MtouchLink>
-    <CodesignExtraArgs>-cxx -gcc_flags "-L${ProjectDir} -lpdfium -force_load ${ProjectDir}/libpdfium.a"</CodesignExtraArgs>
-  </PropertyGroup>
-
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net6.0-ios|AnyCPU'">
     <MtouchLink>None</MtouchLink>
     <CodesignExtraArgs>-cxx -gcc_flags "-L${ProjectDir} -lpdfium -force_load ${ProjectDir}/libpdfium.a"</CodesignExtraArgs>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net6.0-ios|AnyCPU'">
-    <MtouchLink>None</MtouchLink>
-    <CodesignExtraArgs>-cxx -gcc_flags "-L${ProjectDir} -lpdfium -force_load ${ProjectDir}/libpdfium.a"</CodesignExtraArgs>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net6.0-maccatalyst|AnyCPU'">
-    <MtouchLink>None</MtouchLink>
-    <CodesignExtraArgs>-cxx -gcc_flags "-L${ProjectDir} -lpdfium -force_load ${ProjectDir}/libpdfium.a"</CodesignExtraArgs>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net6.0-maccatalyst|AnyCPU'">
-    <MtouchLink>None</MtouchLink>
-    <CodesignExtraArgs>-cxx -gcc_flags "-L${ProjectDir} -lpdfium -force_load ${ProjectDir}/libpdfium.a"</CodesignExtraArgs>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net6.0-windows10.0.19041.0|AnyCPU'">
-    <MtouchLink>None</MtouchLink>
-    <CodesignExtraArgs>-cxx -gcc_flags "-L${ProjectDir} -lpdfium -force_load ${ProjectDir}/libpdfium.a"</CodesignExtraArgs>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net6.0-windows10.0.19041.0|AnyCPU'">
     <MtouchLink>None</MtouchLink>
     <CodesignExtraArgs>-cxx -gcc_flags "-L${ProjectDir} -lpdfium -force_load ${ProjectDir}/libpdfium.a"</CodesignExtraArgs>
   </PropertyGroup>
@@ -89,8 +59,8 @@
 
   <ItemGroup>
     <!--ObjcBindingNativeLibrary Include="..\ApplePDF.NativeAssets.iOS\libs\libpdfium.a" Link="libpdfium.a" /-->
-    <None Include="..\ApplePDF.NativeAssets.iOS\libs\libpdfium.a" Link="libpdfium.a">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+
+    <None Condition="$(TargetFramework.Contains('-ios'))" Include="..\ApplePDF.NativeAssets.iOS\libs\libpdfium.a" Link="libpdfium.a">
     </None>
   </ItemGroup>
 
@@ -102,7 +72,7 @@
   <ItemGroup>
     <ProjectReference Condition="$(TargetFramework.Contains('-android'))" Include="..\ApplePDF.NativeAssets.Android\ApplePDF.NativeAssets.net6android.csproj" />
     <!--ProjectReference Condition="$(TargetFramework.Contains('-ios'))" Include="..\ApplePDF.NativeAssets.iOS\ApplePDF.NativeAssets.net6iOS.csproj" /-->
-    <ProjectReference Condition="$(TargetFramework.Contains('-windows'))" Include="..\ApplePDF.NativeAssets.Desktop\ApplePDF.NativeAssets.Desktop.csproj" />
+    <!--ProjectReference Condition="$(TargetFramework.Contains('-windows'))" Include="..\ApplePDF.NativeAssets.Desktop\ApplePDF.NativeAssets.Desktop.csproj" /-->
     <ProjectReference Condition="$(TargetFramework.Contains('-mac'))" Include="..\ApplePDF.NativeAssets.Desktop\ApplePDF.NativeAssets.Desktop.csproj" />
     <ProjectReference Include="..\ApplePDF\ApplePDF.csproj" />
   </ItemGroup>

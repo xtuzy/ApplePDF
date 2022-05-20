@@ -122,7 +122,14 @@ namespace ApplePDF.Demo.Maui
         }
         void init()
         {
-            var library = Pdfium.Instance;
+            try
+            {
+                fpdfview.FPDF_InitLibrary();
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
         }
         MemoryStream memoryStream = new MemoryStream();
         async Task ReadPDFAsyncFormResourcesAsync(string filePath = null)

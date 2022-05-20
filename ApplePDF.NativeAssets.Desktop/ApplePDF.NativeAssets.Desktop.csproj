@@ -7,10 +7,13 @@
   </PropertyGroup>
   <PropertyGroup>
     <LangVersion>latestMajor</LangVersion>
-    <Description>compiled pdfium file</Description>
+    <Description>compiled pdfium file form https://github.com/bblanchon/pdfium-binaries</Description>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <Copyright>MIT</Copyright>
-    <RepositoryUrl>https://github.com/xtuzy/ApplePDF/tree/ApplePDF</RepositoryUrl>
+    <RepositoryUrl>https://github.com/xtuzy/ApplePDF/tree/master</RepositoryUrl>
+    <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
+    <Version>1.0.0.1</Version>
+    <PackageProjectUrl>https://github.com/xtuzy/ApplePDF/tree/master</PackageProjectUrl>
   </PropertyGroup>
   <ItemGroup>
     <Content Include="runtimes/**" PackagePath="runtimes" Visible="true" />

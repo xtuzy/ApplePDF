@@ -33,8 +33,9 @@
   <ItemGroup>
     <NativeReference Include="libs\libpdfium.a">
       <Kind>Static</Kind>
-      <ForceLoad>True</ForceLoad>
-      <IsCxx>True</IsCxx>
+      <SmartLink>true</SmartLink>
+      <ForceLoad>true</ForceLoad>
+      <IsCxx>true</IsCxx>
     </NativeReference>
   </ItemGroup>
 </Project>
