@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace ApllePDF.Binding
+namespace PDFiumCore
 {
     internal static class Setting
     {

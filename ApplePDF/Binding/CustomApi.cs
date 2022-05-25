@@ -1,4 +1,3 @@
-using ApllePDF.Binding;
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -105,10 +104,8 @@ namespace PDFiumCore
             /// <para>Notes: If PDFium is built with the XFA module, the application should call FPDF_LoadXFA() function after the PDF document loaded to support XFA fields defined in the fpdfformfill.h file.</para>
             /// </summary>
             [SuppressUnmanagedCodeSecurity]
-            [DllImport(Setting.DllName, CallingConvention = CallingConvention.Cdecl,
-    EntryPoint = "FPDF_LoadCustomDocument")]
-            internal static extern IntPtr FPDF_LoadStreamDocument([MarshalAs(UnmanagedType.LPStruct)] CustomFPDF_FILEACCESS pFileAccess,
-    [MarshalAs(UnmanagedType.LPStr)] string password);
+            [DllImport(Setting.DllName, CallingConvention = CallingConvention.Cdecl, EntryPoint = "FPDF_LoadCustomDocument")]
+            internal static extern IntPtr FPDF_LoadStreamDocument([MarshalAs(UnmanagedType.LPStruct)] CustomFPDF_FILEACCESS pFileAccess, [MarshalAs(UnmanagedType.LPStr)] string password);
         }
 
         public static FpdfDocumentT FPDF_LoadDocument(Stream stream, string password, int id)

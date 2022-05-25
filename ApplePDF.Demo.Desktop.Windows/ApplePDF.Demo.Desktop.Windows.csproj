@@ -23,11 +23,12 @@
     <PackageReference Include="SkiaSharp" Version="2.80.3" />
     <PackageReference Include="SkiaSharp.Views.WPF" Version="2.80.3" />
     <PackageReference Include="Xamarin.Essentials.Wpf" Version="1.7.1" />
-    <PackageReference  Condition="$(TargetFramework.Contains('-windows'))" Include="ApplePDF.NativeAssets.Desktop" Version="1.0.0.1" />
+    <PackageReference Condition="$(TargetFramework.Contains('-windows'))" Include="ApplePDF.NativeAssets.Desktop" Version="1.0.0.1" />
 
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\ApplePDF.NativeAssets.Desktop\ApplePDF.NativeAssets.Desktop.csproj" />
     <ProjectReference Include="..\ApplePDF\ApplePDF.csproj" />
   </ItemGroup>
 

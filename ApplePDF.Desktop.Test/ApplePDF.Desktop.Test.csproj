@@ -17,6 +17,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\ApplePDF.NativeAssets.Desktop\ApplePDF.NativeAssets.Desktop.csproj" />
+    <ProjectReference Include="..\ApplePDF\ApplePDF.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Update="Docs\annotation_0.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

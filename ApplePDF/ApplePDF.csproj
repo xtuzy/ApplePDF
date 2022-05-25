@@ -26,6 +26,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Binding\PDFiumCore.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\PDFiumCoreBindingsGenerator\bin\PDFiumCore.cs" Link="Binding\PDFiumCore.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Include="..\README.md">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
@@ -38,7 +46,5 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
   </ItemGroup>
-
-  <Import Project="..\ApplePDF.Binding\ApplePDF.Binding.projitems" Label="Shared" />
 
 </Project>
