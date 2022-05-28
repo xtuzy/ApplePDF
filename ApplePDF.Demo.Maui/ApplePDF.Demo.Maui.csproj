@@ -29,8 +29,6 @@
     <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'tizen'">6.5</SupportedOSPlatformVersion>
   </PropertyGroup>
 
-  
-
   <ItemGroup>
     <!-- App Icon -->
     <MauiIcon Include="Resources\appicon.svg" ForegroundFile="Resources\appiconfg.svg" Color="#512BD4" />
@@ -50,23 +48,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!--ObjcBindingNativeLibrary Include="..\ApplePDF.NativeAssets.iOS\libs\libpdfium.a" Link="libpdfium.a" /-->
-
-    <None Condition="$(TargetFramework.Contains('-ios'))" Include="..\ApplePDF.NativeAssets.iOS\libs\libpdfium.a" Link="libpdfium.a">
-    </None>
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="SharpConstraintLayout.Maui" Version="2.1.1.1" />
     <PackageReference Include="SkiaSharp" Version="2.88.0-preview.266" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Condition="$(TargetFramework.Contains('-android'))" Include="..\ApplePDF.NativeAssets.Android\ApplePDF.NativeAssets.net6android.csproj" />
-    <!--ProjectReference Condition="$(TargetFramework.Contains('-ios'))" Include="..\ApplePDF.NativeAssets.iOS\ApplePDF.NativeAssets.net6iOS.csproj" /-->
-    <!--ProjectReference Condition="$(TargetFramework.Contains('-windows'))" Include="..\ApplePDF.NativeAssets.Desktop\ApplePDF.NativeAssets.Desktop.csproj" /-->
-    <ProjectReference Condition="$(TargetFramework.Contains('-mac'))" Include="..\ApplePDF.NativeAssets.Desktop\ApplePDF.NativeAssets.Desktop.csproj" />
-    <ProjectReference Include="..\ApplePDF\ApplePDF.csproj" />
+    <ProjectReference Include="..\ApplePDF.Maui\ApplePDF.Maui.csproj">
+    </ProjectReference>
   </ItemGroup>
 
 </Project>

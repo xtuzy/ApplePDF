@@ -62,8 +62,8 @@ namespace ApplePDF.Demo.Maui
                         .Select(PageFirstIndexLable).LeftToRight(PageScaleTextBox, 20).CenterYTo(ShowPdfButton)
                         .Select(PageIndexSlider).LeftToRight(PageFirstIndexLable, 20).CenterYTo(ShowPdfButton).RightToLeft(PageLastIndexLable, 20).Width(FluentConstraintSet.SizeBehavier.MatchConstraint)
                         .Select(PageLastIndexLable).LeftToRight(PageIndexSlider, 20).RightToRight(null, 20).CenterYTo(ShowPdfButton)
-                        //.Select(DocTreeView).LeftToLeft(SelectFileButton).TopToBottom(SelectFileButton, 5).BottomToBottom(null, 5).Width(200).Height(FluentConstraintSet.SizeBehavier.MatchConstraint)
-                        //.Select(PageScrollViewer).LeftToRight(DocTreeView, 20).RightToRight(null, 20).TopToBottom(ShowPdfButton, 5).BottomToBottom(null, 5).Width(FluentConstraintSet.SizeBehavier.MatchConstraint).Height(FluentConstraintSet.SizeBehavier.MatchConstraint)
+                        .Select(DocTreeView).LeftToLeft(SelectFileButton).TopToBottom(SelectFileButton, 5).BottomToBottom(null, 5).Width(200).Height(FluentConstraintSet.SizeBehavier.MatchConstraint)
+                        .Select(PageScrollViewer).LeftToRight(DocTreeView, 20).RightToRight(null, 20).TopToBottom(ShowPdfButton, 5).BottomToBottom(null, 5).Width(FluentConstraintSet.SizeBehavier.MatchConstraint).Height(FluentConstraintSet.SizeBehavier.MatchConstraint)
                         ;
                 }
                 else

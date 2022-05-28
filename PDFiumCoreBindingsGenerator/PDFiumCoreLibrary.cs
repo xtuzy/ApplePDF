@@ -31,7 +31,35 @@ namespace PDFiumCoreBindingsGenerator
 
         public void Setup(Driver driver)
         {
-            var includeDirectory = Path.Combine(_directoryName, "include");
+            //遍历两层查找include文件夹
+            var includeDirectory = string.Empty;
+            while (includeDirectory == string.Empty)
+            {
+                foreach (var folders in Directory.EnumerateDirectories(_directoryName))
+                {
+                    if (folders.Contains("include"))
+                    {
+                        includeDirectory = folders;
+                        break;
+                    }
+                }
+                foreach (var folders in Directory.EnumerateDirectories(_directoryName))
+                {
+                    foreach (var subFolders in Directory.EnumerateDirectories(folders))
+                    {
+                        if (subFolders.Contains("include"))
+                        {
+                            includeDirectory = subFolders;
+                            break;
+                        }
+                    }
+                    if (includeDirectory != string.Empty)
+                    {
+                        break;
+                    }
+                }
+            }
+
             driver.ParserOptions.SetupMSVC(VisualStudioVersion.Latest);
             var options = driver.Options;
             options.GeneratorKind = GeneratorKind.CSharp;

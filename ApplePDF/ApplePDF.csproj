@@ -1,11 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;net6.0;net6.0-ios;net6.0-android</TargetFrameworks>
+    <TargetFrameworks>net6.0;net6.0-ios;net6.0-android</TargetFrameworks>
     <LangVersion>latestMajor</LangVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <NoWarn>1701;1702;1591;0649</NoWarn>
-
+    <SingleProject>true</SingleProject>
     <version>$(VersionSuffix)</version>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
 
@@ -22,16 +22,8 @@
     <PackageProjectUrl></PackageProjectUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/xtuzy/ApplePDF</RepositoryUrl>
-    <Platforms>AnyCPU;x64</Platforms>
+    <Platforms>AnyCPU</Platforms>
   </PropertyGroup>
-
-  <ItemGroup>
-    <Compile Remove="Binding\PDFiumCore.txt" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Include="..\PDFiumCoreBindingsGenerator\bin\PDFiumCore.cs" Link="Binding\PDFiumCore.cs" />
-  </ItemGroup>
 
   <ItemGroup>
     <None Include="..\README.md">

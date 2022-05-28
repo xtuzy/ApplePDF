@@ -4,12 +4,9 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>true</ImplicitUsings>
     <IsBindingProject>true</IsBindingProject>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <MtouchLink>None</MtouchLink>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <MtouchLink>None</MtouchLink>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <Deterministic>False</Deterministic>
   </PropertyGroup>
   <ItemGroup>
     <AtlasTexture Remove="Properties\**" />
@@ -31,11 +28,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <NativeReference Include="libs\libpdfium.a">
+    <Compile Include="libpdfium.linkwith.cs">
+      <DependentUpon>libpdfium.a</DependentUpon>
+    </Compile>
+    <NativeReference Include="libpdfium.a">
       <Kind>Static</Kind>
       <SmartLink>true</SmartLink>
-      <ForceLoad>true</ForceLoad>
-      <IsCxx>true</IsCxx>
     </NativeReference>
   </ItemGroup>
 </Project>
