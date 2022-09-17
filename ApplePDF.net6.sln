@@ -25,9 +25,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApplePDF.Demo.Desktop.Windo
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApplePDF.NativeAssets.Desktop", "ApplePDF.NativeAssets.Desktop\ApplePDF.NativeAssets.Desktop.csproj", "{CA3878DA-AD72-4195-9CA2-B711CE2D92E2}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApplePDF.NativeAssets.net6android", "ApplePDF.NativeAssets.Android\ApplePDF.NativeAssets.net6android.csproj", "{8A8F6809-8124-49DB-8456-FEF50C366862}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApplePDF.NativeAssets.Android.net6", "ApplePDF.NativeAssets.Android\ApplePDF.NativeAssets.Android.net6.csproj", "{8A8F6809-8124-49DB-8456-FEF50C366862}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApplePDF.NativeAssets.net6iOS", "ApplePDF.NativeAssets.iOS\ApplePDF.NativeAssets.net6iOS.csproj", "{290A2EB5-F7CD-42E6-8992-AA2EFCFCEBE4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApplePDF.NativeAssets.iOS.net6", "ApplePDF.NativeAssets.iOS\ApplePDF.NativeAssets.iOS.net6.csproj", "{290A2EB5-F7CD-42E6-8992-AA2EFCFCEBE4}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApplePDF.Demo.Maui", "ApplePDF.Demo.Maui\ApplePDF.Demo.Maui.csproj", "{70D31F6A-3DE6-491A-B491-029B4B5EE5B6}"
 EndProject

@@ -13,6 +13,6 @@
     <MtouchLink>None</MtouchLink>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ApplePDF.NativeAssets.iOS\ApplePDF.NativeAssets.net6iOS.csproj" />
+    <ProjectReference Include="..\ApplePDF.NativeAssets.iOS\ApplePDF.NativeAssets.iOS.net6.csproj" />
   </ItemGroup>
 </Project>

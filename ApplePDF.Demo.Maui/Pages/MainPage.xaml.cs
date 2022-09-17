@@ -2,7 +2,7 @@
 using ApplePDF.PdfKit;
 using PDFiumCore;
 using SharpConstraintLayout.Maui.Widget;
-using System.IO;
+using static SharpConstraintLayout.Maui.Widget.FluentConstraintSet;
 
 namespace ApplePDF.Demo.Maui
 {
@@ -10,8 +10,10 @@ namespace ApplePDF.Demo.Maui
     {
         private PdfDocument doc;
         private ConstraintLayout WindowPage;
+        private HorizontalStackLayout buttonContainer;
         private Button SelectFileButton;
         private Button ShowPdfButton;
+        private Button GetTextButton;
         private Label PageFirstIndexLable;
         private Slider PageIndexSlider;
         private Label PageLastIndexLable;
@@ -24,12 +26,17 @@ namespace ApplePDF.Demo.Maui
         public MainPage()
         {
             InitializeComponent();
+            this.SizeChanged += MainPage_SizeChanged;
             ConstraintLayout.DEBUG = true;
             WindowPage = new ConstraintLayout() { BackgroundColor = Colors.DarkGray };
             Content = WindowPage;
 
-            SelectFileButton = new Button() { Text = "选择" };
-            ShowPdfButton = new Button() { Text = "打开" };
+            buttonContainer = new HorizontalStackLayout();
+            var catalogManagerButton = new Button() { Text = "目录", WidthRequest = 35, HeightRequest = 20, Padding = new Thickness(0, 0, 0, 0), CornerRadius = 0 };
+            SelectFileButton = new Button() { Text = "选择", WidthRequest = 35, HeightRequest = 20, Padding = new Thickness(0, 0, 0, 0), CornerRadius = 0 };
+            ShowPdfButton = new Button() { Text = "打开", WidthRequest = 35, HeightRequest = 20, Padding = new Thickness(0, 0, 0, 0), CornerRadius = 0 };
+            GetTextButton = new Button() { Text = "文本", WidthRequest = 35, HeightRequest = 20, Padding = new Thickness(0, 0, 0, 0), CornerRadius = 0 };
+            buttonContainer.AddViews(catalogManagerButton, SelectFileButton, ShowPdfButton, GetTextButton);
             PageScaleLable = new Label() { Text = "放大倍数" };
             PageScaleTextBox = new Entry() { Text = "1" };
             PageFirstIndexLable = new Label() { Text = "1" };
@@ -40,8 +47,7 @@ namespace ApplePDF.Demo.Maui
             PageScrollViewer = new ScrollView() { };
             PageImage = new Image() { };
 
-            WindowPage.AddElement(SelectFileButton);
-            WindowPage.AddElement(ShowPdfButton);
+            WindowPage.AddElement(buttonContainer);
             WindowPage.AddElement(PageScaleLable);
             WindowPage.AddElement(PageScaleTextBox);
             WindowPage.AddElement(PageFirstIndexLable);
@@ -50,50 +56,81 @@ namespace ApplePDF.Demo.Maui
             WindowPage.AddElement(DocTreeView);
             WindowPage.AddElement(PageScrollViewer);
 
-            using (var set = new FluentConstraintSet())
+            PageScrollViewer.Content = PageImage;
+            catalogManagerButton.Clicked += (sender, e) =>
             {
-                set.Clone(WindowPage);
-                if (System.OperatingSystem.IsWindows())
-                {
-                    set.Select(SelectFileButton).LeftToLeft(null, 20).TopToTop(null, 10)
-                        .Select(ShowPdfButton).LeftToRight(SelectFileButton, 20).TopToTop(null, 10)
-                        .Select(PageScaleLable).LeftToRight(ShowPdfButton, 20).CenterYTo(ShowPdfButton)
-                        .Select(PageScaleTextBox).LeftToRight(PageScaleLable, 20).CenterYTo(ShowPdfButton)
-                        .Select(PageFirstIndexLable).LeftToRight(PageScaleTextBox, 20).CenterYTo(ShowPdfButton)
-                        .Select(PageIndexSlider).LeftToRight(PageFirstIndexLable, 20).CenterYTo(ShowPdfButton).RightToLeft(PageLastIndexLable, 20).Width(FluentConstraintSet.SizeBehavier.MatchConstraint)
-                        .Select(PageLastIndexLable).LeftToRight(PageIndexSlider, 20).RightToRight(null, 20).CenterYTo(ShowPdfButton)
-                        .Select(DocTreeView).LeftToLeft(SelectFileButton).TopToBottom(SelectFileButton, 5).BottomToBottom(null, 5).Width(200).Height(FluentConstraintSet.SizeBehavier.MatchConstraint)
-                        .Select(PageScrollViewer).LeftToRight(DocTreeView, 20).RightToRight(null, 20).TopToBottom(ShowPdfButton, 5).BottomToBottom(null, 5).Width(FluentConstraintSet.SizeBehavier.MatchConstraint).Height(FluentConstraintSet.SizeBehavier.MatchConstraint)
-                        ;
-                }
+                if (DocTreeView.IsVisible)
+                    using (var set = new FluentConstraintSet())
+                    {
+                        set.Clone(WindowPage);
+                        set.Select(DocTreeView).Visibility(FluentConstraintSet.Visibility.Gone);
+                        set.ApplyTo(WindowPage);
+                    }
                 else
                 {
-                    set.Select(SelectFileButton).LeftToLeft(null, 20).TopToTop(null, 20)
-                        .Select(ShowPdfButton).LeftToRight(SelectFileButton, 20).TopToTop(SelectFileButton)
-                        .Select(PageScaleLable).LeftToLeft(ShowPdfButton, 20).CenterYTo(ShowPdfButton)
-                        .Select(PageScaleTextBox).LeftToRight(PageScaleLable, 20).CenterYTo(ShowPdfButton)
-                        .Select(PageFirstIndexLable).LeftToLeft(SelectFileButton, 20).TopToBottom(SelectFileButton, 20)
-                        .Select(PageIndexSlider).LeftToRight(PageFirstIndexLable, 20).CenterYTo(PageFirstIndexLable).RightToLeft(PageLastIndexLable, 20).Width(FluentConstraintSet.SizeBehavier.MatchConstraint)
-                        .Select(PageLastIndexLable).LeftToRight(PageIndexSlider, 20).RightToRight(null, 20).CenterYTo(PageFirstIndexLable)
-                        .Select(DocTreeView).LeftToLeft(SelectFileButton).TopToBottom(PageFirstIndexLable, 5)
-                        //.BottomToBottom(null, 5)
-                        .Width(200).Height(FluentConstraintSet.SizeBehavier.WrapContent)
-                        .Select(PageScrollViewer).LeftToLeft(null, 20).RightToRight(null, 20).TopToBottom(PageFirstIndexLable, 5).BottomToBottom(null, 5).Width(FluentConstraintSet.SizeBehavier.MatchConstraint).Height(FluentConstraintSet.SizeBehavier.MatchConstraint);
-
+                    using (var set = new FluentConstraintSet())
+                    {
+                        set.Clone(WindowPage);
+                        set.Select(DocTreeView).Visibility(FluentConstraintSet.Visibility.Visible);
+                        set.ApplyTo(WindowPage);
+                    }
                 }
-                set.ApplyTo(WindowPage);
-            }
-
-            PageScrollViewer.Content = PageImage;
+            };
 
             SelectFileButton.Clicked += SelectFileButton_ClickedAsync;
             ShowPdfButton.Clicked += ShowPdfButton_Clicked;
+            GetTextButton.Clicked += GetTextButton_Clicked;
             PageIndexSlider.ValueChanged += (sender, e) =>
             {
                 ShowPdfButton_Clicked(null, null);
             };
-            init();
+            InitPdfLibrary();
             ReadPDFAsyncFormResourcesAsync();
+        }
+
+        private void GetTextButton_Clicked(object sender, EventArgs e)
+        {
+            var index = (int)PageIndexSlider.Value - 1;
+            if (index < 0) index = 0;
+            var page = doc.GetPage(index);
+            page.GetCharacterBounds
+        }
+
+        private void MainPage_SizeChanged(object sender, EventArgs e)
+        {
+            using (var set = new FluentConstraintSet())
+            {
+                set.Clone(WindowPage);
+                //if (System.OperatingSystem.IsWindows())
+                if (this.Width > 500)
+                {
+                    set.Select(buttonContainer).LeftToLeft(null, 20).TopToTop(null, 10)
+                        .Select(PageScaleLable).LeftToRight(buttonContainer, 20).CenterYTo(buttonContainer)
+                        .Select(PageScaleTextBox).LeftToRight(PageScaleLable, 20).CenterYTo(buttonContainer)
+                        .Select(PageFirstIndexLable).LeftToRight(PageScaleTextBox, 20).CenterYTo(buttonContainer)
+                        .Select(PageIndexSlider).LeftToRight(PageFirstIndexLable, 5).CenterYTo(buttonContainer).RightToLeft(PageLastIndexLable, 5).Width(FluentConstraintSet.SizeBehavier.MatchConstraint)
+                        .Select(PageLastIndexLable).RightToRight(null, 20).CenterYTo(buttonContainer)
+                        .Select(DocTreeView).ClearEdges().LeftToLeft(buttonContainer).Margin(Edge.Right, 20).TopToBottom(buttonContainer, 5).BottomToBottom(null, 5).Width(200).Height(FluentConstraintSet.SizeBehavier.MatchConstraint)
+                        .Select(PageScrollViewer).LeftToRight(DocTreeView).RightToRight(null, 20).TopToBottom(buttonContainer, 5).BottomToBottom(null, 5).Width(FluentConstraintSet.SizeBehavier.MatchConstraint).Height(FluentConstraintSet.SizeBehavier.MatchConstraint)
+                        ;
+                }
+                else
+                {
+                    set.Select(buttonContainer).L2L(null, 20).T2T(null, 10)
+                        .Select(PageScaleLable).L2R(buttonContainer, 5).CenterYTo(buttonContainer)
+                        .Select(PageScaleTextBox).L2R(PageScaleLable).CenterYTo(buttonContainer)
+                        .Select(PageFirstIndexLable).Clear().L2L(null, 20).T2B(buttonContainer, 5)
+                        .Select(PageIndexSlider).Clear().L2R(PageFirstIndexLable, 5).CenterYTo(PageFirstIndexLable).R2L(PageLastIndexLable, 5)
+                        .Width(SizeBehavier.MatchConstraint)
+                        .Select(PageLastIndexLable).Clear().L2R(PageIndexSlider, 5).R2R(null, 20).CenterYTo(PageFirstIndexLable)
+                        .Select(DocTreeView).ClearEdges().L2L(buttonContainer).T2B(PageFirstIndexLable, 5)//.BottomToBottom()
+                        .Width(200).Height(SizeBehavier.WrapContent)
+                        .Select(PageScrollViewer).Clear().L2R(DocTreeView).R2R(null, 20).T2B(PageFirstIndexLable, 5).B2B(null, 5)
+                        .Width(SizeBehavier.MatchConstraint).Height(SizeBehavier.MatchConstraint);
+
+                }
+                set.ApplyTo(WindowPage);
+            }
         }
 
         private void ShowPdfButton_Clicked(object sender, EventArgs e)
@@ -120,7 +157,8 @@ namespace ApplePDF.Demo.Maui
                 return;
             ReadPDFAsync(result.FullPath);
         }
-        void init()
+
+        void InitPdfLibrary()
         {
             try
             {
@@ -131,7 +169,9 @@ namespace ApplePDF.Demo.Maui
                 throw ex;
             }
         }
+
         MemoryStream memoryStream = new MemoryStream();
+
         async Task ReadPDFAsyncFormResourcesAsync(string filePath = null)
         {
 
