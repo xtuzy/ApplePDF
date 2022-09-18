@@ -9,8 +9,13 @@ namespace ApplePDF.PdfKit.Annotation
 {
     public class PdfLineAnnotation : PdfAnnotation
     {
+        public Color? FillColor { get; private set; }
+
+        public Color? StrokeColor { get; private set; }
+
         List<List<PdfSegmentPath>> Paths;
-        public PdfLineAnnotation(PdfAnnotationSubtype type) : base(type)
+
+        public PdfLineAnnotation(Color? strokeColor = null, Color? fillColor = null) : base(PdfAnnotationSubtype.Line)
         {
         }
 
@@ -26,7 +31,6 @@ namespace ApplePDF.PdfKit.Annotation
                 StartLocation = new PointF(start.X, start.Y);
                 EndLocation = new PointF(end.X, end.Y);
             }
-
 
             //More line detail
             var objectCount = fpdf_annot.FPDFAnnotGetObjectCount(Annotation);

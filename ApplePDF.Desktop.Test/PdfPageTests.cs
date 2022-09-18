@@ -326,7 +326,13 @@ namespace ApplePDF.Test
                 if (File.Exists("Result.pdf"))
                     File.Delete("Result.pdf");
                 Pdfium.Instance.Save(doc, "Result.pdf");
-                Assert.Ignore("请手动检查Result.pdf中是否生成1234");
+            });
+
+            ExecuteForDocument("Result.pdf", null, 0, pageReader =>
+            {
+                var text = pageReader.Text;
+                var success = text.Contains(newText);
+                Assert.IsTrue(success);
             });
         }
 
@@ -344,7 +350,13 @@ namespace ApplePDF.Test
                 if (File.Exists("Result.pdf"))
                     File.Delete("Result.pdf");
                 Pdfium.Instance.Save(doc, "Result.pdf");
-                Assert.Ignore("请手动检查Result.pdf中是否生成01234...");
+            });
+
+            ExecuteForDocument("Result.pdf", null, 0, pageReader =>
+            {
+                var text = pageReader.Text;
+                var success = text.Contains(addText);
+                Assert.IsTrue(success);
             });
         }
 

@@ -18,8 +18,6 @@ namespace ApplePDF.PdfKit
         public static string ConstDictionaryKeyPopup = "Popup";
         public static string ConstDictionaryKeyModificationDate = "M";
         public static string ConstDictionaryKeyInteriorColor = "IC";
-        public Color? FillColor;
-        public Color? StrokeColor;
 
         internal PdfAnnotation(PdfPage page, FpdfAnnotationT annotation, PdfAnnotationSubtype type, int index)
         {
