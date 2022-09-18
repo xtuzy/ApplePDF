@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace PDFiumCore
+﻿namespace PDFiumCore
 {
     /// <summary>
     /// More DIB formats,Use at FPDFBitmap_CreateEx.
@@ -95,7 +91,6 @@ namespace PDFiumCore
         RemoveSecurity = 3,
     }
 
-
     #region fpdf_edit
     /// <summary>
     /// The page object constants.
@@ -138,6 +133,7 @@ namespace PDFiumCore
         FPDF_SEGMENT_BEZIERTO = 1,
         FPDF_SEGMENT_MOVETO = 2
     }
+
     public enum PdfFillMode
     {
         FPDF_FILLMODE_NONE = 0,
@@ -145,9 +141,15 @@ namespace PDFiumCore
         FPDF_FILLMODE_WINDING = 2
     }
 
-    public enum PdfFont
+    public enum PdfFontType
     {
+        /// <summary>
+        /// 参考https://zhuanlan.zhihu.com/p/386035885,Adobe的Type1
+        /// </summary>
         FPDF_FONT_TYPE1 = 1,
+        /// <summary>
+        /// 参考https://zhuanlan.zhihu.com/p/386035885,区别于OpenType,参考https://baike.baidu.com/item/OpenType/10425330,OpenType叫Type2
+        /// </summary>
         FPDF_FONT_TRUETYPE = 2
     }
 

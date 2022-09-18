@@ -14,7 +14,7 @@
     <PackageReference Include="NUnit" Version="3.13.2" />
     <PackageReference Include="NUnit3TestAdapter" Version="4.0.0" />
     <PackageReference Include="coverlet.collector" Version="3.1.0" />
-    <PackageReference Include="bblanchon.PDFium.Win32" Version="104.0.5079"/>
+    <PackageReference Include="bblanchon.PDFium.Win32" Version="104.0.5079" />
 
   </ItemGroup>
 
@@ -77,6 +77,13 @@
     <None Update="Docs\mytest_10_pagecount.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="Fonts\YouYuan.ttf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
 
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Fonts\" />
   </ItemGroup>
 </Project>

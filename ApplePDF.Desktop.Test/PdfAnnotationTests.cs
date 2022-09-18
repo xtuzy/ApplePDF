@@ -25,7 +25,6 @@ namespace ApplePDF.Test
             }
         }
 
-
         [TestCase("Docs/mytest_4_highlightannotation.pdf", PdfAnnotationSubtype.Highlight)]
         [TestCase("Docs/mytest_5_inkannotation.pdf", PdfAnnotationSubtype.Ink)]
         [TestCase("Docs/mytest_4_freetextannotation.pdf", PdfAnnotationSubtype.FreeText)]
@@ -124,11 +123,12 @@ namespace ApplePDF.Test
                 annot.AnnotBox = new RectangleF(bounds.Width / 2 - annotSize.Width / 2, bounds.Height - 50 - annotSize.Height / 2, annotSize.Width, annotSize.Height);
                 //annot.Color = Color.Cyan;
                 pageReader.AddAnnotation(annot);
-                annot.AppendAnnotationPoint(annot.AnnotBox);
+                //annot.AppendAnnotationPoint(annot.AnnotBox);
                 annot.Dispose();
-                Pdfium.Instance.Save(pageReader.Document, "Result.pdf");
-                Debug.WriteLine(pageReader.AnnotationCount);
                 Assert.Less(0, pageReader.AnnotationCount);
+                var doc = pageReader.Document;
+                Pdfium.Instance.Save(doc, "Result.pdf");
+                Assert.Ignore("请自行检查Result.pdf中是否生成矩形");
             });
         }
 
@@ -173,13 +173,10 @@ namespace ApplePDF.Test
 
         #region Highlight
 
-
-
         #endregion
 
         #region Ink
 
-      
         [TestCase("Docs/mytest_5_inkannotation.pdf", PdfAnnotationSubtype.Ink)]
         public void GetInks_WhenCalled_ShouldGetInk(string filePath, PdfAnnotationSubtype type)
         {
@@ -219,7 +216,6 @@ namespace ApplePDF.Test
                     Assert.Fail();
             });
         }
-
 
         #endregion
     }

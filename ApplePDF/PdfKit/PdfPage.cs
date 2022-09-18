@@ -1,19 +1,25 @@
 ﻿
 namespace ApplePDF.PdfKit
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Drawing;
-    using System.Runtime.InteropServices;
     using ApplePDF.PdfKit.Annotation;
     using PDFiumCore;
+    using System;
+    using System.Collections.Generic;
+    using System.Drawing;
+    using System.Linq;
+    using System.Runtime.InteropServices;
 
     public class PdfPage : IPdfPage, IDisposable
     {
         private static readonly object @lock = new object();
         public PdfDocument Document { get; private set; }
+        /// <summary>
+        /// Pdfium中代表页面,获取页面中的东西时需要它
+        /// </summary>
         private FpdfPageT page;
+        /// <summary>
+        /// Pdfium中代表页面的文本,获取文本时需要它
+        /// </summary>
         private FpdfTextpageT textPage;
         private SizeF size;
         public int PageIndex { private set; get; }
@@ -139,7 +145,87 @@ namespace ApplePDF.PdfKit
 
         #endregion
 
-        #region 文本 Text
+        #region Set文本
+
+        public bool InsteadText(string oldText, string newText)
+        {
+            var objectCount = fpdf_edit.FPDFPageCountObjects(Page);
+
+            ushort[] buffer = new ushort[1];
+            for (var index = 0; index < objectCount; index++)
+            {
+                var objectInPage = fpdf_edit.FPDFPageGetObject(Page, index);
+                var type = fpdf_edit.FPDFPageObjGetType(objectInPage);
+                if (textPage == null)
+                    textPage = fpdf_text.FPDFTextLoadPage(Page);
+                if (type == (int)PdfPageObjectTypeFlag.TEXT)
+                {
+                    //获取文本长度
+                    var length = fpdf_edit.FPDFTextObjGetText(objectInPage, textPage, ref buffer[0], 1);
+                    if (length > 0)
+                    {
+                        buffer = new ushort[length];
+                        fpdf_edit.FPDFTextObjGetText(objectInPage, textPage, ref buffer[0], length);
+                        //参考:https://stackoverflow.com/a/274207/13254773
+                        string result;
+                        unsafe
+                        {
+                            fixed (ushort* dataPtr = &buffer[0])
+                            {
+                                result = new string((char*)dataPtr, 0, (int)length - 1);
+                            }
+                        }
+
+                        if (result.Contains(oldText))
+                        {
+                            //string to ushort 参考:https://stackoverflow.com/a/274207/13254773
+                            //var newTextBytes = Encoding.Unicode.GetBytes(newText);
+                            //ushort[] newTextBuffer = new ushort[newText.Length];
+                            //Buffer.BlockCopy(newTextBytes, 0, newTextBuffer, 0, newTextBytes.Length);
+
+                            //string to ushort 参考:https://stackoverflow.com/a/45281549/13254773
+                            ushort[] newTextBuffer = (newText+result.Substring(oldText.Length)).ToCharArray().Select(c => (ushort)c).ToArray();
+
+                            var success = fpdf_edit.FPDFTextSetText(objectInPage, ref newTextBuffer[0]);
+                            if (success == 1)
+                                return true;
+                            break;
+                        }
+                    }
+                }
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// 使用字体插入文本(不是注释,是作为正文)
+        /// </summary>
+        /// <param name="font">字体</param>
+        /// <param name="fontSize">字体大小</param>
+        /// <param name="text">文本</param>
+        /// <param name="x">左下角为原点</param>
+        /// <param name="y">左下角为原点</param>
+        /// <param name="scale">缩放</param>
+        /// <returns>是否成功</returns>
+        public bool AddText(PdfFont font, float fontSize, string text, double x, double y, double scale = 1)
+        {
+            var textObj = fpdf_edit.FPDFPageObjCreateTextObj(Document.Document, font.Font, fontSize);
+            //string to ushort 参考:https://stackoverflow.com/a/45281549/13254773
+            ushort[] newTextBuffer = text.ToCharArray().Select(c => (ushort)c).ToArray();
+            var success = fpdf_edit.FPDFTextSetText(textObj, ref newTextBuffer[0]);
+            if (success == 1)
+            {
+                //设置位置
+                fpdf_edit.FPDFPageObjTransform(textObj, scale, 0, 0, scale, 200, 200);
+                fpdf_edit.FPDFPageInsertObject(Page, textObj);
+                return true;
+            }
+            return false;
+        }
+
+        #endregion Set文本
+
+        #region Get文本 Text
 
         public string Text
         {
@@ -169,7 +255,7 @@ namespace ApplePDF.PdfKit
                 {
                     var w = fpdfview.FPDF_GetPageWidthF(this.page);
                     var h = fpdfview.FPDF_GetPageHeightF(this.page);
-                    size = new SizeF( w, h);
+                    size = new SizeF(w, h);
                 }
                 return size;
             }
@@ -190,16 +276,16 @@ namespace ApplePDF.PdfKit
                     fpdf_transformpage.FPDFPageGetCropBox(Page, ref left, ref bottom, ref right, ref top);
                     break;
                 case PdfDisplayBox.Bleed:
-                    fpdf_transformpage.FPDFPageGetBleedBox(Page,ref left, ref bottom, ref right, ref top);
+                    fpdf_transformpage.FPDFPageGetBleedBox(Page, ref left, ref bottom, ref right, ref top);
                     break;
                 case PdfDisplayBox.Trim:
-                    fpdf_transformpage.FPDFPageGetTrimBox(Page, ref left,ref bottom, ref right, ref top);
+                    fpdf_transformpage.FPDFPageGetTrimBox(Page, ref left, ref bottom, ref right, ref top);
                     break;
                 case PdfDisplayBox.Art:
-                    fpdf_transformpage.FPDFPageGetArtBox(Page, ref left,ref bottom, ref right, ref top);
+                    fpdf_transformpage.FPDFPageGetArtBox(Page, ref left, ref bottom, ref right, ref top);
                     break;
             }
-            return RectangleF.FromLTRB(left,top,right,bottom);
+            return RectangleF.FromLTRB(left, top, right, bottom);
         }
 
         public RectangleF GetCharacterBounds(int index)
@@ -246,6 +332,7 @@ namespace ApplePDF.PdfKit
                     return string.Empty;
                 }
 
+                //参考:https://stackoverflow.com/a/274207/13254773
                 string result;
                 unsafe
                 {
@@ -458,6 +545,14 @@ namespace ApplePDF.PdfKit
         }
 
         #endregion
+        /// <summary>
+        /// 保存对页面内容的操作,如增加文本
+        /// </summary>
+        /// <returns></returns>
+        public bool SaveNewContent()
+        {
+            return fpdf_edit.FPDFPageGenerateContent(Page) == 1 ? true : false;
+        }
 
         public void Dispose()
         {

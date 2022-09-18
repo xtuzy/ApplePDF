@@ -67,6 +67,8 @@ namespace ApplePDF.PdfKit.Annotation
                     }
                 }
             }
+            else if (objectCount == 0)
+                ;//测试mytest_4_freetextannotation.pdf时,为0时貌似也可能正确,这个注释好像是不显示的
             else
             {
                 throw new NotImplementedException("Not only one object, don't know how to get correct object");
@@ -75,7 +77,6 @@ namespace ApplePDF.PdfKit.Annotation
         }
 
         public string? Text { get; set; }
-
 
         /// <summary>
         /// Default is 12

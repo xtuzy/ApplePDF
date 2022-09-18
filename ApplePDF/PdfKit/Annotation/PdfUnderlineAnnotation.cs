@@ -46,7 +46,8 @@ namespace ApplePDF.PdfKit.Annotation
 
         internal override void AddToPage(PdfPage page)
         {
-           base.AddToPage(page);
+            base.AddToPage(page);
+            AppendAnnotationPoint(this.AnnotBox);
         }
     }
 }

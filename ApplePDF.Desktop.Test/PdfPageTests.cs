@@ -1,9 +1,10 @@
-﻿using System;
-using System.Linq;
-using System.Threading.Tasks;
-using ApplePDF.PdfKit;
+﻿using ApplePDF.PdfKit;
 using NUnit.Framework;
 using PDFiumCore;
+using System;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace ApplePDF.Test
 {
@@ -25,7 +26,6 @@ namespace ApplePDF.Test
                 action(page);
             }
         }
-
 
         [Theory]
         public void PageIndex_WhenCalled_ShouldReturnCorrectIndex()
@@ -274,18 +274,72 @@ namespace ApplePDF.Test
                 }
             }
         }
-     
+
         [TestCase("Docs/mytest_4_highlightannotation.pdf", 4)]
         [TestCase("Docs/mytest_5_inkannotation.pdf", 5)]
         [TestCase("Docs/mytest_4_freetextannotation.pdf", 4)]
         [TestCase("Docs/mytest_4_rectangleannotation.pdf", 4)]
         [TestCase("Docs/mytest_4_linkannotation.pdf", 4)]
-        public void Annotations_WhenCalled_ShouldGetCurrectAnnotationsCount(string filePath,int annotationsCount)
+        public void Annotations_WhenCalled_ShouldGetCurrectAnnotationsCount(string filePath, int annotationsCount)
         {
             ExecuteForDocument(filePath, null, 0, pageReader =>
             {
                 var annots = pageReader.Annotations;
                 Assert.AreEqual(annotationsCount, annots.Count);
+            });
+        }
+
+        [TestCase("Docs/mytest_edit_annotation.pdf", "little", "1234")]
+        public void InsteadText_WhenCalled_ShouldResultPdfHaveNewText(string filePath, string oldText, string newText)
+        {
+            ExecuteForDocument(filePath, null, 0, pageReader =>
+            {
+                pageReader.InsteadText(oldText, newText);
+                var success = pageReader.SaveNewContent();
+                var text = pageReader.Text;
+                var doc = pageReader.Document;
+                pageReader.Dispose();
+                if (File.Exists("Result.pdf"))
+                    File.Delete("Result.pdf");
+                Pdfium.Instance.Save(doc, "Result.pdf");
+                Assert.Ignore("请手动检查Result.pdf中是否生成1234");
+            });
+        }
+
+        [TestCase("Docs/mytest_edit_annotation.pdf", "Helvetica", 12, "0123456789abcdABCD-+/.<>?@!#%*", 200, 200, 2)]
+        public void AddText_UseStandardFont_WhenCalled_ShouldResultPdfHaveNewText(string filePath, string fontName, float fontSize, string addText, double x, double y, double scale)
+        {
+            ExecuteForDocument(filePath, null, 0, pageReader =>
+            {
+                PdfFont font = new PdfFont(pageReader.Document, fontName);
+                pageReader.AddText(font, fontSize, addText, x, y, scale);
+                var success = pageReader.SaveNewContent();
+                var text = pageReader.Text;
+                var doc = pageReader.Document;
+                pageReader.Dispose();
+                if(File.Exists("Result.pdf"))
+                    File.Delete("Result.pdf");
+                Pdfium.Instance.Save(doc, "Result.pdf");
+                Assert.Ignore("请手动检查Result.pdf中是否生成01234...");
+            });
+        }
+        
+        [TestCase("Docs/mytest_edit_annotation.pdf", "Fonts/YouYuan.ttf", 12, "你好!", 200, 200, 2)]
+        public void AddText_UseCustomFont_WhenCalled_ShouldResultPdfHaveNewText(string filePath, string customFontPath, float fontSize, string addText, double x, double y, double scale)
+        {
+            ExecuteForDocument(filePath, null, 0, pageReader =>
+            {
+                var fontData = File.ReadAllBytes(customFontPath);
+                PdfFont font = new PdfFont(pageReader.Document, fontData, PdfFontType.FPDF_FONT_TRUETYPE);
+                pageReader.AddText(font, fontSize, addText, x, y, scale);
+                var success = pageReader.SaveNewContent();
+                var text = pageReader.Text;
+                var doc = pageReader.Document;
+                pageReader.Dispose();
+                if (File.Exists("Result.pdf"))
+                    File.Delete("Result.pdf");
+                Pdfium.Instance.Save(doc, "Result.pdf");
+                Assert.Ignore("请手动检查Result.pdf中是否生成你好!");
             });
         }
     }

@@ -16,7 +16,7 @@ namespace ApplePDF.PdfKit.Annotation
         internal PdfHighlightAnnotation(PdfPage page, FpdfAnnotationT annotation, PdfAnnotationSubtype type, int index) : base(page, annotation, type, index)
         {
             var count = (int)fpdf_annot.FPDFAnnotCountAttachmentPoints(Annotation);
-            var success = count == 0;
+            var success = count != 0;
             if (!success) throw new NotImplementedException("No highlight points");
             var point = new FS_QUADPOINTSF();
             for (var i = 0; i < count; i++)
@@ -47,6 +47,7 @@ namespace ApplePDF.PdfKit.Annotation
         internal override void AddToPage(PdfPage page)
         {
             base.AddToPage(page);
+            AppendAnnotationPoint(this.AnnotBox);
         }
     }
 }
