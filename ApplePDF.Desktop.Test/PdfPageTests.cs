@@ -1,9 +1,11 @@
 ﻿using ApplePDF.PdfKit;
+using ApplePDF.PdfKit.Annotation;
 using NUnit.Framework;
 using PDFiumCore;
 using System;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace ApplePDF.Test
@@ -117,6 +119,17 @@ namespace ApplePDF.Test
               var c = text.Contains(expectedText, StringComparison.Ordinal);
               Assert.AreEqual(true, c);
           });
+        }
+
+        [TestCase("Docs/mytest_chinese.pdf", null, 0, "另一端")]
+        public void GetText_Chinese_WhenCalled_ShouldContainValidText(string filePath, string password, int pageIndex, string expectedText)
+        {
+            ExecuteForDocument(filePath, password, pageIndex, pageReader =>
+            {
+                var text = pageReader.Text;
+                var c = text.Contains(expectedText, StringComparison.Ordinal);
+                Assert.AreEqual(true, c);
+            });
         }
 
         [Theory]
@@ -289,6 +302,17 @@ namespace ApplePDF.Test
             });
         }
 
+        [TestCase("Docs/mytest_chinese.pdf", "这是一个中文注释")]
+        public void Annotations_Chinese_WhenCalled_ShouldGetCurrectTextOfPopup(string filePath, string text)
+        {
+            ExecuteForDocument(filePath, null, 0, pageReader =>
+            {
+                var annots = pageReader.Annotations;
+                var isContain = (annots[0] as PdfHighlightAnnotation).PopupAnnotation.Text.Contains(text);
+                Assert.AreEqual(true, isContain);
+            });
+        }
+
         [TestCase("Docs/mytest_edit_annotation.pdf", "little", "1234")]
         public void InsteadText_WhenCalled_ShouldResultPdfHaveNewText(string filePath, string oldText, string newText)
         {
@@ -317,14 +341,14 @@ namespace ApplePDF.Test
                 var text = pageReader.Text;
                 var doc = pageReader.Document;
                 pageReader.Dispose();
-                if(File.Exists("Result.pdf"))
+                if (File.Exists("Result.pdf"))
                     File.Delete("Result.pdf");
                 Pdfium.Instance.Save(doc, "Result.pdf");
                 Assert.Ignore("请手动检查Result.pdf中是否生成01234...");
             });
         }
-        
-        [TestCase("Docs/mytest_edit_annotation.pdf", "Fonts/YouYuan.ttf", 12, "你好!", 200, 200, 2)]
+
+        [TestCase("Docs/mytest_edit_annotation.pdf", "Fonts/YouYuan.ttf", 12, "0123456789你好abcdABCD-+/.<>?@!#%*你好", 200, 200, 2)]
         public void AddText_UseCustomFont_WhenCalled_ShouldResultPdfHaveNewText(string filePath, string customFontPath, float fontSize, string addText, double x, double y, double scale)
         {
             ExecuteForDocument(filePath, null, 0, pageReader =>
@@ -339,7 +363,13 @@ namespace ApplePDF.Test
                 if (File.Exists("Result.pdf"))
                     File.Delete("Result.pdf");
                 Pdfium.Instance.Save(doc, "Result.pdf");
-                Assert.Ignore("请手动检查Result.pdf中是否生成你好!");
+            });
+
+            ExecuteForDocument("Result.pdf", null, 0, pageReader =>
+            {
+                var text = pageReader.Text;
+                var success = text.Contains(addText);
+                Assert.IsTrue(success);
             });
         }
     }

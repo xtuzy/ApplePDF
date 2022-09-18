@@ -43,8 +43,8 @@ namespace ApplePDF.PdfKit
             //byte[] to byte*参考:https://stackoverflow.com/a/6369446/13254773
             fixed (byte* converted = fontData)
             {
-                //不明白这里字体类型和CID的不同组合之间的却别
-                Font = fpdf_edit.FPDFTextLoadFont(doc.Document, converted, (uint)fontData.Length, (int)type, 0);
+                //不明白这里字体类型和CID的不同组合之间的却别,我使用幼圆字体时,设置为CID才正确写入和读取到中文
+                Font = fpdf_edit.FPDFTextLoadFont(doc.Document, converted, (uint)fontData.Length, (int)type, 1);
             }
         }
 

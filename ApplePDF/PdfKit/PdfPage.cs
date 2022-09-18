@@ -8,6 +8,7 @@ namespace ApplePDF.PdfKit
     using System.Drawing;
     using System.Linq;
     using System.Runtime.InteropServices;
+    using System.Text;
 
     public class PdfPage : IPdfPage, IDisposable
     {
@@ -115,9 +116,11 @@ namespace ApplePDF.PdfKit
                         case PdfAnnotationSubtype.Stamp:
                             annotations.Add(new PdfStampAnnotation(this, annotation, annotationType, index));
                             break;
-                        case PdfAnnotationSubtype.Popup:
+                        case PdfAnnotationSubtype.Popup://Popup附着在其它注释上
+                            //annotations.Add(new PdfPopupAnnotation(this, annotation, annotationType, index));
                             break;
                         case PdfAnnotationSubtype.Widget:
+                            annotations.Add(new PdfWidgetAnnotation(this, annotation, annotationType, index));
                             break;
                     }
                 }
@@ -210,8 +213,14 @@ namespace ApplePDF.PdfKit
         public bool AddText(PdfFont font, float fontSize, string text, double x, double y, double scale = 1)
         {
             var textObj = fpdf_edit.FPDFPageObjCreateTextObj(Document.Document, font.Font, fontSize);
+            //string to ushort 参考:https://stackoverflow.com/a/274207/13254773
+            var newTextBytes = Encoding.Unicode.GetBytes(text);
+            ushort[] newTextBuffer = new ushort[text.Length];
+            Buffer.BlockCopy(newTextBytes, 0, newTextBuffer, 0, newTextBytes.Length);
+            
             //string to ushort 参考:https://stackoverflow.com/a/45281549/13254773
-            ushort[] newTextBuffer = text.ToCharArray().Select(c => (ushort)c).ToArray();
+            //ushort[] newTextBuffer = text.ToCharArray().Select(c => (ushort)c).ToArray();
+            
             var success = fpdf_edit.FPDFTextSetText(textObj, ref newTextBuffer[0]);
             if (success == 1)
             {

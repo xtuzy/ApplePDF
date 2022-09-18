@@ -15,7 +15,6 @@
     <PackageReference Include="NUnit3TestAdapter" Version="4.0.0" />
     <PackageReference Include="coverlet.collector" Version="3.1.0" />
     <PackageReference Include="bblanchon.PDFium.Win32" Version="104.0.5079" />
-
   </ItemGroup>
 
   <ItemGroup>
@@ -45,6 +44,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="Docs\mytest_4_textannotation.pdf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Docs\mytest_chinese.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="Docs\mytest_edit_annotation.pdf">
