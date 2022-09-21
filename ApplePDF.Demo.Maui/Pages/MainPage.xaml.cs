@@ -17,11 +17,11 @@ namespace ApplePDF.Demo.Maui
         private Button ShowPdfButton;
         private Button GetTextButton;
         private ActivityIndicator GetTextActivityIndicator;
-        private Label PageFirstIndexLable;
-        private Slider PageIndexSlider;
-        private Label PageLastIndexLable;
         private Label PageScaleLable;
         private Entry PageScaleTextBox;
+        private Entry PageCurrentIndexEntry;
+        private Label PageCurrentToLastIndexLabel;
+        private Label PageLastIndexLable;
         private ListView DocTreeView;
         private ScrollView PageScrollViewer;
         private Image PageImage;
@@ -41,10 +41,10 @@ namespace ApplePDF.Demo.Maui
             GetTextButton = new Button() { Text = "文本", WidthRequest = 35, HeightRequest = 20, Padding = new Thickness(0, 0, 0, 0), CornerRadius = 0 };
             GetTextActivityIndicator = new ActivityIndicator() { IsRunning = false };
             buttonContainer.AddViews(catalogManagerButton, SelectFileButton, ShowPdfButton, GetTextButton, GetTextActivityIndicator);
-            PageScaleLable = new Label() { Text = "缩放" };
-            PageScaleTextBox = new Entry() { Text = "1" };
-            PageFirstIndexLable = new Label() { Text = "1" };
-            PageIndexSlider = new Slider() { Value = 1 };
+            PageScaleLable = new Label() { Text = "缩放图片精度" };
+            PageScaleTextBox = new Entry() { Text = "1",VerticalTextAlignment = TextAlignment.Center};
+            PageCurrentIndexEntry = new Entry() { Text = "1" };
+            PageCurrentToLastIndexLabel = new Label() { Text = "/" };
             PageLastIndexLable = new Label() { Text = "1" };
 
             DocTreeView = new ListView();
@@ -54,8 +54,8 @@ namespace ApplePDF.Demo.Maui
             WindowPage.AddElement(buttonContainer);
             WindowPage.AddElement(PageScaleLable);
             WindowPage.AddElement(PageScaleTextBox);
-            WindowPage.AddElement(PageFirstIndexLable);
-            WindowPage.AddElement(PageIndexSlider);
+            WindowPage.AddElement(PageCurrentIndexEntry);
+            WindowPage.AddElement(PageCurrentToLastIndexLabel);
             WindowPage.AddElement(PageLastIndexLable);
             WindowPage.AddElement(DocTreeView);
             WindowPage.AddElement(PageScrollViewer);
@@ -84,9 +84,19 @@ namespace ApplePDF.Demo.Maui
             SelectFileButton.Clicked += SelectFileButton_ClickedAsync;
             ShowPdfButton.Clicked += ShowPdfButton_Clicked;
             GetTextButton.Clicked += GetTextButton_Clicked;
-            PageIndexSlider.ValueChanged += (sender, e) =>
+            int lastPageIndex = 1;
+            PageCurrentIndexEntry.Completed += (sender, e) =>
             {
-                ShowPdfButton_Clicked(null, null);
+                var newPageIndex = int.Parse(PageCurrentIndexEntry.Text);
+                if (newPageIndex > doc.PageCount || newPageIndex < 1)
+                {
+                    PageCurrentIndexEntry.Text = lastPageIndex.ToString();
+                }
+                else
+                {
+                    lastPageIndex = newPageIndex;
+                    ShowPdfButton_Clicked(null, null);
+                }
             };
             InitPdfLibrary();
             ReadPDFAsyncFormResourcesAsync();
@@ -94,7 +104,7 @@ namespace ApplePDF.Demo.Maui
 
         private async void GetTextButton_Clicked(object sender, EventArgs e)
         {
-            var index = (int)PageIndexSlider.Value - 1;
+            var index = int.Parse(PageCurrentIndexEntry.Text) - 1;
             if (index < 0) index = 0;
             using var page = doc.GetPage(index);
             //var text = page.Text;
@@ -302,11 +312,11 @@ namespace ApplePDF.Demo.Maui
                 if (this.Width > 500)
                 {
                     set.Select(buttonContainer).LeftToLeft(null, 20).TopToTop(null, 10)
-                        .Select(PageScaleLable).LeftToRight(buttonContainer, 20).CenterYTo(buttonContainer)
-                        .Select(PageScaleTextBox).LeftToRight(PageScaleLable, 20).CenterYTo(buttonContainer)
-                        .Select(PageFirstIndexLable).LeftToRight(PageScaleTextBox, 20).CenterYTo(buttonContainer)
-                        .Select(PageIndexSlider).LeftToRight(PageFirstIndexLable, 5).CenterYTo(buttonContainer).RightToLeft(PageLastIndexLable, 5).Width(FluentConstraintSet.SizeBehavier.MatchConstraint)
-                        .Select(PageLastIndexLable).RightToRight(null, 20).CenterYTo(buttonContainer)
+                        .Select(PageScaleLable).Clear().LeftToRight(buttonContainer, 5).CenterYTo(buttonContainer)
+                        .Select(PageScaleTextBox).Clear().MinWidth(30).LeftToRight(PageScaleLable, 5).CenterYTo(buttonContainer)
+                        .Select(PageCurrentIndexEntry).Clear().MinWidth(30).RightToLeft(PageCurrentToLastIndexLabel,5).CenterYTo(buttonContainer)
+                        .Select(PageCurrentToLastIndexLabel).Clear().LeftToRight(PageScaleTextBox).RightToRight().CenterYTo(buttonContainer)
+                        .Select(PageLastIndexLable).Clear().LeftToRight(PageCurrentToLastIndexLabel).CenterYTo(buttonContainer)
                         .Select(DocTreeView).ClearEdges().LeftToLeft(buttonContainer).Margin(Edge.Right, 20).TopToBottom(buttonContainer, 5).BottomToBottom(null, 5).Width(200).Height(FluentConstraintSet.SizeBehavier.MatchConstraint)
                         .Select(PageScrollViewer).LeftToRight(DocTreeView).RightToRight(null, 20).TopToBottom(buttonContainer, 5).BottomToBottom(null, 5).Width(FluentConstraintSet.SizeBehavier.MatchConstraint).Height(FluentConstraintSet.SizeBehavier.MatchConstraint)
                         ;
@@ -314,15 +324,14 @@ namespace ApplePDF.Demo.Maui
                 else
                 {
                     set.Select(buttonContainer).L2L(null, 20).T2T(null, 10)
-                        .Select(PageScaleLable).L2R(buttonContainer, 5).CenterYTo(buttonContainer)
-                        .Select(PageScaleTextBox).L2R(PageScaleLable).CenterYTo(buttonContainer)
-                        .Select(PageFirstIndexLable).Clear().L2L(null, 20).T2B(buttonContainer, 5)
-                        .Select(PageIndexSlider).Clear().L2R(PageFirstIndexLable, 5).CenterYTo(PageFirstIndexLable).R2L(PageLastIndexLable, 5)
-                        .Width(SizeBehavier.MatchConstraint)
-                        .Select(PageLastIndexLable).Clear().L2R(PageIndexSlider, 5).R2R(null, 20).CenterYTo(PageFirstIndexLable)
-                        .Select(DocTreeView).ClearEdges().L2L(buttonContainer).T2B(PageFirstIndexLable, 5)//.BottomToBottom()
+                        .Select(PageScaleLable).Clear().L2L(buttonContainer).CenterYTo(PageScaleTextBox)
+                        .Select(PageScaleTextBox).Clear().MinWidth(30).L2R(PageScaleLable,5).T2B(buttonContainer, 5)
+                        .Select(PageCurrentIndexEntry).Clear().MinWidth(30).R2L(PageCurrentToLastIndexLabel,5).CenterYTo(PageScaleLable)
+                        .Select(PageCurrentToLastIndexLabel).Clear().L2R(PageScaleTextBox).R2R().CenterYTo(PageCurrentIndexEntry)
+                        .Select(PageLastIndexLable).Clear().L2R(PageCurrentToLastIndexLabel).CenterYTo(PageCurrentIndexEntry)
+                        .Select(DocTreeView).ClearEdges().L2L(buttonContainer).T2B(PageCurrentIndexEntry, 5)//.BottomToBottom()
                         .Width(200).Height(SizeBehavier.WrapContent)
-                        .Select(PageScrollViewer).Clear().L2R(DocTreeView).R2R(null, 20).T2B(PageFirstIndexLable, 5).B2B(null, 5)
+                        .Select(PageScrollViewer).Clear().L2R(DocTreeView).R2R(null, 20).T2B(PageCurrentIndexEntry, 5).B2B(null, 5)
                         .Width(SizeBehavier.MatchConstraint).Height(SizeBehavier.MatchConstraint);
 
                 }
@@ -332,7 +341,7 @@ namespace ApplePDF.Demo.Maui
 
         private void ShowPdfButton_Clicked(object sender, EventArgs e)
         {
-            var index = (int)PageIndexSlider.Value - 1;
+            var index = int.Parse(PageCurrentIndexEntry.Text) - 1;
             if (index < 0) index = 0;
 
             var scaleStr = PageScaleTextBox.Text;
@@ -405,7 +414,6 @@ namespace ApplePDF.Demo.Maui
                     WindowPage.Dispatcher.Dispatch(() =>
                     {
                         PageLastIndexLable.Text = $"{doc.PageCount}";
-                        PageIndexSlider.Maximum = doc.PageCount;
                         DocTreeView.ItemsSource = bookmarks;
                         WindowPage.RequestReLayout();
                     });
@@ -427,7 +435,6 @@ namespace ApplePDF.Demo.Maui
                 doc.Dispose();
             doc = Pdfium.Instance.LoadPdfDocument(stream, null);
             PageLastIndexLable.Text = $"{doc.PageCount}";
-            PageIndexSlider.Maximum = doc.PageCount;
             //PageIndexSlider.InvalidateVisual();
             var rootBookmark = doc.OutlineRoot;
             List<string> bookmarks = new List<string>();
