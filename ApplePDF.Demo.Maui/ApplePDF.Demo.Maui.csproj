@@ -50,6 +50,7 @@
   <ItemGroup>
     <PackageReference Include="SharpConstraintLayout.Maui" Version="2.1.1.9" />
     <PackageReference Include="SkiaSharp" Version="2.88.0-preview.266" />
+    <PackageReference Include="Tesseract" Version="4.1.1" />
   </ItemGroup>
 
   <ItemGroup>

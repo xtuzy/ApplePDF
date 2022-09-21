@@ -61,7 +61,7 @@ namespace ApplePDF.Demo.Maui.Extension
             return bmp;
         }
 
-        public static Stream SKBitmapToStream(this SKBitmap bmp)
+        public static MemoryStream SKBitmapToStream(this SKBitmap bmp)
         {
             var stream = new MemoryStream();
             bmp.Encode(stream, SKEncodedImageFormat.Png, 100);
