@@ -22,6 +22,9 @@ namespace ApplePDF.Demo.Maui.Services
         public List<OcrData> Childs;  
         public string Text;
         public Microsoft.Maui.Graphics.Rect Bounds;
+        /// <summary>
+        /// 用于行文字大小和基线位置绘制
+        /// </summary>
         public Microsoft.Maui.Graphics.Rect BaselineBounds;
     }
 

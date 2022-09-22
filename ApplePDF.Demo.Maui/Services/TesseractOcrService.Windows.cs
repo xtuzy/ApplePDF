@@ -10,6 +10,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Tesseract;
+using Windows.Globalization;
 
 namespace ApplePDF.Demo.Maui.Services
 {
@@ -166,7 +167,7 @@ namespace ApplePDF.Demo.Maui.Services
             List<OcrData> lines = new List<OcrData>();
             try
             {
-                activityIndicator.IsRunning = true;
+                activityIndicator.Dispatcher.Dispatch(() => activityIndicator.IsRunning = true);
                 await Task.Run(() =>
                 {
                     if (Directory.Exists(modelFolderPath))
@@ -191,7 +192,7 @@ namespace ApplePDF.Demo.Maui.Services
                                 using (var iter = page.GetIterator())
                                 {
                                     iter.Begin();
-
+                                    var language = iter.GetWordRecognitionLanguage();
                                     do
                                     {
                                         do
@@ -202,10 +203,24 @@ namespace ApplePDF.Demo.Maui.Services
                                                 var lineLevel = PageIteratorLevel.TextLine;
                                                 iter.TryGetBoundingBox(lineLevel, out var lineRect);
                                                 iter.TryGetBaseline(lineLevel, out var lineBaselineRect);
+                                                var lineText = iter.GetText(lineLevel).Replace('\n', ' ');
+                                                //判断是否单含有中文(不判断字符),如果含有中文,则纠正英文字符为中文字符,如果没有中文,则纠正中文字符为英文字符.
+                                                //参考:https://blog.51cto.com/u_3664660/3213618
+                                                var existChinese = lineText.Matches("[\u4e00-\u9fa5]");
+                                                if (existChinese)
+                                                {
+                                                    //替换英文字符
+                                                    lineText = EnglishPunctuation2Chineseunctuation(lineText);
+                                                }
+                                                else
+                                                {
+                                                    //替换中文字符
+                                                    lineText = ChinesePunctuation2EnglishPunctuation(lineText);
+                                                }
                                                 var line = new OcrData()
                                                 {
                                                     Childs = new List<OcrData>(),
-                                                    Text = iter.GetText(lineLevel).Replace('\n', ' '),
+                                                    Text = lineText,
                                                     Bounds = new Microsoft.Maui.Graphics.Rect(lineRect.X1, lineRect.Y1, lineRect.Width, lineRect.Height),
                                                     BaselineBounds = new Microsoft.Maui.Graphics.Rect(lineBaselineRect.X1, lineBaselineRect.Y1, lineBaselineRect.Width, lineBaselineRect.Height),
                                                 };
@@ -246,6 +261,68 @@ namespace ApplePDF.Demo.Maui.Services
                 activityIndicator.IsRunning = false;
             }
             return lines;
+        }
+
+        /// <summary>
+        /// ChinesePunctuation2EnglishPunctuation
+        /// </summary>
+        static readonly Dictionary<char, char> c2ePuns = new Dictionary<char, char>()
+        {
+            {'。' ,'.'},
+            {'，',',' },
+            {'？','?' },
+            {'“','"' },
+            {'”','"' },
+            {'！','!' },
+            {'（','(' },
+            {'）',')' },
+            {'‘','\'' },
+            {'’','\'' },
+        };
+
+        static readonly Dictionary<char, char> e2cPuns = new Dictionary<char, char>()
+        {
+            {'.','。' },
+            {',' ,'，'},
+            {'?','？'},
+            {'"','"' },
+            {'!','！' },
+            {'(','（'},
+            {')','）'},
+            {'\'','\'' },
+        };
+
+        string ChinesePunctuation2EnglishPunctuation(string str)
+        {
+            var tmp = new StringBuilder();
+            for (var i = 0; i < str.Length; i++)
+            {
+                if (c2ePuns.ContainsKey(str[i]))
+                {
+                    tmp.Append(c2ePuns[str[i]]);
+                }
+                else
+                {
+                    tmp.Append(str[i]);
+                }
+            }
+            return tmp.ToString();
+        }
+        string EnglishPunctuation2Chineseunctuation(string str)
+        {
+            var tmp = new StringBuilder();
+            for (var i = 0; i < str.Length; i++)
+            {
+                if (e2cPuns.ContainsKey(str[i]))
+                {
+                    tmp.Append(e2cPuns[str[i]]);
+                }
+                else
+                {
+                    tmp.Append(str[i]);
+                }
+            }
+            return tmp.ToString();
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using ApplePDF.Demo.Maui.Extension;
 using ApplePDF.PdfKit;
+using MathNet.Numerics.Statistics;
 using PDFiumCore;
 using SharpConstraintLayout.Maui.Widget;
 using SkiaSharp;
@@ -42,7 +43,7 @@ namespace ApplePDF.Demo.Maui
             GetTextActivityIndicator = new ActivityIndicator() { IsRunning = false };
             buttonContainer.AddViews(catalogManagerButton, SelectFileButton, ShowPdfButton, GetTextButton, GetTextActivityIndicator);
             PageScaleLable = new Label() { Text = "缩放图片精度" };
-            PageScaleTextBox = new Entry() { Text = "1",VerticalTextAlignment = TextAlignment.Center};
+            PageScaleTextBox = new Entry() { Text = "1", VerticalTextAlignment = TextAlignment.Center };
             PageCurrentIndexEntry = new Entry() { Text = "1" };
             PageCurrentToLastIndexLabel = new Label() { Text = "/" };
             PageLastIndexLable = new Label() { Text = "1" };
@@ -165,6 +166,7 @@ namespace ApplePDF.Demo.Maui
 
                     //绘制文字
                     paint.Color = SKColors.AliceBlue;
+                    var linesTextSize = AnalysisTextSize(ocrLines);
                     foreach (var line in ocrLines)
                     {
                         /*
@@ -235,11 +237,11 @@ namespace ApplePDF.Demo.Maui
 
                                         for (int i = lastMatchIndexEnd; i < line.Childs.Count; i++)
                                         {
-                                            if (textBlock.StartsWith(line.Childs[i].Text))//如包含word
+                                            if (textBlock.Contains(line.Childs[i].Text))//如包含word
                                             {
                                                 isMatch = true;
                                                 lastMatchIndex = i;
-                                                lastMatchIndexEnd = i+1;
+                                                lastMatchIndexEnd = i + 1;
                                                 break;
                                             }
                                         }
@@ -302,7 +304,30 @@ namespace ApplePDF.Demo.Maui
             save(bitmap, "Result.png");
 #endif
         }
-
+#if WINDOWS
+        Dictionary<Services.OcrData, float> AnalysisTextSize(List<Services.OcrData> lines)
+        {
+            var result = new Dictionary<Services.OcrData, float>();
+            var heights = lines.Select(line => line.Bounds.Height).ToArray();
+            var standardDeviation = heights.StandardDeviation();
+            var mean = heights.Mean();
+            var anomalyCutOff = standardDeviation * 3;
+            var lowerLimit = mean - anomalyCutOff;
+            var upperLimit = mean + anomalyCutOff;
+            foreach (var line in lines)
+            {
+                if(line.Bounds.Height > lowerLimit && line.Bounds.Height < upperLimit)
+                {
+                    result.Add(line, (float)mean);
+                }
+                else
+                {
+                    result.Add(line, (float)line.Bounds.Height);
+                }
+            }
+            return result;
+        }
+#endif
         private void MainPage_SizeChanged(object sender, EventArgs e)
         {
             using (var set = new FluentConstraintSet())
@@ -314,7 +339,7 @@ namespace ApplePDF.Demo.Maui
                     set.Select(buttonContainer).LeftToLeft(null, 20).TopToTop(null, 10)
                         .Select(PageScaleLable).Clear().LeftToRight(buttonContainer, 5).CenterYTo(buttonContainer)
                         .Select(PageScaleTextBox).Clear().MinWidth(30).LeftToRight(PageScaleLable, 5).CenterYTo(buttonContainer)
-                        .Select(PageCurrentIndexEntry).Clear().MinWidth(30).RightToLeft(PageCurrentToLastIndexLabel,5).CenterYTo(buttonContainer)
+                        .Select(PageCurrentIndexEntry).Clear().MinWidth(30).RightToLeft(PageCurrentToLastIndexLabel, 5).CenterYTo(buttonContainer)
                         .Select(PageCurrentToLastIndexLabel).Clear().LeftToRight(PageScaleTextBox).RightToRight().CenterYTo(buttonContainer)
                         .Select(PageLastIndexLable).Clear().LeftToRight(PageCurrentToLastIndexLabel).CenterYTo(buttonContainer)
                         .Select(DocTreeView).ClearEdges().LeftToLeft(buttonContainer).Margin(Edge.Right, 20).TopToBottom(buttonContainer, 5).BottomToBottom(null, 5).Width(200).Height(FluentConstraintSet.SizeBehavier.MatchConstraint)
@@ -325,8 +350,8 @@ namespace ApplePDF.Demo.Maui
                 {
                     set.Select(buttonContainer).L2L(null, 20).T2T(null, 10)
                         .Select(PageScaleLable).Clear().L2L(buttonContainer).CenterYTo(PageScaleTextBox)
-                        .Select(PageScaleTextBox).Clear().MinWidth(30).L2R(PageScaleLable,5).T2B(buttonContainer, 5)
-                        .Select(PageCurrentIndexEntry).Clear().MinWidth(30).R2L(PageCurrentToLastIndexLabel,5).CenterYTo(PageScaleLable)
+                        .Select(PageScaleTextBox).Clear().MinWidth(30).L2R(PageScaleLable, 5).T2B(buttonContainer, 5)
+                        .Select(PageCurrentIndexEntry).Clear().MinWidth(30).R2L(PageCurrentToLastIndexLabel, 5).CenterYTo(PageScaleLable)
                         .Select(PageCurrentToLastIndexLabel).Clear().L2R(PageScaleTextBox).R2R().CenterYTo(PageCurrentIndexEntry)
                         .Select(PageLastIndexLable).Clear().L2R(PageCurrentToLastIndexLabel).CenterYTo(PageCurrentIndexEntry)
                         .Select(DocTreeView).ClearEdges().L2L(buttonContainer).T2B(PageCurrentIndexEntry, 5)//.BottomToBottom()
