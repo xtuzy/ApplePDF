@@ -1,8 +1,11 @@
 ﻿#if WINDOWS
+using ApplePDF.Demo.Maui.Extension;
+using MathNet.Numerics.Statistics;
 using Microsoft.Maui;
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.Controls.Compatibility;
 using Microsoft.Maui.Media;
+using SkiaSharp;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -323,6 +326,233 @@ namespace ApplePDF.Demo.Maui.Services
                 }
             }
             return tmp.ToString();
+        }
+
+        /// <summary>
+        /// 202209221200针对Tess对行文本会识别到错误的字符想到的切割单独行识别的方法
+        /// 1.先识别一遍确定行宽高，切割图像再单独每行识别
+        /// </summary>
+        /// <param name="stream"></param>
+        /// <param name="lang"></param>
+        /// <returns></returns>
+        public async Task<List<OcrData>> RecognizeLines(MemoryStream stream, string lang = "chi_sim")
+        {
+            List<OcrData> GetLineOcrData(MemoryStream image, TesseractEngine tesseractEngine)
+            {
+                List<OcrData> lines = new List<OcrData>();
+                try
+                {
+                    using (var img = Pix.LoadFromMemory(image.ToArray())) //LoadFromFile(testImagePath))
+                    {
+                        using (var page = tesseractEngine.Process(img))
+                        {
+                            //Debug.WriteLine(page.GetText());
+                            //Debug.WriteLine("Mean confidence: {0}", page.GetMeanConfidence());
+                            using (var iter = page.GetIterator())
+                            {
+                                iter.Begin();
+                                var language = iter.GetWordRecognitionLanguage();
+                                do
+                                {
+                                    do
+                                    {
+                                        do
+                                        {
+                                            //行
+                                            var lineLevel = PageIteratorLevel.TextLine;
+                                            iter.TryGetBoundingBox(lineLevel, out var lineRect);
+                                            iter.TryGetBaseline(lineLevel, out var lineBaselineRect);
+                                            var lineText = iter.GetText(lineLevel).Replace('\n', ' ');
+                                            var line = new OcrData()
+                                            {
+                                                Text = lineText,
+                                                Childs = new List<OcrData>(),
+                                                Bounds = new Microsoft.Maui.Graphics.Rect(lineRect.X1, lineRect.Y1, lineRect.Width, lineRect.Height),
+                                                BaselineBounds = new Microsoft.Maui.Graphics.Rect(lineBaselineRect.X1, lineBaselineRect.Y1, lineBaselineRect.Width, lineBaselineRect.Height),
+                                            };
+                                            lines.Add(line);
+                                        } while (iter.Next(PageIteratorLevel.Para, PageIteratorLevel.TextLine));
+                                    } while (iter.Next(PageIteratorLevel.Block, PageIteratorLevel.Para));
+                                } while (iter.Next(PageIteratorLevel.Block));
+                            }
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    Trace.TraceError(e.ToString());
+                }
+                return lines;
+            }
+
+            (List<OcrData>,string) GetLineWordsOcrData(MemoryStream image, TesseractEngine tesseractEngine)
+            {
+                List<OcrData> words = new List<OcrData>();
+                string lineText = "";
+                try
+                {
+                    using (var img = Pix.LoadFromMemory(image.ToArray())) //LoadFromFile(testImagePath))
+                    {
+                        using (var page = tesseractEngine.Process(img))
+                        {
+                            lineText = page.GetText();
+                            //Debug.WriteLine("Mean confidence: {0}", page.GetMeanConfidence());
+                            using (var iter = page.GetIterator())
+                            {
+                                iter.Begin();
+                                var language = iter.GetWordRecognitionLanguage();
+                                //do
+                                //{
+                                //    do
+                                //    {
+                                //        do
+                                //        {
+                                do
+                                {
+
+                                    //行
+                                    var wordLevel = PageIteratorLevel.Word;
+                                    iter.TryGetBoundingBox(wordLevel, out var wordRect);
+                                    iter.TryGetBaseline(PageIteratorLevel.TextLine, out var lineBaselineRect);
+                                    var wordText = iter.GetText(wordLevel);
+                                    if (wordText != null)
+                                        wordText = wordText.Replace('\n', ' ');
+                                    var word = new OcrData()
+                                    {
+                                        Text = wordText,
+                                        Bounds = new Microsoft.Maui.Graphics.Rect(wordRect.X1, wordRect.Y1, wordRect.Width, wordRect.Height),
+                                        BaselineBounds = new Microsoft.Maui.Graphics.Rect(lineBaselineRect.X1, lineBaselineRect.Y1, lineBaselineRect.Width, lineBaselineRect.Height),
+                                    };
+                                    words.Add(word);
+                                } while (iter.Next(PageIteratorLevel.TextLine, PageIteratorLevel.Word));
+                                //        } while (iter.Next(PageIteratorLevel.Para, PageIteratorLevel.TextLine));
+                                //    } while (iter.Next(PageIteratorLevel.Block, PageIteratorLevel.Para));
+                                //} while (iter.Next(PageIteratorLevel.Block));
+                            }
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    Trace.TraceError(e.ToString());
+                }
+                return (words,lineText);
+            }
+
+            List<OcrData> lines = null;
+            try
+            {
+                activityIndicator.Dispatcher.Dispatch(() => activityIndicator.IsRunning = true);
+                await Task.Run(() =>
+                {
+                    if (Directory.Exists(modelFolderPath))
+                    {
+                        if (!(new DirectoryInfo(modelFolderPath).GetFileSystemInfos().Length > 0))
+                        {
+                            InitTesseractDataAsync();
+                        }
+                    }
+                    else
+                        InitTesseractDataAsync();
+                    if (tesseractEngine == null)
+                        tesseractEngine = new TesseractEngine(modelFolderPath, lang, EngineMode.Default);
+                    //第一次获取行区域
+                    lines = GetLineOcrData(stream, tesseractEngine);
+                    //切割
+                    var sourceBigBitmap = SKBitmap.Decode(stream);
+
+                    for (var lineIndex = 0; lineIndex < lines.Count; lineIndex++)
+                    {
+                        var line = lines[lineIndex];
+                        //分析相邻的行,把行间距加入裁剪的图片
+                        int topAdjacentLineIndex = lineIndex;
+                        double topAdjacentSpaceHeight = 1000;
+                        int bottomAdjacentLineIndex = lineIndex;
+                        double bottomAdjacentSpaceHeight = 1000;
+                        for (var index = 1; index < 5 && !(lineIndex - index <= 0 && lineIndex + index >= lines.Count); index++)
+                        {
+                            if (lineIndex - index > 0)
+                            {
+                                var newTopAdjacentHeight = line.Bounds.Top - lines[lineIndex - index].Bounds.Bottom;
+                                if (newTopAdjacentHeight >= 0 && newTopAdjacentHeight < topAdjacentSpaceHeight)
+                                {
+                                    topAdjacentLineIndex = lineIndex - index;
+                                    topAdjacentSpaceHeight = newTopAdjacentHeight;
+                                }
+                            }
+                            if (lineIndex == 0) topAdjacentSpaceHeight = 15;
+                            if (lineIndex + index < lines.Count)
+                            {
+                                var newBottomAdjacentHeight = lines[lineIndex + index].Bounds.Top - line.Bounds.Bottom;
+                                if (newBottomAdjacentHeight >= 0 && newBottomAdjacentHeight < bottomAdjacentSpaceHeight)
+                                {
+                                    bottomAdjacentSpaceHeight = newBottomAdjacentHeight;
+                                }
+                            }
+                            if (lineIndex == lines.Count - 1) bottomAdjacentSpaceHeight = 15;
+                        }
+                        if (topAdjacentSpaceHeight == 1000) topAdjacentSpaceHeight = 0;
+                        if (bottomAdjacentSpaceHeight == 1000) bottomAdjacentSpaceHeight = 0;
+                        //宽度两边也增加
+                        int horizentalSpace = 12;
+                        using (var cropBitmap = new SKBitmap((int)line.Bounds.Width + 2 * horizentalSpace, (int)(line.Bounds.Height + topAdjacentSpaceHeight + bottomAdjacentSpaceHeight)))
+                        {
+                            using (var canvas = new SKCanvas(cropBitmap))
+                            {
+                                canvas.Translate(-(float)(line.Bounds.X - horizentalSpace), -(float)(line.Bounds.Y - topAdjacentSpaceHeight));
+                                canvas.DrawBitmap(sourceBigBitmap, 0, 0);
+                            }
+                            var newResult = GetLineWordsOcrData(cropBitmap.SKBitmapToStream(), tesseractEngine);
+                            var words = newResult.Item1;
+                            line.Text = newResult.Item2;//替换原来识别的
+                            if (words != null)
+                                line.Childs = words;//words数据用来绘制验证
+                            using (var canvas = new SKCanvas(cropBitmap))
+                            {
+                                using (var paint = new SKPaint() { Style = SKPaintStyle.Stroke, Color = SKColors.Red })
+                                    foreach (var word in words)
+                                    {
+                                        canvas.DrawRect((float)word.Bounds.X, (float)word.Bounds.Y, (float)word.Bounds.Width, (float)word.Bounds.Height, paint);
+                                    }
+                            }
+                            MainPage.save(cropBitmap, $"{lineIndex}.png");
+                        }
+                    }
+                });
+            }
+            catch (System.Exception ex)
+            {
+                App.Current?.MainPage?.DisplayAlert("Error", ex.Message, "Cancel");
+            }
+            finally
+            {
+                activityIndicator.IsRunning = false;
+            }
+
+            return lines;
+        }
+
+        public static Dictionary<Services.OcrData, float> AnalysisTextSize(List<Services.OcrData> lines)
+        {
+            var result = new Dictionary<Services.OcrData, float>();
+            var heights = lines.Select(line => line.Bounds.Height).ToArray();
+            var standardDeviation = heights.StandardDeviation();
+            var mean = heights.Mean();
+            var anomalyCutOff = standardDeviation * 3;
+            var lowerLimit = mean - anomalyCutOff;
+            var upperLimit = mean + anomalyCutOff;
+            foreach (var line in lines)
+            {
+                if (line.Bounds.Height > lowerLimit && line.Bounds.Height < upperLimit)
+                {
+                    result.Add(line, (float)mean);
+                }
+                else
+                {
+                    result.Add(line, (float)line.Bounds.Height);
+                }
+            }
+            return result;
         }
     }
 }

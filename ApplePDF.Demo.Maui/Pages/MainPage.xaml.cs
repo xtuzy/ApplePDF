@@ -1,6 +1,5 @@
 ﻿using ApplePDF.Demo.Maui.Extension;
 using ApplePDF.PdfKit;
-using MathNet.Numerics.Statistics;
 using PDFiumCore;
 using SharpConstraintLayout.Maui.Widget;
 using SkiaSharp;
@@ -105,6 +104,9 @@ namespace ApplePDF.Demo.Maui
 
         private async void GetTextButton_Clicked(object sender, EventArgs e)
         {
+            GetWordsButton_Clicked(sender, e);
+            return;
+
             var index = int.Parse(PageCurrentIndexEntry.Text) - 1;
             if (index < 0) index = 0;
             using var page = doc.GetPage(index);
@@ -124,7 +126,8 @@ namespace ApplePDF.Demo.Maui
             //var ocrWords = await ApplePDF.Demo.Maui.Services.OcrService.RecognizeWords(stream as Stream);
             //用Tess来OCR
             //var ocrText = await ApplePDF.Demo.Maui.Services.OcrService.RecognizeText(stream);
-            var ocrLines = await new ApplePDF.Demo.Maui.Services.TesseractOcrService(GetTextActivityIndicator).RecognizeWords(stream);
+            ///var ocrLines = await new ApplePDF.Demo.Maui.Services.TesseractOcrService(GetTextActivityIndicator).RecognizeWords(stream);
+            var ocrLines = await new ApplePDF.Demo.Maui.Services.TesseractOcrService(GetTextActivityIndicator).RecognizeLines(stream);
 
             using (var canvas = new SKCanvas(pdfImage))
             {
@@ -166,7 +169,7 @@ namespace ApplePDF.Demo.Maui
 
                     //绘制文字
                     paint.Color = SKColors.AliceBlue;
-                    var linesTextSize = AnalysisTextSize(ocrLines);
+                    var linesTextSize = Services.TesseractOcrService.AnalysisTextSize(ocrLines);
                     foreach (var line in ocrLines)
                     {
                         /*
@@ -269,33 +272,92 @@ namespace ApplePDF.Demo.Maui
                     }
                 }
             }
-            void save(SKBitmap bitmap, string fileName)
-            {
-                using (MemoryStream memStream = new MemoryStream())
-                using (SKManagedWStream wstream = new SKManagedWStream(memStream))
-                {
-                    bitmap.Encode(wstream, SKEncodedImageFormat.Png, 300);
-                    byte[] data = memStream.ToArray();
 
-                    if (data == null)
+            save(pdfImage, "Pdf.png");
+            save(bitmap, "Result.png");
+#endif
+        }
+
+        private async void GetWordsButton_Clicked(object sender, EventArgs e)
+        {
+            var index = int.Parse(PageCurrentIndexEntry.Text) - 1;
+            if (index < 0) index = 0;
+            using var page = doc.GetPage(index);
+            //var text = page.Text;
+
+            var scaleStr = PageScaleTextBox.Text;
+            var scale = float.Parse(scaleStr == String.Empty ? "1" : scaleStr);
+
+            var density = DeviceDisplay.MainDisplayInfo.Density;
+            var flags = (int)(RenderFlags.OptimizeTextForLcd | RenderFlags.RenderAnnotations | RenderFlags.RenderForPrinting);
+            MemoryStream stream = null;
+            using var pdfImage = PdfPageExtension.RenderPageToSKBitmapFormSKBitmap(doc.GetPage(index), scale, flags);
+            stream = pdfImage.SKBitmapToStream();
+#if WINDOWS
+            var ocrLines = await new ApplePDF.Demo.Maui.Services.TesseractOcrService(GetTextActivityIndicator).RecognizeLines(stream);
+
+            using (var canvas = new SKCanvas(pdfImage))
+            {
+                using (var paint = new SKPaint() { Color = SKColors.Red, Style = SKPaintStyle.Stroke })
+                {
+                    //绘制文字轮廓背景,用来看文字区域是否识别正确
+                    paint.Color = SKColors.Green.WithAlpha(150);
+                    foreach (var line in ocrLines)
                     {
-                        throw new Exception("Encode returned null");
+                        canvas.DrawRect((float)line.Bounds.X, (float)line.Bounds.Y, (float)line.Bounds.Width, (float)line.Bounds.Height, paint);
                     }
-                    else if (data.Length == 0)
+                    //绘制基线局域,用来看文字区域是否识别正确
+                    paint.Color = SKColors.Red.WithAlpha(150);
+                    foreach (var line in ocrLines)
                     {
-                        throw new Exception("Encode returned empty array");
+                        canvas.DrawRect((float)line.BaselineBounds.X, (float)line.BaselineBounds.Y, (float)line.BaselineBounds.Width, (float)line.BaselineBounds.Height, paint);
                     }
-                    else
+                }
+            }
+            var size = page.GetSize();
+            using var bitmap = new SKBitmap((int)(size.Width * scale), (int)(size.Height * scale));
+            using (var canvas = new SKCanvas(bitmap))
+            {
+                canvas.Clear(SKColors.White);
+                using (var paint = new SKPaint() { Color = SKColors.Black, Typeface = SKFontManager.Default.MatchCharacter('中') })
+                {
+                    //绘制文字轮廓背景,用来看文字区域是否识别正确
+                    paint.Color = SKColors.Black.WithAlpha(150);
+                    foreach (var line in ocrLines)
                     {
-                        try
-                        {
-                            var path = FileSystem.Current.AppDataDirectory;
-                            using (var fs = new FileStream(Path.Combine(path, fileName), FileMode.OpenOrCreate, FileAccess.Write))
-                            {
-                                fs.Write(data, 0, data.Length);
-                            }
-                        }
-                        catch (Exception ex) { throw new Exception("Save fail"); }
+                        canvas.DrawRect((float)line.Bounds.X, (float)line.Bounds.Y, (float)line.Bounds.Width, (float)line.Bounds.Height, paint);
+                    }
+                    //绘制基线局域,用来看文字区域是否识别正确
+                    paint.Color = SKColors.Red.WithAlpha(150);
+                    foreach (var line in ocrLines)
+                    {
+                        canvas.DrawRect((float)line.BaselineBounds.X, (float)line.BaselineBounds.Y, (float)line.BaselineBounds.Width, (float)line.BaselineBounds.Height, paint);
+                    }
+
+                    //绘制文字
+                    paint.Color = SKColors.AliceBlue;
+                    var linesTextSize = Services.TesseractOcrService.AnalysisTextSize(ocrLines);
+                    foreach (var line in ocrLines)
+                    {
+                        /*
+                         * 文字大小:行Bounds顶部减去行基线顶部
+                         */
+                        paint.TextSize = (float)line.BaselineBounds.Top - (float)line.Bounds.Top;
+                        /*
+                         * Y坐标:使用行基线
+                         */
+
+                        /*
+                         * X坐标:
+                         * 正常: 文本测量的宽度差不多
+                         * 1. 行Bounds宽太大的,一般是少量文本,文本在行Bounds中间. 先测量行文本大小, 看是否行两端相差多个文字的间隔
+                         * 2. 一行中间有空白的, 可以使用Word的定位. 先测量行文本大小是否差行宽多个文字间隔, 看中间是否有连续空格, 连续空格结束就是文字开始
+                         */
+                        var text = line.Text;
+                        if (text == null || text == "")
+                            continue;
+                        var textWidth = paint.MeasureText(text.AsSpan());
+                        canvas.DrawText(text, (float)(line.Bounds.Left), (float)line.BaselineBounds.Bottom, paint);
                     }
                 }
             }
@@ -304,30 +366,38 @@ namespace ApplePDF.Demo.Maui
             save(bitmap, "Result.png");
 #endif
         }
-#if WINDOWS
-        Dictionary<Services.OcrData, float> AnalysisTextSize(List<Services.OcrData> lines)
+
+        public static void save(SKBitmap bitmap, string fileName)
         {
-            var result = new Dictionary<Services.OcrData, float>();
-            var heights = lines.Select(line => line.Bounds.Height).ToArray();
-            var standardDeviation = heights.StandardDeviation();
-            var mean = heights.Mean();
-            var anomalyCutOff = standardDeviation * 3;
-            var lowerLimit = mean - anomalyCutOff;
-            var upperLimit = mean + anomalyCutOff;
-            foreach (var line in lines)
+            using (MemoryStream memStream = new MemoryStream())
+            using (SKManagedWStream wstream = new SKManagedWStream(memStream))
             {
-                if(line.Bounds.Height > lowerLimit && line.Bounds.Height < upperLimit)
+                bitmap.Encode(wstream, SKEncodedImageFormat.Png, 300);
+                byte[] data = memStream.ToArray();
+
+                if (data == null)
                 {
-                    result.Add(line, (float)mean);
+                    throw new Exception("Encode returned null");
+                }
+                else if (data.Length == 0)
+                {
+                    throw new Exception("Encode returned empty array");
                 }
                 else
                 {
-                    result.Add(line, (float)line.Bounds.Height);
+                    try
+                    {
+                        var path = FileSystem.Current.AppDataDirectory;
+                        using (var fs = new FileStream(Path.Combine(path, fileName), FileMode.OpenOrCreate, FileAccess.Write))
+                        {
+                            fs.Write(data, 0, data.Length);
+                        }
+                    }
+                    catch (Exception ex) { throw new Exception("Save fail"); }
                 }
             }
-            return result;
         }
-#endif
+
         private void MainPage_SizeChanged(object sender, EventArgs e)
         {
             using (var set = new FluentConstraintSet())
