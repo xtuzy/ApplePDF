@@ -1,9 +1,10 @@
 ﻿using ApplePDF.Demo.Maui.Extension;
 using ApplePDF.PdfKit;
-using Microsoft.Maui.Controls;
+using CommunityToolkit.Mvvm.ComponentModel;
 using PDFiumCore;
 using SharpConstraintLayout.Maui.Widget;
 using SkiaSharp;
+using System.Collections.ObjectModel;
 using System.Text;
 using static SharpConstraintLayout.Maui.Widget.FluentConstraintSet;
 
@@ -12,56 +13,39 @@ namespace ApplePDF.Demo.Maui
     public partial class MainPage : ContentPage
     {
         private PdfDocument doc;
-        private ConstraintLayout WindowPage;
-        private HorizontalStackLayout buttonContainer;
-        private Button SelectFileButton;
-        private Button ShowPdfButton;
-        private Button GetTextButton;
-        private ActivityIndicator GetTextActivityIndicator;
-        private Label PageScaleLable;
-        private Entry PageScaleTextBox;
-        private Entry PageCurrentIndexEntry;
-        private Label PageCurrentToLastIndexLabel;
-        private Label PageLastIndexLable;
-        private ListView DocTreeView;
-        private ScrollView PageScrollViewer;
-        private Image PageImage;
         string defaultDoc = "pdfBible.pdf";
         public MainPage()
         {
             InitializeComponent();
             this.SizeChanged += MainPage_SizeChanged;
-            ConstraintLayout.DEBUG = true;
-            WindowPage = new ConstraintLayout() { BackgroundColor = Colors.DarkGray };
-            Content = WindowPage;
 
-            buttonContainer = new HorizontalStackLayout();
-            var catalogManagerButton = new ImageButton() { Source = new FontImageSource() { FontFamily= "FontAwesomeSolid", Glyph = "", FontAutoScalingEnabled=true,Color = Colors.White }, BackgroundColor = Colors.DarkGray, WidthRequest = 40, HeightRequest = 40, Padding = new Thickness(0, 0, 0, 0), CornerRadius = 0 };
-            SelectFileButton = new Button() { Text = "选择", WidthRequest = 35, HeightRequest = 20, Padding = new Thickness(0, 0, 0, 0), CornerRadius = 0 };
-            ShowPdfButton = new Button() { Text = "打开", WidthRequest = 35, HeightRequest = 20, Padding = new Thickness(0, 0, 0, 0), CornerRadius = 0 };
-            GetTextButton = new Button() { Text = "文本", WidthRequest = 35, HeightRequest = 20, Padding = new Thickness(0, 0, 0, 0), CornerRadius = 0 };
-            GetTextActivityIndicator = new ActivityIndicator() { IsRunning = false };
-            buttonContainer.AddViews(catalogManagerButton, SelectFileButton, ShowPdfButton, GetTextButton, GetTextActivityIndicator);
-            PageScaleLable = new Label() { Text = "缩放图片精度" };
-            PageScaleTextBox = new Entry() { Text = "1", VerticalTextAlignment = TextAlignment.Center };
-            PageCurrentIndexEntry = new Entry() { Text = "1" };
-            PageCurrentToLastIndexLabel = new Label() { Text = "/" };
-            PageLastIndexLable = new Label() { Text = "1" };
+            //buttonContainer = new HorizontalStackLayout();
+            //var catalogManagerButton = new ImageButton() { Source = new FontImageSource() { FontFamily= "FontAwesomeSolid", Glyph = "", FontAutoScalingEnabled=true,Color = Colors.White }, BackgroundColor = Colors.DarkGray, WidthRequest = 40, HeightRequest = 40, Padding = new Thickness(0, 0, 0, 0), CornerRadius = 0 };
+            //SelectFileButton = new Button() { Text = "选择", WidthRequest = 35, HeightRequest = 20, Padding = new Thickness(0, 0, 0, 0), CornerRadius = 0 };
+            //ShowPdfButton = new Button() { Text = "打开", WidthRequest = 35, HeightRequest = 20, Padding = new Thickness(0, 0, 0, 0), CornerRadius = 0 };
+            //GetTextButton = new Button() { Text = "文本", WidthRequest = 35, HeightRequest = 20, Padding = new Thickness(0, 0, 0, 0), CornerRadius = 0 };
+            //GetTextActivityIndicator = new ActivityIndicator() { IsRunning = false };
+            //buttonContainer.AddViews(catalogManagerButton, SelectFileButton, ShowPdfButton, GetTextButton, GetTextActivityIndicator);
+            //PageScaleLable = new Label() { Text = "缩放图片精度" };
+            //PageScaleTextBox = new Entry() { Text = "1", VerticalTextAlignment = TextAlignment.Center };
+            //PageCurrentIndexEntry = new Entry() { Text = "1" };
+            //PageCurrentToLastIndexLabel = new Label() { Text = "/" };
+            //PageLastIndexLable = new Label() { Text = "1" };
 
-            DocTreeView = new ListView();
-            PageScrollViewer = new ScrollView() { };
-            PageImage = new Image() { };
+            //DocTreeView = new ListView();
+            //PageScrollViewer = new ScrollView() { };
+            //PageImage = new Image() { };
 
-            WindowPage.AddElement(buttonContainer);
-            WindowPage.AddElement(PageScaleLable);
-            WindowPage.AddElement(PageScaleTextBox);
-            WindowPage.AddElement(PageCurrentIndexEntry);
-            WindowPage.AddElement(PageCurrentToLastIndexLabel);
-            WindowPage.AddElement(PageLastIndexLable);
-            WindowPage.AddElement(DocTreeView);
-            WindowPage.AddElement(PageScrollViewer);
+            //WindowPage.AddElement(buttonContainer);
+            //WindowPage.AddElement(PageScaleLable);
+            //WindowPage.AddElement(PageScaleTextBox);
+            //WindowPage.AddElement(PageCurrentIndexEntry);
+            //WindowPage.AddElement(PageCurrentToLastIndexLabel);
+            //WindowPage.AddElement(PageLastIndexLable);
+            //WindowPage.AddElement(DocTreeView);
+            //WindowPage.AddElement(PageScrollViewer);
 
-            PageScrollViewer.Content = PageImage;
+            //PageScrollViewer.Content = PageImage;
             catalogManagerButton.Clicked += (sender, e) =>
             {
                 if (DocTreeView.IsVisible)
@@ -83,7 +67,6 @@ namespace ApplePDF.Demo.Maui
             };
 
             SelectFileButton.Clicked += SelectFileButton_ClickedAsync;
-            ShowPdfButton.Clicked += ShowPdfButton_Clicked;
             GetTextButton.Clicked += GetTextButton_Clicked;
             int lastPageIndex = 1;
             PageCurrentIndexEntry.Completed += (sender, e) =>
@@ -404,32 +387,25 @@ namespace ApplePDF.Demo.Maui
             using (var set = new FluentConstraintSet())
             {
                 set.Clone(WindowPage);
+                set.Select(GetTextActivityIndicator).RightToRight(null, 20).CenterYTo(buttonContainer).Width(20).Height(20).MinWidth(20).MinHeight(20);
                 //if (System.OperatingSystem.IsWindows())
                 if (this.Width > 500)
                 {
                     set.Select(buttonContainer).LeftToLeft(null, 20).TopToTop(null, 10)
-                        .Select(PageScaleLable).Clear().LeftToRight(buttonContainer, 5).CenterYTo(buttonContainer)
-                        .Select(PageScaleTextBox).Clear().MinWidth(30).LeftToRight(PageScaleLable, 5).CenterYTo(buttonContainer)
-                        .Select(PageCurrentIndexEntry).Clear().MinWidth(30).RightToLeft(PageCurrentToLastIndexLabel, 5).CenterYTo(buttonContainer)
-                        .Select(PageCurrentToLastIndexLabel).Clear().LeftToRight(PageScaleTextBox).RightToRight().CenterYTo(buttonContainer)
-                        .Select(PageLastIndexLable).Clear().LeftToRight(PageCurrentToLastIndexLabel).CenterYTo(buttonContainer)
-                        .Select(DocTreeView).ClearEdges().LeftToLeft(buttonContainer).Margin(Edge.Right, 20).TopToBottom(buttonContainer, 5).BottomToBottom(null, 5).Width(200).Height(FluentConstraintSet.SizeBehavier.MatchConstraint)
-                        .Select(PageScrollViewer).LeftToRight(DocTreeView).RightToRight(null, 20).TopToBottom(buttonContainer, 5).BottomToBottom(null, 5).Width(FluentConstraintSet.SizeBehavier.MatchConstraint).Height(FluentConstraintSet.SizeBehavier.MatchConstraint)
+                        .Select(PageIndexComponent).Clear().CenterXTo().CenterYTo(buttonContainer)
+                        .Select(DocTreeView).ClearEdges().LeftToLeft(buttonContainer).Margin(Edge.Right, 20).TopToBottom(buttonContainer, 5).BottomToBottom(null, 5)
+                        .Width(220).Height(FluentConstraintSet.SizeBehavier.MatchConstraint)
+                        .Select(PageScrollViewer).LeftToLeft(DocTreeView).RightToRight(null, 20).TopToBottom(buttonContainer, 5).BottomToBottom(null, 5).Width(FluentConstraintSet.SizeBehavier.MatchConstraint).Height(FluentConstraintSet.SizeBehavier.MatchConstraint)
                         ;
                 }
                 else
                 {
                     set.Select(buttonContainer).L2L(null, 20).T2T(null, 10)
-                        .Select(PageScaleLable).Clear().L2L(buttonContainer).CenterYTo(PageScaleTextBox)
-                        .Select(PageScaleTextBox).Clear().MinWidth(30).L2R(PageScaleLable, 5).T2B(buttonContainer, 5)
-                        .Select(PageCurrentIndexEntry).Clear().MinWidth(30).R2L(PageCurrentToLastIndexLabel, 5).CenterYTo(PageScaleLable)
-                        .Select(PageCurrentToLastIndexLabel).Clear().L2R(PageScaleTextBox).R2R().CenterYTo(PageCurrentIndexEntry)
-                        .Select(PageLastIndexLable).Clear().L2R(PageCurrentToLastIndexLabel).CenterYTo(PageCurrentIndexEntry)
-                        .Select(DocTreeView).ClearEdges().L2L(buttonContainer).T2B(PageCurrentIndexEntry, 5)//.BottomToBottom()
-                        .Width(200).Height(SizeBehavier.WrapContent)
-                        .Select(PageScrollViewer).Clear().L2R(DocTreeView).R2R(null, 20).T2B(PageCurrentIndexEntry, 5).B2B(null, 5)
+                        .Select(PageIndexComponent).Clear().CenterXTo().TopToBottom(buttonContainer, 5)
+                        .Select(DocTreeView).ClearEdges().L2L(buttonContainer).T2B(PageIndexComponent, 5)//.BottomToBottom()
+                        .Width(220).Height(SizeBehavier.WrapContent)
+                        .Select(PageScrollViewer).Clear().L2L(DocTreeView).R2R(null, 20).T2B(PageIndexComponent, 5).B2B(null, 5)
                         .Width(SizeBehavier.MatchConstraint).Height(SizeBehavier.MatchConstraint);
-
                 }
                 set.ApplyTo(WindowPage);
             }
@@ -449,7 +425,7 @@ namespace ApplePDF.Demo.Maui
             MemoryStream stream = null;
             using (var bitmap = PdfPageExtension.RenderPageToSKBitmapFormSKBitmap(page, scale, flags))
                 stream = bitmap.SKBitmapToStream();
-
+            
             PageImage.Source = ImageSource.FromStream(() => stream);
 
             WindowPage.RequestReLayout();
@@ -460,7 +436,13 @@ namespace ApplePDF.Demo.Maui
             var result = await FilePicker.PickAsync(PickOptions.Default);
             if (result == null)
                 return;
-            ReadPDFAsync(result.FullPath);
+            if (result.FullPath == null)
+            {
+                return;
+            }
+            Stream stream = File.OpenRead(result.FullPath);
+            ReadPDFAsync(stream);
+            ShowPdfButton_Clicked(null, null);
         }
 
         void InitPdfLibrary()
@@ -475,8 +457,6 @@ namespace ApplePDF.Demo.Maui
             }
         }
 
-        MemoryStream memoryStream = new MemoryStream();
-
         async Task ReadPDFAsyncFormResourcesAsync(string filePath = null)
         {
 
@@ -484,72 +464,80 @@ namespace ApplePDF.Demo.Maui
             {
                 await FileSystem.OpenAppPackageFileAsync(defaultDoc).ContinueWith(t =>
                 {
+                    MemoryStream memoryStream = new MemoryStream();
                     t.Result.CopyTo(memoryStream);
-                    if (doc != null)
-                        doc.Dispose();
-                    doc = Pdfium.Instance.LoadPdfDocument(memoryStream, null);
-
-                    //PageIndexSlider.InvalidateVisual();
-                    var rootBookmark = doc.OutlineRoot;
-                    List<string> bookmarks = new List<string>();
-                    if (rootBookmark != null)
-                    {
-                        // Debug.WriteLine(rootBookmark.Label);
-                        bookmarks.Add(rootBookmark.Label);
-                        foreach (var child in rootBookmark.Children)
-                        {
-                            // Debug.WriteLine(child.Label);
-                            bookmarks.Add(child.Label);
-                            foreach (var child2 in child.Children)
-                            {
-                                //  Debug.WriteLine(child2.Label);
-                                bookmarks.Add(child2.Label);
-                            }
-                        }
-                    }
-                    WindowPage.Dispatcher.Dispatch(() =>
-                    {
-                        PageLastIndexLable.Text = $"{doc.PageCount}";
-                        DocTreeView.ItemsSource = bookmarks;
-                        WindowPage.RequestReLayout();
-                    });
+                    ReadPDFAsync(memoryStream);
                 });
             }
 
         }
 
-        void ReadPDFAsync(string filePath = null)
+        void ReadPDFAsync(Stream stream)
         {
-            Stream stream = null;
-            if (filePath == null)
-            {
-                return;
-                //stream = await FileSystem.OpenAppPackageFileAsync("AboutAssets.txt");
-            }
-            stream = File.OpenRead(filePath);
             if (doc != null)
                 doc.Dispose();
             doc = Pdfium.Instance.LoadPdfDocument(stream, null);
-            PageLastIndexLable.Text = $"{doc.PageCount}";
-            //PageIndexSlider.InvalidateVisual();
             var rootBookmark = doc.OutlineRoot;
-            List<string> bookmarks = new List<string>();
+            var viewModel = new DocTreeViewModel();
+            var bookmarks = viewModel.Bookmarks;
             if (rootBookmark != null)
             {
                 // Debug.WriteLine(rootBookmark.Label);
-                bookmarks.Add(rootBookmark.Label);
+                //bookmarks.Add(new DocTreeModel() { Title = rootBookmark.Label });
+                //添加一级书签
                 foreach (var child in rootBookmark.Children)
                 {
                     // Debug.WriteLine(child.Label);
-                    bookmarks.Add(child.Label);
+                    var firstLevelBookmark = new DocTreeModel() { Name = child.Label };
+                    bookmarks.Add(firstLevelBookmark);
+                    //添加二级书签
                     foreach (var child2 in child.Children)
                     {
                         //  Debug.WriteLine(child2.Label);
-                        bookmarks.Add(child2.Label);
+                        firstLevelBookmark.Children.Add(new DocTreeModel() { Name = child2.Label });
                     }
                 }
             }
-            DocTreeView.ItemsSource = bookmarks;
+            this.Dispatcher.Dispatch(() =>
+            {
+                PageLastIndexLable.Text = $"{doc.PageCount}";
+                this.BindingContext = viewModel;
+                bookmarksView.ItemsSource = viewModel.Bookmarks;
+                WindowPage.RequestReLayout();
+            });
+        }
+
+        bool IsDark = true;
+        private void SwitchDayAndLightButton_Clicked(object sender, EventArgs e)
+        {
+            if(IsDark)
+            {
+                PageScrollViewer.BackgroundColor = Colors.White;
+                IsDark = false;
+            }
+            else
+            {
+                PageScrollViewer.BackgroundColor = Color.Parse("#33333");
+                IsDark = true;
+            }
+        }
+    }
+
+    public class DocTreeModel
+    {
+        public virtual string Name { get; set; }
+        public int PageIndex { get; set; }
+        public virtual IList<DocTreeModel> Children { get; set; } = new ObservableCollection<DocTreeModel>();
+    }
+
+    public partial class DocTreeViewModel : ObservableObject
+    {
+        [ObservableProperty]
+        ObservableCollection<DocTreeModel> bookmarks;
+
+        public DocTreeViewModel()
+        {
+            bookmarks = new ObservableCollection<DocTreeModel>();
         }
     }
 }
