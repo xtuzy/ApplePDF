@@ -1,5 +1,6 @@
 ﻿using ApplePDF.Demo.Maui.Extension;
 using ApplePDF.PdfKit;
+using Microsoft.Maui.Controls;
 using PDFiumCore;
 using SharpConstraintLayout.Maui.Widget;
 using SkiaSharp;
@@ -35,7 +36,7 @@ namespace ApplePDF.Demo.Maui
             Content = WindowPage;
 
             buttonContainer = new HorizontalStackLayout();
-            var catalogManagerButton = new Button() { Text = "目录", WidthRequest = 35, HeightRequest = 20, Padding = new Thickness(0, 0, 0, 0), CornerRadius = 0 };
+            var catalogManagerButton = new ImageButton() { Source = new FontImageSource() { FontFamily= "FontAwesomeSolid", Glyph = "", FontAutoScalingEnabled=true,Color = Colors.White }, BackgroundColor = Colors.DarkGray, WidthRequest = 40, HeightRequest = 40, Padding = new Thickness(0, 0, 0, 0), CornerRadius = 0 };
             SelectFileButton = new Button() { Text = "选择", WidthRequest = 35, HeightRequest = 20, Padding = new Thickness(0, 0, 0, 0), CornerRadius = 0 };
             ShowPdfButton = new Button() { Text = "打开", WidthRequest = 35, HeightRequest = 20, Padding = new Thickness(0, 0, 0, 0), CornerRadius = 0 };
             GetTextButton = new Button() { Text = "文本", WidthRequest = 35, HeightRequest = 20, Padding = new Thickness(0, 0, 0, 0), CornerRadius = 0 };
