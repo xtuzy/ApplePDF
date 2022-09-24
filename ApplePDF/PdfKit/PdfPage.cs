@@ -10,7 +10,7 @@ namespace ApplePDF.PdfKit
     using System.Runtime.InteropServices;
     using System.Text;
 
-    public class PdfPage : IPdfPage, IDisposable
+    public class PdfPage : IPdfPage_Pdfium, IDisposable
     {
         private static readonly object @lock = new object();
         public PdfDocument Document { get; private set; }
@@ -22,6 +22,17 @@ namespace ApplePDF.PdfKit
         /// Pdfium中代表页面的文本,获取文本时需要它
         /// </summary>
         private FpdfTextpageT textPage;
+        public FpdfTextpageT TextPage
+        {
+            get
+            {
+                if (textPage == null)
+                    textPage = fpdf_text.FPDFTextLoadPage(this.page);
+                return textPage;
+            }
+            private set => textPage = value;
+        }
+
         private SizeF size;
         public int PageIndex { private set; get; }
 
@@ -46,12 +57,7 @@ namespace ApplePDF.PdfKit
             {
                 lock (@lock)
                 {
-                    if (this.textPage == null)
-                    {
-                        this.textPage = fpdf_text.FPDFTextLoadPage(this.page);
-                    }
-
-                    return fpdf_text.FPDFTextCountChars(this.textPage);
+                    return fpdf_text.FPDFTextCountChars(this.TextPage);
                 }
             }
         }
@@ -134,10 +140,9 @@ namespace ApplePDF.PdfKit
             Annotations.Add(annotation);
         }
 
-        public PdfAnnotation GetAnnotations(Point point)
+        public PdfAnnotation GetAnnotations(PointF point)
         {
             throw new NotImplementedException();
-
         }
 
         public void RemoveAnnotation(PdfAnnotation annotation)
@@ -159,16 +164,14 @@ namespace ApplePDF.PdfKit
             {
                 var objectInPage = fpdf_edit.FPDFPageGetObject(Page, index);
                 var type = fpdf_edit.FPDFPageObjGetType(objectInPage);
-                if (textPage == null)
-                    textPage = fpdf_text.FPDFTextLoadPage(Page);
                 if (type == (int)PdfPageObjectTypeFlag.TEXT)
                 {
                     //获取文本长度
-                    var length = fpdf_edit.FPDFTextObjGetText(objectInPage, textPage, ref buffer[0], 1);
+                    var length = fpdf_edit.FPDFTextObjGetText(objectInPage, TextPage, ref buffer[0], 1);
                     if (length > 0)
                     {
                         buffer = new ushort[length];
-                        fpdf_edit.FPDFTextObjGetText(objectInPage, textPage, ref buffer[0], length);
+                        fpdf_edit.FPDFTextObjGetText(objectInPage, TextPage, ref buffer[0], length);
                         //参考:https://stackoverflow.com/a/274207/13254773
                         string result;
                         unsafe
@@ -187,7 +190,7 @@ namespace ApplePDF.PdfKit
                             //Buffer.BlockCopy(newTextBytes, 0, newTextBuffer, 0, newTextBytes.Length);
 
                             //string to ushort 参考:https://stackoverflow.com/a/45281549/13254773
-                            ushort[] newTextBuffer = (newText+result.Substring(oldText.Length)).ToCharArray().Select(c => (ushort)c).ToArray();
+                            ushort[] newTextBuffer = (newText + result.Substring(oldText.Length)).ToCharArray().Select(c => (ushort)c).ToArray();
 
                             var success = fpdf_edit.FPDFTextSetText(objectInPage, ref newTextBuffer[0]);
                             if (success == 1)
@@ -217,10 +220,10 @@ namespace ApplePDF.PdfKit
             var newTextBytes = Encoding.Unicode.GetBytes(text);
             ushort[] newTextBuffer = new ushort[text.Length];
             Buffer.BlockCopy(newTextBytes, 0, newTextBuffer, 0, newTextBytes.Length);
-            
+
             //string to ushort 参考:https://stackoverflow.com/a/45281549/13254773
             //ushort[] newTextBuffer = text.ToCharArray().Select(c => (ushort)c).ToArray();
-            
+
             var success = fpdf_edit.FPDFTextSetText(textObj, ref newTextBuffer[0]);
             if (success == 1)
             {
@@ -242,11 +245,7 @@ namespace ApplePDF.PdfKit
             {
                 lock (@lock)
                 {
-                    if (this.textPage != null)
-                    {
-                        this.textPage = fpdf_text.FPDFTextLoadPage(this.page);
-                    }
-                    return this.GetText();
+                    return this.GetTextInPage();
                 }
             }
         }
@@ -270,7 +269,7 @@ namespace ApplePDF.PdfKit
             }
         }
 
-        public RectangleF BoundsOfBox(PdfDisplayBox pdfDisplayBox)
+        public RectangleF GetBoundsForBox(PdfDisplayBox pdfDisplayBox)
         {
             float left = 0;
             float top = 0;
@@ -297,44 +296,58 @@ namespace ApplePDF.PdfKit
             return RectangleF.FromLTRB(left, top, right, bottom);
         }
 
+        //In "User Sapce"
         public RectangleF GetCharacterBounds(int index)
         {
-            throw new NotImplementedException();
+            double left = 0;
+            double right = 0;
+            double bottom = 0;
+            double top = 0;
+            var result = fpdf_text.FPDFTextGetCharBox(TextPage, index, ref left, ref right, ref bottom, ref top);
+            if (result == 0)
+                return RectangleF.Empty;
+            return RectangleF.FromLTRB((float)left, (float)top, (float)right, (float)bottom);
         }
 
-        public int GetCharacterIndex(Point point)
+        public int GetCharacterIndex(PointF point)
+        {
+            var result = fpdf_text.FPDFTextGetCharIndexAtPos(this.TextPage, point.X, point.Y, 5, 5);//TODO:寻找最佳x，y tolerance
+            if (result == -1)
+                return -1;
+            else if (result == -3)
+                throw new NotImplementedException("Error occur when GetCharacterIndex, not show reason");
+            else
+                return result;
+        }
+
+        public PdfSelection GetSelection(PointF startPoint, PointF endPoint)
+        {
+            return new PdfSelection(this, RectangleF.FromLTRB(startPoint.X, startPoint.Y, endPoint.X, endPoint.Y));
+        }
+
+        public PdfSelection GetSelection(RectangleF rect)
         {
             throw new NotImplementedException();
         }
 
-        public PdfSelection GetSelection(Point startPoint, Point endPoint)
+        public PdfSelection SelectLine(PointF point)
         {
             throw new NotImplementedException();
         }
 
-        public PdfSelection GetSelection(Rectangle rect)
+        public PdfSelection SelectWord(PointF point)
         {
             throw new NotImplementedException();
         }
 
-        public PdfSelection SelectLine(Point point)
-        {
-            throw new NotImplementedException();
-        }
-
-        public PdfSelection SelectWord(Point point)
-        {
-            throw new NotImplementedException();
-        }
-
-        private string GetText()
+        private string GetTextInPage()
         {
             lock (@lock)
             {
                 ushort[] buffer;
                 int charactersWritten;
                 buffer = new ushort[this.CharacterCount + 1];
-                charactersWritten = fpdf_text.FPDFTextGetText(this.textPage, 0, this.CharacterCount, ref buffer[0]);
+                charactersWritten = fpdf_text.FPDFTextGetText(this.TextPage, 0, this.CharacterCount, ref buffer[0]);
 
                 if (charactersWritten == 0)
                 {
@@ -371,14 +384,14 @@ namespace ApplePDF.PdfKit
 
                 for (var i = 0; i < charCount; i++)
                 {
-                    var charCode = (char)fpdf_text.FPDFTextGetUnicode(textPage, i);
+                    var charCode = (char)fpdf_text.FPDFTextGetUnicode(TextPage, i);
 
                     double left = 0;
                     double top = 0;
                     double right = 0;
                     double bottom = 0;
 
-                    var success = fpdf_text.FPDFTextGetCharBox(textPage, i, ref left, ref right, ref bottom, ref top) == 1;
+                    var success = fpdf_text.FPDFTextGetCharBox(TextPage, i, ref left, ref right, ref bottom, ref top) == 1;
 
                     if (!success)
                     {
@@ -390,8 +403,8 @@ namespace ApplePDF.PdfKit
 
                     var box = new RectangleF(adjustedLeft, adjustedTop, adjustRight - adjustedLeft, adjustBottom - adjustedTop);
 
-                    var fontSize = fpdf_text.FPDFTextGetFontSize(textPage, i);
-                    var angle = fpdf_text.FPDFTextGetCharAngle(textPage, i);
+                    var fontSize = fpdf_text.FPDFTextGetFontSize(TextPage, i);
+                    var angle = fpdf_text.FPDFTextGetCharAngle(TextPage, i);
 
                     yield return new PdfCharacter(charCode, box, angle, fontSize);
                 }
@@ -567,10 +580,10 @@ namespace ApplePDF.PdfKit
         {
             lock (@lock)
             {
-                if (textPage != null)
+                if (TextPage != null)
                 {
-                    fpdf_text.FPDFTextClosePage(textPage);
-                    textPage = null;
+                    fpdf_text.FPDFTextClosePage(TextPage);
+                    TextPage = null;
                 }
                 if (page != null)
                 {
