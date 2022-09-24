@@ -19,33 +19,6 @@ namespace ApplePDF.Demo.Maui
             InitializeComponent();
             this.SizeChanged += MainPage_SizeChanged;
 
-            //buttonContainer = new HorizontalStackLayout();
-            //var catalogManagerButton = new ImageButton() { Source = new FontImageSource() { FontFamily= "FontAwesomeSolid", Glyph = "", FontAutoScalingEnabled=true,Color = Colors.White }, BackgroundColor = Colors.DarkGray, WidthRequest = 40, HeightRequest = 40, Padding = new Thickness(0, 0, 0, 0), CornerRadius = 0 };
-            //SelectFileButton = new Button() { Text = "选择", WidthRequest = 35, HeightRequest = 20, Padding = new Thickness(0, 0, 0, 0), CornerRadius = 0 };
-            //ShowPdfButton = new Button() { Text = "打开", WidthRequest = 35, HeightRequest = 20, Padding = new Thickness(0, 0, 0, 0), CornerRadius = 0 };
-            //GetTextButton = new Button() { Text = "文本", WidthRequest = 35, HeightRequest = 20, Padding = new Thickness(0, 0, 0, 0), CornerRadius = 0 };
-            //GetTextActivityIndicator = new ActivityIndicator() { IsRunning = false };
-            //buttonContainer.AddViews(catalogManagerButton, SelectFileButton, ShowPdfButton, GetTextButton, GetTextActivityIndicator);
-            //PageScaleLable = new Label() { Text = "缩放图片精度" };
-            //PageScaleTextBox = new Entry() { Text = "1", VerticalTextAlignment = TextAlignment.Center };
-            //PageCurrentIndexEntry = new Entry() { Text = "1" };
-            //PageCurrentToLastIndexLabel = new Label() { Text = "/" };
-            //PageLastIndexLable = new Label() { Text = "1" };
-
-            //DocTreeView = new ListView();
-            //PageScrollViewer = new ScrollView() { };
-            //PageImage = new Image() { };
-
-            //WindowPage.AddElement(buttonContainer);
-            //WindowPage.AddElement(PageScaleLable);
-            //WindowPage.AddElement(PageScaleTextBox);
-            //WindowPage.AddElement(PageCurrentIndexEntry);
-            //WindowPage.AddElement(PageCurrentToLastIndexLabel);
-            //WindowPage.AddElement(PageLastIndexLable);
-            //WindowPage.AddElement(DocTreeView);
-            //WindowPage.AddElement(PageScrollViewer);
-
-            //PageScrollViewer.Content = PageImage;
             catalogManagerButton.Clicked += (sender, e) =>
             {
                 if (DocTreeView.IsVisible)
@@ -79,11 +52,11 @@ namespace ApplePDF.Demo.Maui
                 else
                 {
                     lastPageIndex = newPageIndex;
-                    ShowPdfButton_Clicked(null, null);
+                    ShowPdf();
                 }
             };
             InitPdfLibrary();
-            ReadPDFAsyncFormResourcesAsync();
+            SelectPdfFormResourcesAsync();
         }
 
         private async void GetTextButton_Clicked(object sender, EventArgs e)
@@ -411,7 +384,7 @@ namespace ApplePDF.Demo.Maui
             }
         }
 
-        private void ShowPdfButton_Clicked(object sender, EventArgs e)
+        private void ShowPdf()
         {
             var index = int.Parse(PageCurrentIndexEntry.Text) - 1;
             if (index < 0) index = 0;
@@ -423,12 +396,21 @@ namespace ApplePDF.Demo.Maui
             var flags = (int)(RenderFlags.OptimizeTextForLcd | RenderFlags.RenderAnnotations | RenderFlags.RenderForPrinting);
             using var page = doc.GetPage(index);
             MemoryStream stream = null;
-            using (var bitmap = PdfPageExtension.RenderPageToSKBitmapFormSKBitmap(page, scale, flags))
-                stream = bitmap.SKBitmapToStream();
-            
-            PageImage.Source = ImageSource.FromStream(() => stream);
-
-            WindowPage.RequestReLayout();
+            var bitmap = PdfPageExtension.RenderPageToSKBitmapFormSKBitmap(page, scale, flags);
+            stream = bitmap.SKBitmapToStream();
+            if (this.Dispatcher.IsDispatchRequired)
+                this.Dispatcher.Dispatch(() =>
+                {
+                    PageImage.Source = null;
+                    PageImage.Source = ImageSource.FromStream(() => stream);
+                    WindowPage.RequestReLayout();
+                });
+            else
+            {
+                PageImage.Source = null;
+                PageImage.Source = ImageSource.FromStream(() => stream);
+                WindowPage.RequestReLayout();
+            }
         }
 
         private async void SelectFileButton_ClickedAsync(object sender, EventArgs e)
@@ -441,8 +423,8 @@ namespace ApplePDF.Demo.Maui
                 return;
             }
             Stream stream = File.OpenRead(result.FullPath);
-            ReadPDFAsync(stream);
-            ShowPdfButton_Clicked(null, null);
+            ReadPdfAsync(stream);
+            ShowPdf();
         }
 
         void InitPdfLibrary()
@@ -457,22 +439,21 @@ namespace ApplePDF.Demo.Maui
             }
         }
 
-        async Task ReadPDFAsyncFormResourcesAsync(string filePath = null)
+        async Task SelectPdfFormResourcesAsync(string filePath = null)
         {
-
             if (filePath == null)
             {
                 await FileSystem.OpenAppPackageFileAsync(defaultDoc).ContinueWith(t =>
                 {
                     MemoryStream memoryStream = new MemoryStream();
                     t.Result.CopyTo(memoryStream);
-                    ReadPDFAsync(memoryStream);
+                    ReadPdfAsync(memoryStream);
+                    ShowPdf();
                 });
             }
-
         }
 
-        void ReadPDFAsync(Stream stream)
+        void ReadPdfAsync(Stream stream)
         {
             if (doc != null)
                 doc.Dispose();
@@ -510,7 +491,7 @@ namespace ApplePDF.Demo.Maui
         bool IsDark = true;
         private void SwitchDayAndLightButton_Clicked(object sender, EventArgs e)
         {
-            if(IsDark)
+            if (IsDark)
             {
                 PageScrollViewer.BackgroundColor = Colors.White;
                 IsDark = false;

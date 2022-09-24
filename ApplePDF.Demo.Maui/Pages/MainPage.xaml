@@ -10,12 +10,12 @@
         <local:DocTreeViewModel />
     </ContentPage.BindingContext>
     <layout:ConstraintLayout x:Name="WindowPage" BackgroundColor="#333333">
-        <HorizontalStackLayout x:Name="buttonContainer" Spacing="0">
+        <HorizontalStackLayout x:Name="buttonContainer" Spacing="5">
             <ImageButton
                 x:Name="catalogManagerButton"
                 BackgroundColor="#333333"
-                HeightRequest="40"
-                WidthRequest="40">
+                HeightRequest="20"
+                WidthRequest="20">
                 <ImageButton.Source>
                     <FontImageSource
                         FontAutoScalingEnabled="True"
@@ -28,8 +28,8 @@
             <ImageButton
                 x:Name="SelectFileButton"
                 BackgroundColor="#333333"
-                HeightRequest="40"
-                WidthRequest="40">
+                HeightRequest="20"
+                WidthRequest="20">
                 <ImageButton.Source>
                     <FontImageSource
                         FontAutoScalingEnabled="True"
@@ -50,13 +50,20 @@
                 x:Name="PageScaleTextBox"
                 BackgroundColor="#191b1c"
                 FontAutoScalingEnabled="true"
-                HeightRequest="20"
-                MinimumHeightRequest="30"
-                MinimumWidthRequest="30"
+                FontSize="12"
+                HorizontalTextAlignment="Center"
                 Text="1"
                 TextColor="White"
                 VerticalOptions="Center"
-                VerticalTextAlignment="Center" />
+                VerticalTextAlignment="Center">
+                <Entry.HeightRequest>
+                    <OnPlatform x:TypeArguments="x:Double">
+                        <On Platform="iOS" Value="30" />
+                        <On Platform="WinUI" Value="30" />
+                        <On Platform="Android" Value="40" />
+                    </OnPlatform>
+                </Entry.HeightRequest>
+            </Entry>
             <Label
                 Text="|"
                 TextColor="WhiteSmoke"
@@ -64,11 +71,25 @@
             <Entry
                 x:Name="PageCurrentIndexEntry"
                 BackgroundColor="#191b1c"
-                HeightRequest="20"
-                MinimumHeightRequest="30"
-                MinimumWidthRequest="30"
+                FontSize="12"
+                HorizontalTextAlignment="Center"
                 Text="1"
-                TextColor="White" />
+                TextColor="White"
+                VerticalTextAlignment="Center">
+                <Entry.WidthRequest>
+                    <OnPlatform x:TypeArguments="x:Double">
+                        <On Platform="iOS" Value="30" />
+                        <On Platform="Android" Value="40" />
+                    </OnPlatform>
+                </Entry.WidthRequest>
+                <Entry.HeightRequest>
+                    <OnPlatform x:TypeArguments="x:Double">
+                        <On Platform="iOS" Value="30" />
+                        <On Platform="WinUI" Value="30" />
+                        <On Platform="Android" Value="40" />
+                    </OnPlatform>
+                </Entry.HeightRequest>
+            </Entry>
             <Label
                 Text="/"
                 TextColor="White"
@@ -85,14 +106,14 @@
             <ImageButton
                 x:Name="GetTextButton"
                 BackgroundColor="#333333"
-                HeightRequest="40"
-                WidthRequest="40">
+                HeightRequest="20"
+                WidthRequest="20">
                 <ImageButton.Source>
                     <FontImageSource
                         FontAutoScalingEnabled="True"
                         FontFamily="FontAwesomeSolid"
                         Glyph=""
-                        Size="18"
+                        Size="20"
                         Color="White" />
                 </ImageButton.Source>
             </ImageButton>
@@ -104,14 +125,14 @@
                 x:Name="SwitchDayAndLightButton"
                 BackgroundColor="#333333"
                 Clicked="SwitchDayAndLightButton_Clicked"
-                HeightRequest="40"
-                WidthRequest="40">
+                HeightRequest="20"
+                WidthRequest="20">
                 <ImageButton.Source>
                     <FontImageSource
                         FontAutoScalingEnabled="True"
                         FontFamily="FontAwesomeSolid"
                         Glyph=""
-                        Size="18"
+                        Size="20"
                         Color="White" />
                 </ImageButton.Source>
             </ImageButton>
@@ -124,25 +145,31 @@
             <ListView
                 x:Name="bookmarksView"
                 BackgroundColor="#333333"
-                ItemsSource="{Binding Bookmarks}">
+                HasUnevenRows="True"
+                ItemsSource="{Binding Bookmarks}"
+                SeparatorColor="Pink">
                 <ListView.ItemTemplate>
                     <DataTemplate>
                         <ViewCell>
-                            <VerticalStackLayout>
+                            <Grid>
                                 <HorizontalStackLayout Margin="5,10,10,10" Spacing="5">
-                                    <Image VerticalOptions="Center">
+                                    <Image
+                                        HeightRequest="16"
+                                        VerticalOptions="Center"
+                                        WidthRequest="16">
                                         <Image.Source>
                                             <FontImageSource
                                                 FontFamily="FontAwesomeSolid"
                                                 Glyph=""
-                                                Size="8" />
+                                                Size="16" />
                                         </Image.Source>
                                     </Image>
                                     <Label
-                                        LineBreakMode="WordWrap"
+                                        LineBreakMode="CharacterWrap"
+                                        MaxLines="2"
                                         Text="{Binding Name}"
                                         TextColor="White"
-                                        VerticalOptions="Center"
+                                        VerticalOptions="CenterAndExpand"
                                         WidthRequest="150" />
                                     <Label
                                         Text="{Binding Children.Count, StringFormat='({0})'}"
@@ -150,7 +177,7 @@
                                         VerticalOptions="Center" />
                                 </HorizontalStackLayout>
 
-                            </VerticalStackLayout>
+                            </Grid>
                         </ViewCell>
                     </DataTemplate>
                 </ListView.ItemTemplate>
