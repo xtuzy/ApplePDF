@@ -245,7 +245,7 @@ namespace ApplePDF.PdfKit
             {
                 lock (@lock)
                 {
-                    return this.GetTextInPage(0,this.CharacterCount);
+                    return this.GetTextInPage(0, this.CharacterCount);
                 }
             }
         }
@@ -457,7 +457,7 @@ namespace ApplePDF.PdfKit
         #region 渲染 Render
 
         /// <summary>
-        /// 获取页面图像
+        /// 获取页面图像。图像的内存由Pdfium开辟
         /// </summary>
         /// <param name="xScale"></param>
         /// <param name="yScale"></param>
@@ -524,6 +524,15 @@ namespace ApplePDF.PdfKit
             }
         }
 
+        /// <summary>
+        /// 应用开辟内存给Pdfium存储图像
+        /// </summary>
+        /// <param name="imageBufferPointer"></param>
+        /// <param name="xScale"></param>
+        /// <param name="yScale"></param>
+        /// <param name="rotate"></param>
+        /// <param name="renderFlag"><see cref="RenderFlags"/>,可以叠加，如`RenderFlags.RenderAnnotations | RenderFlags.RenderForPrinting`</param>
+        /// <exception cref="Exception"></exception>
         public void GetImage(IntPtr imageBufferPointer, float xScale, float yScale, int rotate, int renderFlag)
         {
             lock (@lock)
@@ -602,5 +611,35 @@ namespace ApplePDF.PdfKit
             }
         }
 
+        public object GetThumbnail(Size size, PdfDisplayBox box)
+        {
+            var bitmap = fpdf_thumbnail.FPDFPageGetThumbnailAsBitmap(this.page);
+            int height = 0;
+            int width = 0;
+            if (bitmap != null)
+            {
+                var buffer = fpdfview.FPDFBitmapGetBuffer(bitmap);
+                height = fpdfview.FPDFBitmapGetHeight(bitmap);
+                width = fpdfview.FPDFBitmapGetWidth(bitmap);
+                var stride = fpdfview.FPDFBitmapGetStride(bitmap);
+                var result = new byte[stride * height];
+                try
+                {
+                    Marshal.Copy(buffer, result, 0, result.Length);
+                }
+                catch (Exception) { result = new byte[1]; }
+                finally
+                {
+                    fpdfview.FPDFBitmapDestroy(bitmap);
+                }
+                if (result.Length > 1)
+                {
+                    return result;//TODO:缩放到Size
+                }
+            }
+            //没有生成Pdf自带的缩略图时,我们自己生成页面图像
+            var pageSize = GetSize();
+            return GetImage(pageSize.Width / size.Width, pageSize.Height / size.Height, (int)RenderFlags.None);
+        }
     }
 }

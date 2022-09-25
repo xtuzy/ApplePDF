@@ -1,6 +1,7 @@
 ﻿using PDFiumCore;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 
 namespace ApplePDF.PdfKit
 {
@@ -77,7 +78,13 @@ namespace ApplePDF.PdfKit
         /// <returns></returns>
         PdfSelection? GetSelection(RectangleF rect);
         //PdfSelection? GetSelection(NSRange range);
-        //UIImage GetThumbnail(Size size, PdfDisplayBox box);
+        /// <summary>
+        /// 获取缩略图，iOS默认返回UIImage
+        /// </summary>
+        /// <param name="size"></param>
+        /// <param name="box"></param>
+        /// <returns></returns>
+        object GetThumbnail(Size size, PdfDisplayBox box);
         //CGAffineTransform GetTransform(PdfDisplayBox box);
         /// <summary>
         /// iOS:Removes the specified annotation.
