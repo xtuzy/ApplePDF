@@ -313,7 +313,13 @@ namespace ApplePDF.Test
             });
         }
 
-        [TestCase("Docs/mytest_edit_annotation.pdf", "little", "1234")]
+        /// <summary>
+        /// Error:Any char instead will be \ufffe
+        /// </summary>
+        /// <param name="filePath"></param>
+        /// <param name="oldText"></param>
+        /// <param name="newText"></param>
+        [TestCase("Docs/mytest_edit_annotation.pdf", "little", "123456")]
         public void InsteadText_WhenCalled_ShouldResultPdfHaveNewText(string filePath, string oldText, string newText)
         {
             ExecuteForDocument(filePath, null, 0, pageReader =>
@@ -323,6 +329,9 @@ namespace ApplePDF.Test
                 var text = pageReader.Text;
                 var doc = pageReader.Document;
                 pageReader.Dispose();
+                var newPage = doc.GetPage(0);
+                text = newPage.Text;
+                Assert.IsTrue(text.Contains(newText));
                 if (File.Exists("Result.pdf"))
                     File.Delete("Result.pdf");
                 Pdfium.Instance.Save(doc, "Result.pdf");
