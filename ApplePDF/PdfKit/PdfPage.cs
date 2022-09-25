@@ -245,7 +245,7 @@ namespace ApplePDF.PdfKit
             {
                 lock (@lock)
                 {
-                    return this.GetTextInPage();
+                    return this.GetTextInPage(0,this.CharacterCount);
                 }
             }
         }
@@ -327,27 +327,35 @@ namespace ApplePDF.PdfKit
 
         public PdfSelection GetSelection(RectangleF rect)
         {
-            throw new NotImplementedException();
+            return new PdfSelection(this, rect);
         }
 
         public PdfSelection SelectLine(PointF point)
         {
-            throw new NotImplementedException();
+            //获得该位置的字符序号
+            var index = GetCharacterIndex(point);
+            //字符大小作为行高度
+            //var textSize = fpdf_text.FPDFTextGetFontSize(TextPage, index);
+            var charBounds = GetCharacterBounds(index);
+            var size = this.GetSize();
+            return new PdfSelection(this, new RectangleF(0, charBounds.Y, size.Width, charBounds.Height));//TODO:验证取行宽和字符高度确定行的逻辑是否正确
         }
 
         public PdfSelection SelectWord(PointF point)
         {
-            throw new NotImplementedException();
+            //获得该位置的字符序号
+            var index = GetCharacterIndex(point);
+            return new PdfSelection(this, GetCharacterBounds(index));
         }
 
-        private string GetTextInPage()
+        private string GetTextInPage(int fromeIndex, int count)
         {
             lock (@lock)
             {
                 ushort[] buffer;
                 int charactersWritten;
-                buffer = new ushort[this.CharacterCount + 1];
-                charactersWritten = fpdf_text.FPDFTextGetText(this.TextPage, 0, this.CharacterCount, ref buffer[0]);
+                buffer = new ushort[count + 1];//+1是为了存一个结束字符？
+                charactersWritten = fpdf_text.FPDFTextGetText(this.TextPage, fromeIndex, count, ref buffer[0]);
 
                 if (charactersWritten == 0)
                 {

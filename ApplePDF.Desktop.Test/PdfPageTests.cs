@@ -3,9 +3,9 @@ using ApplePDF.PdfKit.Annotation;
 using NUnit.Framework;
 using PDFiumCore;
 using System;
+using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace ApplePDF.Test
@@ -391,6 +391,49 @@ namespace ApplePDF.Test
                 var text = pageReader.Text;
                 var success = text.Contains(addText);
                 Assert.IsTrue(success);
+            });
+        }
+
+        [TestCase("Docs/mytest_edit_annotation.pdf", 40, 805, 126, 787, "First paragraph")]
+        public void GetSelection_InTwoPoint_ShouldReturnTextInPoints(string filePath, int x1, int y1, int x2, int y2, string text)
+        {
+            ExecuteForDocument(filePath, null, 0, pageReader =>
+            {
+                var selection = pageReader.GetSelection(new System.Drawing.PointF(x1, y1), new System.Drawing.PointF(x2, y2));
+                Assert.AreEqual(text, selection.Text);
+            });
+        }
+
+        [TestCase("Docs/mytest_edit_annotation.pdf", 40, 805, 126, 787, "First paragraph")]
+        public void GetSelection_InRect_ShouldReturnTextInRect(string filePath, int x1, int y1, int x2, int y2, string text)
+        {
+            ExecuteForDocument(filePath, null, 0, pageReader =>
+            {
+                var selection = pageReader.GetSelection(RectangleF.FromLTRB(x1, y1, x2, y2));
+                Assert.AreEqual(text, selection.Text);
+            });
+        }
+
+        [TestCase("Docs/mytest_edit_annotation.pdf", 62, 795, "First paragraph")]
+        [TestCase("Docs/mytest_edit_annotation.pdf", 143, 782, "Another paragraph, this time a little bit longer to make sure, this line will be divided into at least")]
+        public void SelectLine_ShouldReturnTextInLine(string filePath, int x1, int y1, string text)
+        {
+            ExecuteForDocument(filePath, null, 0, pageReader =>
+            {
+                var selection = pageReader.SelectLine(new PointF(x1, y1));
+                var actual = selection.Text;
+                Assert.IsTrue(actual.Contains(text));//使用Contains，因为返回值可能有换行符号
+            });
+        }
+
+        [TestCase("Docs/mytest_edit_annotation.pdf", 73, 795, "p")]
+        public void SelectWord_ShouldReturnTextInLine(string filePath, int x1, int y1, string text)
+        {
+            ExecuteForDocument(filePath, null, 0, pageReader =>
+            {
+                var selection = pageReader.SelectWord(new PointF(x1, y1));
+                var actual = selection.Text;
+                Assert.IsTrue(actual.Contains(text));//使用Contains，因为返回值可能有换行符号
             });
         }
     }

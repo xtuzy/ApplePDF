@@ -30,7 +30,7 @@ namespace ApplePDF.PdfKit
 
         string GetSelectTextInPage(PdfPage page, RectangleF rectangle)
         {
-            ushort[] buffer = null;
+            ushort[] buffer = new ushort[1];
             int canCharactersWritten;
             //获取字符数
             canCharactersWritten = fpdf_text.FPDFTextGetBoundedText(page.TextPage, rectangle.X, rectangle.Y, rectangle.Right, rectangle.Bottom, ref buffer[0], 0);
