@@ -89,7 +89,6 @@ namespace PDFiumCore
         /// </summary>
         DisableTextAntialiasing = 0x1000,
 
-
         /// <summary>
         /// FPDF_RENDER_NO_SMOOTHIMAGE: Set to disable anti-aliasing on images.
         /// </summary>
@@ -98,6 +97,11 @@ namespace PDFiumCore
         /// <summary>
         /// FPDF_RENDER_NO_SMOOTHPATH: Set to disable anti-aliasing on paths.
         /// </summary>
-        DisablePathAntialiasing = 0x4000
+        DisablePathAntialiasing = 0x4000,
+        /// <summary>
+        /// Set whether to render in a reverse Byte order, this flag is only used when
+        /// rendering to a bitmap.
+        /// </summary>
+        FPDF_REVERSE_BYTE_ORDER = 0x10
     }
 }

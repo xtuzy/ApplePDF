@@ -413,6 +413,18 @@ namespace ApplePDF.Demo.Maui
             }
         }
 
+#if ANDROID
+        void save(PdfPage page)
+        {
+            var pageSize = page.GetSize();
+            var androidBitmap = Android.Graphics.Bitmap.CreateBitmap((int)pageSize.Width, (int)pageSize.Height, Android.Graphics.Bitmap.Config.Argb8888);
+            ApplePDF.Maui.Extensions.PdfPageExtension.RenderPage(page, androidBitmap, (float)DeviceDisplay.MainDisplayInfo.Density
+                , 0, 0, androidBitmap.Width, androidBitmap.Height, false);
+            var filePath = Path.Combine(Android.App.Application.Context.GetExternalFilesDir(null).AbsolutePath, "result.jpeg");
+            ApplePDF.Maui.Extensions.PdfPageExtension.WriteBitmapToFile(filePath, androidBitmap, 100);
+        }
+#endif
+
         private async void SelectFileButton_ClickedAsync(object sender, EventArgs e)
         {
             var result = await FilePicker.PickAsync(PickOptions.Default);

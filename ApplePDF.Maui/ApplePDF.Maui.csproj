@@ -6,12 +6,13 @@
 
     <SingleProject>true</SingleProject>
     <ImplicitUsings>enable</ImplicitUsings>
-    <UseWPF Condition="$(TargetFramework.Contains('-windows'))">true</UseWPF>
+
     <SupportedOSPlatformVersion Condition="'$(TargetFramework)' == 'net6.0-ios'">14.2</SupportedOSPlatformVersion>
     <SupportedOSPlatformVersion Condition="'$(TargetFramework)' == 'net6.0-maccatalyst'">14.0</SupportedOSPlatformVersion>
     <SupportedOSPlatformVersion Condition="'$(TargetFramework)' == 'net6.0-android'">21.0</SupportedOSPlatformVersion>
     <SupportedOSPlatformVersion Condition="$(TargetFramework.Contains('-windows'))">10.0.17763.0</SupportedOSPlatformVersion>
     <TargetPlatformMinVersion Condition="$(TargetFramework.Contains('-windows'))">10.0.17763.0</TargetPlatformMinVersion>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup>
@@ -19,8 +20,8 @@
     <ProjectReference Condition="$(TargetFramework.Contains('-ios'))" Include="..\ApplePDF.NativeAssets.iOS\ApplePDF.NativeAssets.iOS.net6.csproj" />
     <!--ProjectReference Condition="$(TargetFramework.Contains('-windows'))" Include="..\ApplePDF.NativeAssets.Desktop\ApplePDF.NativeAssets.Desktop.csproj" /-->
     <ProjectReference Condition="$(TargetFramework.Contains('-mac'))" Include="..\ApplePDF.NativeAssets.Desktop\ApplePDF.NativeAssets.Desktop.csproj" />
-    <PackageReference Include="bblanchon.PDFium.Win32" Version="104.0.5079" Condition="$(TargetFramework.Contains('-windows'))"/>
-    <PackageReference Include="bblanchon.PDFium.Android" Version="104.0.5079" Condition="$(TargetFramework.Contains('-android'))"/>
+    <PackageReference Include="bblanchon.PDFium.Win32" Version="104.0.5079" Condition="$(TargetFramework.Contains('-windows'))" />
+    <PackageReference Include="bblanchon.PDFium.Android" Version="104.0.5079" Condition="$(TargetFramework.Contains('-android'))" />
 
     <ProjectReference Include="..\ApplePDF\ApplePDF.csproj" />
   </ItemGroup>

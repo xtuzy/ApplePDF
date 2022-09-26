@@ -6,6 +6,7 @@ using System;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
 namespace ApplePDF.Test
@@ -30,22 +31,24 @@ namespace ApplePDF.Test
         }
 
         [Theory]
-        public void PageIndex_WhenCalled_ShouldReturnCorrectIndex()
+        [TestCase("Docs/simple_0.pdf")]
+        public void PageIndex_WhenCalled_ShouldReturnCorrectIndex(string filePath)
         {
             var random = new Random();
 
             var index = random.Next(19);
 
-            ExecuteForDocument("Docs/simple_0.pdf", null, index, pageReader =>
+            ExecuteForDocument(filePath, null, index, pageReader =>
              {
                  Assert.AreEqual(index, pageReader.PageIndex);
              });
         }
 
         [Theory]
-        public void GetCharacters_WhenCalled_ShouldReturnCorrectCharacters()
+        [TestCase("Docs/simple_6.pdf", "Horizontal", "Vertical")]
+        public void GetCharacters_WhenCalled_ShouldReturnCorrectCharacters(string filePath, string hopeFirstWord, string hopeSecondWord)
         {
-            ExecuteForDocument("Docs/simple_6.pdf", null, 0, pageReader =>
+            ExecuteForDocument(filePath, null, 0, pageReader =>
             {
                 var characters = pageReader.GetCharacters().ToArray();
 
@@ -63,7 +66,7 @@ namespace ApplePDF.Test
                     firstText += ch.Char;
                 }
 
-                Assert.AreEqual("Horizontal", firstText);
+                Assert.AreEqual(hopeFirstWord, firstText);
 
                 var secondText = string.Empty;
 
@@ -77,7 +80,7 @@ namespace ApplePDF.Test
                     secondText += ch.Char;
                 }
 
-                Assert.AreEqual("Vertical", secondText);
+                Assert.AreEqual(hopeSecondWord, secondText);
             });
         }
 
@@ -90,7 +93,7 @@ namespace ApplePDF.Test
         [TestCase("Docs/simple_2.pdf", 3, "4 CONTENTS")]
         [TestCase("Docs/simple_4.pdf", 0, "")]
         [TestCase("Docs/simple_5.pdf", 0, "test.md 11/11/2018\r\n1 / 1\r\nTest document")]
-        public void GetText_WhenCalled_ShouldReturnValidText(string filePath, int pageIndex, string expectedText)
+        public void GetText_WhenCalled_ShouldReturnCorrectText(string filePath, int pageIndex, string expectedText)
         {
             ExecuteForDocument(filePath, null, pageIndex, pageReader =>
             {
@@ -111,7 +114,7 @@ namespace ApplePDF.Test
         [TestCase("Docs/simple_3.pdf", null, 1, "The end, and just as well.")]
         [TestCase("Docs/simple_0.pdf", null, 4, "ASCIIHexDecode")]
         [TestCase("Docs/protected_0.pdf", "password", 0, "The Secret (2016 film)")]
-        public void GetText_WhenCalled_ShouldContainValidText(string filePath, string password, int pageIndex, string expectedText)
+        public void GetText_WhenCalled_ShouldContainCorrectText(string filePath, string password, int pageIndex, string expectedText)
         {
             ExecuteForDocument(filePath, password, pageIndex, pageReader =>
           {
@@ -122,7 +125,7 @@ namespace ApplePDF.Test
         }
 
         [TestCase("Docs/mytest_chinese.pdf", null, 0, "另一端")]
-        public void GetText_Chinese_WhenCalled_ShouldContainValidText(string filePath, string password, int pageIndex, string expectedText)
+        public void GetText_Chinese_WhenCalled_ShouldContainCorrectText(string filePath, string password, int pageIndex, string expectedText)
         {
             ExecuteForDocument(filePath, password, pageIndex, pageReader =>
             {
@@ -141,7 +144,7 @@ namespace ApplePDF.Test
         [TestCase("Docs/simple_2.pdf", null, 3, 10)]
         [TestCase("Docs/simple_5.pdf", null, 0, 40)]
         [TestCase("Docs/protected_0.pdf", "password", 0, 2009)]
-        public void GetCharacters_WhenCalled_ShouldReturnCharacters(string filePath, string password, int pageIndex, int charCount)
+        public void GetCharacters_WhenCalled_ShouldReturnCorrectCharactersLength(string filePath, string password, int pageIndex, int charCount)
         {
             ExecuteForDocument(filePath, password, pageIndex, pageReader =>
             {
@@ -166,6 +169,25 @@ namespace ApplePDF.Test
 
                 Assert.True(bytes.Length > 0);
                 Assert.IsNotEmpty(bytes.Where(x => x != 0));
+            });
+        }
+
+        [TestCase("Docs/mytest_chinese.pdf", "thumbnail.png")]
+        public void GetThumbil_WhenCalled_ShouldReturnNonZeroRawByteArray(string filePath, string thumbnailFilePath)
+        {
+            ExecuteForDocument(filePath, null, 0, pageReader =>
+            {
+                var pageSize = pageReader.GetSize();
+                var bytes = pageReader.GetThumbnail(new Size((int)pageSize.Width, (int)pageSize.Height), PdfDisplayBox.Media);
+                var data = bytes as byte[];
+                var gcHandle = GCHandle.Alloc(data, GCHandleType.Pinned);
+                using (var memoryStream = new MemoryStream(data))
+                using (var fileStream = new FileStream(thumbnailFilePath, FileMode.OpenOrCreate))
+                {
+                    memoryStream.CopyTo(fileStream);
+                    //fileStream.Write(data, 0, data.Length);
+                }
+                Assert.Ignore();
             });
         }
 
@@ -210,7 +232,7 @@ namespace ApplePDF.Test
         [TestCase("Docs/simple_0.pdf", null, 1, 595, 841)]
         [TestCase("Docs/simple_0.pdf", null, 10, 5953, 8419)]
         [TestCase("Docs/simple_0.pdf", null, 15, 8929, 12628)]
-        public void GetPageWidthOrHeight_WhenCalledWithScalingFactor_ShouldMach(string filePath, string password, double scaling, int expectedWidth, int expectedHeight)
+        public void GetSize_WhenCalledWithScalingFactor_ShouldMatch(string filePath, string password, double scaling, int expectedWidth, int expectedHeight)
         {
             ExecuteForDocument(filePath, password, 0, (Action<PdfPage>)(pageReader =>
            {

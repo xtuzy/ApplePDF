@@ -639,7 +639,7 @@ namespace ApplePDF.PdfKit
             }
             //没有生成Pdf自带的缩略图时,我们自己生成页面图像
             var pageSize = GetSize();
-            return GetImage(pageSize.Width / size.Width, pageSize.Height / size.Height, (int)RenderFlags.None);
+            return GetImage(size.Width / pageSize.Width, size.Height / pageSize.Height, (int)RenderFlags.None);
         }
     }
 }
