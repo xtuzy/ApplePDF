@@ -160,7 +160,7 @@ namespace ApplePDF.Demo.Maui.Services
         }
 
         /// <summary>
-        /// Recognizes the text by Tess.比windows自带的慢
+        /// 只一遍识别，对字符处理过的，返回数据包括行和Word的数据
         /// </summary>
         /// <param name="stream">must The memerystream.</param>
         /// <param name="modelName">chi_sim,chi_sim_vert,chi_tra</param>
@@ -515,7 +515,7 @@ namespace ApplePDF.Demo.Maui.Services
                                         canvas.DrawRect((float)word.Bounds.X, (float)word.Bounds.Y, (float)word.Bounds.Width, (float)word.Bounds.Height, paint);
                                     }
                             }
-                            MainPage.save(cropBitmap, $"{lineIndex}.png");
+                            SaveService.Save(cropBitmap, $"{lineIndex}.png");
                         }
                     }
                 });
@@ -530,29 +530,6 @@ namespace ApplePDF.Demo.Maui.Services
             }
 
             return lines;
-        }
-
-        public static Dictionary<Services.OcrData, float> AnalysisTextSize(List<Services.OcrData> lines)
-        {
-            var result = new Dictionary<Services.OcrData, float>();
-            var heights = lines.Select(line => line.Bounds.Height).ToArray();
-            var standardDeviation = heights.StandardDeviation();
-            var mean = heights.Mean();
-            var anomalyCutOff = standardDeviation * 3;
-            var lowerLimit = mean - anomalyCutOff;
-            var upperLimit = mean + anomalyCutOff;
-            foreach (var line in lines)
-            {
-                if (line.Bounds.Height > lowerLimit && line.Bounds.Height < upperLimit)
-                {
-                    result.Add(line, (float)mean);
-                }
-                else
-                {
-                    result.Add(line, (float)line.Bounds.Height);
-                }
-            }
-            return result;
         }
     }
 }
