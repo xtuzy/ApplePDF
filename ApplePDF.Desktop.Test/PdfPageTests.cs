@@ -165,7 +165,7 @@ namespace ApplePDF.Test
         {
             ExecuteForDocument(filePath, password, pageIndex, pageReader =>
             {
-                var bytes = pageReader.GetImage(1f, 1f, 0).ToArray();
+                var bytes = pageReader.Draw(1f, 1f, 0).ToArray();
 
                 Assert.True(bytes.Length > 0);
                 Assert.IsNotEmpty(bytes.Where(x => x != 0));
@@ -250,7 +250,7 @@ namespace ApplePDF.Test
         {
             ExecuteForDocument("Docs/annotation_0.pdf", null, 0, pageReader =>
            {
-               var bytes = pageReader.GetImage(1, 1, 0).ToArray();
+               var bytes = pageReader.Draw(1, 1, 0).ToArray();
                Assert.True(bytes.All(x => x == 0));
            });
         }
@@ -261,7 +261,7 @@ namespace ApplePDF.Test
             ExecuteForDocument("Docs/annotation_0.pdf", null, 0, pageReader =>
            {
                // verify pixel in center of image is the correct yellow color
-               var bytes = pageReader.GetImage(1, 1, (int)RenderFlags.RenderAnnotations).ToArray();
+               var bytes = pageReader.Draw(1, 1, (int)RenderFlags.RenderAnnotations).ToArray();
                const int bpp = 4;
                var center = bytes.Length / bpp / 2 * bpp; // note integer division by 2 here.  we're getting the first byte in the central pixel
                Assert.AreEqual(133, bytes[center]); // Blue
@@ -277,7 +277,7 @@ namespace ApplePDF.Test
             ExecuteForDocument("Docs/annotation_0.pdf", null, 0, pageReader =>
            {
                // verify pixel in center of image is the correct gray color
-               var bytes = pageReader.GetImage(1, 1, (int)(RenderFlags.RenderAnnotations | RenderFlags.Grayscale)).ToArray();
+               var bytes = pageReader.Draw(1, 1, (int)(RenderFlags.RenderAnnotations | RenderFlags.Grayscale)).ToArray();
                const int bpp = 4;
                var center = bytes.Length / bpp / 2 * bpp; // note integer division by 2 here. we're getting the first byte in the central pixel
                Assert.AreEqual(234, bytes[center]); // Blue
@@ -305,7 +305,7 @@ namespace ApplePDF.Test
 
                     var scale = Math.Min(scaleOne, scalingTwo);
                     //return pageReader.GetImage().Count(x => x != 0);
-                    return pageReader.GetImage(scale, scale, 0).Count(x => x != 0);
+                    return pageReader.Draw(scale, scale, 0).Count(x => x != 0);
                 }
             }
         }

@@ -14,5 +14,6 @@ namespace ApplePDF.PdfKit
         SizeF GetSize();
         bool AddText(PdfFont font, float fontSize, string text, double x, double y, double scale = 1);
         bool InsteadText(string oldText, string newText);
+        void Draw(IntPtr imageBufferPointer, float xScale, float yScale, int rotate, int renderFlag);
     }
 }

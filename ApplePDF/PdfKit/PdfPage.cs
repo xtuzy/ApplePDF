@@ -464,7 +464,7 @@ namespace ApplePDF.PdfKit
         /// <param name="renderFlag">RenderFlag, can use &| combine; if set 0, not render annotation</param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        public byte[] GetImage(float xScale, float yScale, int renderFlag)
+        public byte[] Draw(float xScale, float yScale, int renderFlag)
         {
             lock (@lock)
             {
@@ -533,7 +533,7 @@ namespace ApplePDF.PdfKit
         /// <param name="rotate"></param>
         /// <param name="renderFlag"><see cref="RenderFlags"/>,可以叠加，如`RenderFlags.RenderAnnotations | RenderFlags.RenderForPrinting`</param>
         /// <exception cref="Exception"></exception>
-        public void GetImage(IntPtr imageBufferPointer, float xScale, float yScale, int rotate, int renderFlag)
+        public void Draw(IntPtr imageBufferPointer, float xScale, float yScale, int rotate, int renderFlag)
         {
             lock (@lock)
             {
@@ -639,7 +639,7 @@ namespace ApplePDF.PdfKit
             }
             //没有生成Pdf自带的缩略图时,我们自己生成页面图像
             var pageSize = GetSize();
-            return GetImage(size.Width / pageSize.Width, size.Height / pageSize.Height, (int)RenderFlags.None);
+            return Draw(size.Width / pageSize.Width, size.Height / pageSize.Height, (int)RenderFlags.None);
         }
     }
 }

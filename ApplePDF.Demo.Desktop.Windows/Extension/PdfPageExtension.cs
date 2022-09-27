@@ -24,7 +24,7 @@ namespace ApplePDF.Demo.Desktop.Windows.Extension
             //Skiasharp方法
             // pin the managed array so that the GC doesn't move it
             var bounds = page.GetSize();
-            var rawBytes = page.GetImage(density, density,renderFlags);
+            var rawBytes = page.Draw(density, density,renderFlags);
             var gcHandle = GCHandle.Alloc(rawBytes, GCHandleType.Pinned);
             // install the pixels with the color type of the pixel data
             int width = (int)(bounds.Width * density);
@@ -108,7 +108,7 @@ namespace ApplePDF.Demo.Desktop.Windows.Extension
             var info = new SKImageInfo(width, height, SKColorType.Bgra8888, SKAlphaType.Premul);
             bmp = new SKBitmap(info);
 
-            page.GetImage(bmp.GetPixels(), density, density, 0,renderFlags);
+            page.Draw(bmp.GetPixels(), density, density, 0,renderFlags);
 
             return bmp.ToBitmap();
         }
