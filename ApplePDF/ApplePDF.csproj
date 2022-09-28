@@ -6,7 +6,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <NoWarn>1701;1702;1591;0649</NoWarn>
     <SingleProject>true</SingleProject>
-    <version>$(VersionSuffix)</version>
+    <version>0.0.1</version>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
 
     <Authors>zhouyang</Authors>
@@ -19,10 +19,12 @@
     <IncludeSymbols>true</IncludeSymbols>
 
     <Description>ApplePDF is a pdf library base on pdfium,it use api like pdfkit at xamarin.ios</Description>
-    <PackageProjectUrl></PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/xtuzy/ApplePDF</PackageProjectUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/xtuzy/ApplePDF</RepositoryUrl>
     <Platforms>AnyCPU</Platforms>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <PackageId>ApplePDF.Core</PackageId>
   </PropertyGroup>
 
   <ItemGroup>
