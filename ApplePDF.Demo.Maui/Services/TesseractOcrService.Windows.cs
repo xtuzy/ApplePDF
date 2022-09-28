@@ -280,16 +280,31 @@ namespace ApplePDF.Demo.Maui.Services
             //先实现3
             void FixWordBoundsHorizontalOffset(List<OcrData> lines)
             {
+                float spaceWithWidthFixCoefficient = 1f;//用于修正字的宽和间距
+                
                 foreach (var line in lines)
                 {
+                    double lineHeght = line.Bounds.Height;
                     for (var index = 0; index < line.Childs.Count; index++)
                     {
                         var currentWord = line.Childs[index];
-                        var currentWordWidthIsTooBig = currentWord.Bounds.Width > 2 * currentWord.Bounds.Height;//估计是否包含多个中文单词的宽度
+                        if ('a' < currentWord.Text[0] &&
+                            currentWord.Text[0] < 'z'&&
+                            'A' < currentWord.Text[0] &&
+                            currentWord.Text[0] < 'Z')//英文不适用
+                            continue;
+                        //修正全部过宽的Word
+                        if (currentWord.Bounds.Width > lineHeght * currentWord.Text.Length * spaceWithWidthFixCoefficient)
+                        {
+                            currentWord.Bounds.Width = lineHeght * currentWord.Text.Length * spaceWithWidthFixCoefficient;
+                        }
+
+                        var currentWordWidthIsTooBig = currentWord.Bounds.Width > lineHeght * currentWord.Text.Length * spaceWithWidthFixCoefficient;//估计是否包含多个中文单词的宽度
+                        
                         if (index + 1 < line.Childs.Count)
                         {
                             var nextWord = line.Childs[index + 1];
-                            var nextWordWidthIsTooBig = nextWord.Bounds.Width > 2 * nextWord.Bounds.Height;//估计是否包含多个中文单词的宽度
+                            var nextWordWidthIsTooBig = nextWord.Bounds.Width > lineHeght * currentWord.Text.Length * spaceWithWidthFixCoefficient;//估计是否包含多个中文单词的宽度
                             //当前word与后一个word对比，分析宽度关系
 
                             if (currentWord.Bounds.Left < nextWord.Bounds.Left
@@ -306,17 +321,21 @@ namespace ApplePDF.Demo.Maui.Services
                                      *       |next|
                                      */
                                     currentWord.Bounds.Right = nextWord.Bounds.Left - 1;//缩小current范围到next左边
+                                    //如果右侧缩小后还是太大
+                                    if (currentWord.Bounds.Width > lineHeght * currentWord.Text.Length * spaceWithWidthFixCoefficient)
+                                    {
+                                        currentWord.Bounds.Width = lineHeght * currentWord.Text.Length * spaceWithWidthFixCoefficient;
+                                    }
                                 }
                                 else
                                 {
-
-                                    if (nextWord.Bounds.Left - currentWord.Bounds.Left > currentWord.Bounds.Width * 0.8) //如果留出足够的空间放current
+                                    if (nextWord.Bounds.Left - currentWord.Bounds.Left > lineHeght * currentWord.Text.Length * 0.8) //如果留出足够的空间放current
                                     {
                                         /*
                                          * |  curr         |
                                          *  ****|   next  |
                                          */
-                                        currentWord.Bounds.Left = nextWord.Bounds.Left - 1;//缩小当前word范围
+                                        currentWord.Bounds.Right = nextWord.Bounds.Left - 1;//缩小当前word范围
                                     }
                                     else//没有留够足够空间时，我们尝试为当前字符腾一个字符宽度出来
                                     {
@@ -324,7 +343,7 @@ namespace ApplePDF.Demo.Maui.Services
                                          * |  curr        |
                                          *  **|   next  |
                                          */
-                                        currentWord.Bounds.Width = currentWord.Bounds.Height;//先把宽度正常化
+                                        currentWord.Bounds.Width = lineHeght * currentWord.Text.Length * spaceWithWidthFixCoefficient;//先把宽度正常化
                                         nextWord.Bounds.Left = currentWord.Bounds.Right + 1;//再移动下一个word
                                     }
                                 }
@@ -349,7 +368,7 @@ namespace ApplePDF.Demo.Maui.Services
                                      *    |  curr  |
                                      * |   next  |
                                      */
-                                    currentWord.Bounds.Width = currentWord.Bounds.Height;//先把宽度正常化
+                                    currentWord.Bounds.Width = lineHeght * currentWord.Text.Length * spaceWithWidthFixCoefficient;//先把宽度正常化
                                     nextWord.Bounds.Left = currentWord.Bounds.Right + 1;
                                 }
                             }
