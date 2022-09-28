@@ -1,15 +1,21 @@
 ﻿using PDFiumCore;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
 using System.Text;
 
 namespace ApplePDF.PdfKit.Annotation
 {
     public class PdfFreeTextAnnotation : PdfAnnotation
     {
-        public PdfFreeTextAnnotation(PdfAnnotationSubtype type) : base(type)
+        public Color? FillColor { get; private set; }
+
+        public Color? StrokeColor { get; private set; }
+
+        public PdfFreeTextAnnotation(Color? strokeColor = null, Color? fillColor = null) : base(PdfAnnotationSubtype.FreeText)
         {
+            FillColor = fillColor;
+            StrokeColor = strokeColor;
             //Set some default
             TextFont = "Arial";
             TextSize = 12;
@@ -18,17 +24,17 @@ namespace ApplePDF.PdfKit.Annotation
         internal PdfFreeTextAnnotation(PdfPage page, FpdfAnnotationT annotation, PdfAnnotationSubtype type, int index) : base(page, annotation, type, index)
         {
             bool success = false;
-           
+
             // Get Text
             var buffer = new ushort[100];
             var result = fpdf_annot.FPDFAnnotGetStringValue(Annotation, ConstDictionaryKeyContents, ref buffer[0], (uint)buffer.Length);
             if (result == 0)
             {
-                throw new NotImplementedException();
+                throw new NotImplementedException("Create PdfFreeTextAnnotation fail, no reason return.");
             }
             else if (result == 2)
             {
-                throw new NotImplementedException();
+                throw new NotImplementedException("Create PdfFreeTextAnnotation fail, because don't find text content in this annotation.");
             }
             else
             {
@@ -67,6 +73,8 @@ namespace ApplePDF.PdfKit.Annotation
                     }
                 }
             }
+            else if (objectCount == 0)
+                ;//测试mytest_4_freetextannotation.pdf时,为0时貌似也可能正确,这个注释好像是不显示的
             else
             {
                 throw new NotImplementedException("Not only one object, don't know how to get correct object");
@@ -75,7 +83,6 @@ namespace ApplePDF.PdfKit.Annotation
         }
 
         public string? Text { get; set; }
-
 
         /// <summary>
         /// Default is 12
@@ -89,14 +96,15 @@ namespace ApplePDF.PdfKit.Annotation
 
         internal override void AddToPage(PdfPage page)
         {
+            //基类创建了native注释对象
             base.AddToPage(page);
             //Set Text
             //string to ushort 参考:https://stackoverflow.com/a/274207/13254773
             var bytes = Encoding.Unicode.GetBytes(Text);
             ushort[] value = new ushort[Text.Length];
             Buffer.BlockCopy(bytes, 0, value, 0, bytes.Length);
-            //fpdf_annot.FPDFAnnotSetStringValue(Annotation, ConstDictionaryKeyContents, ref value[0]);
-            var textObj = fpdf_edit.FPDFPageObjNewTextObj(Page.Document.Document, TextFont, TextSize);
+            //旧的方法,添加新的文本对象到注释
+            /*var textObj = fpdf_edit.FPDFPageObjNewTextObj(Page.Document.Document, TextFont, TextSize);
             var success = fpdf_edit.FPDFTextSetText(textObj, ref value[0])== 1;
             if (!success) throw new NotImplementedException("Set text fail");
             //text fill color
@@ -105,7 +113,11 @@ namespace ApplePDF.PdfKit.Annotation
             //text stroke color
             if(StrokeColor != null)
                 fpdf_edit.FPDFPageObjSetStrokeColor(textObj, StrokeColor.Value.R, StrokeColor.Value.G, StrokeColor.Value.B, StrokeColor.Value.A);
-            fpdf_annot.FPDFAnnotAppendObject(Annotation, textObj);
+            fpdf_annot.FPDFAnnotAppendObject(Annotation, textObj);*/
+            //尝试新的方法,设置注释本身的字符串内容
+            var success = fpdf_annot.FPDFAnnotSetStringValue(Annotation, ConstDictionaryKeyContents, ref value[0]) == 1;
+            if (!success)
+                throw new InvalidOperationException("Set free text fail");
         }
     }
 }

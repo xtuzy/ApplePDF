@@ -1,0 +1,206 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="ApplePDF.Demo.Maui.MainPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:layout="clr-namespace:SharpConstraintLayout.Maui.Widget;assembly=SharpConstraintLayout.Maui"
+    xmlns:local="clr-namespace:ApplePDF.Demo.Maui"
+    Shell.TabBarIsVisible="False">
+    <ContentPage.BindingContext>
+        <local:DocTreeViewModel />
+    </ContentPage.BindingContext>
+    <layout:ConstraintLayout x:Name="WindowPage" BackgroundColor="#333333">
+        <HorizontalStackLayout x:Name="buttonContainer" Spacing="5">
+            <ImageButton
+                x:Name="catalogManagerButton"
+                BackgroundColor="#333333"
+                HeightRequest="20"
+                WidthRequest="20">
+                <ImageButton.Source>
+                    <FontImageSource
+                        FontAutoScalingEnabled="True"
+                        FontFamily="FontAwesomeSolid"
+                        Glyph=""
+                        Size="18"
+                        Color="White" />
+                </ImageButton.Source>
+            </ImageButton>
+            <ImageButton
+                x:Name="SelectFileButton"
+                BackgroundColor="#333333"
+                HeightRequest="20"
+                WidthRequest="20">
+                <ImageButton.Source>
+                    <FontImageSource
+                        FontAutoScalingEnabled="True"
+                        FontFamily="FontAwesomeSolid"
+                        Glyph=""
+                        Size="18"
+                        Color="White" />
+                </ImageButton.Source>
+            </ImageButton>
+        </HorizontalStackLayout>
+        <HorizontalStackLayout x:Name="PageDensityComponent" Spacing="5" />
+        <HorizontalStackLayout x:Name="PageIndexComponent" Spacing="5">
+            <Label
+                Text="清晰度"
+                TextColor="White"
+                VerticalOptions="Center" />
+            <Entry
+                x:Name="PageScaleTextBox"
+                BackgroundColor="#191b1c"
+                FontAutoScalingEnabled="true"
+                FontSize="12"
+                HorizontalTextAlignment="Center"
+                Text="1"
+                TextColor="White"
+                VerticalOptions="Center"
+                VerticalTextAlignment="Center">
+                <Entry.HeightRequest>
+                    <OnPlatform x:TypeArguments="x:Double">
+                        <On Platform="iOS" Value="30" />
+                        <On Platform="WinUI" Value="30" />
+                        <On Platform="Android" Value="40" />
+                    </OnPlatform>
+                </Entry.HeightRequest>
+            </Entry>
+            <Label
+                Text="|"
+                TextColor="WhiteSmoke"
+                VerticalOptions="Center" />
+            <Entry
+                x:Name="PageCurrentIndexEntry"
+                BackgroundColor="#191b1c"
+                FontSize="12"
+                HorizontalTextAlignment="Center"
+                Text="1"
+                TextColor="White"
+                VerticalTextAlignment="Center">
+                <Entry.WidthRequest>
+                    <OnPlatform x:TypeArguments="x:Double">
+                        <On Platform="iOS" Value="30" />
+                        <On Platform="Android" Value="40" />
+                    </OnPlatform>
+                </Entry.WidthRequest>
+                <Entry.HeightRequest>
+                    <OnPlatform x:TypeArguments="x:Double">
+                        <On Platform="iOS" Value="30" />
+                        <On Platform="WinUI" Value="30" />
+                        <On Platform="Android" Value="40" />
+                    </OnPlatform>
+                </Entry.HeightRequest>
+            </Entry>
+            <Label
+                Text="/"
+                TextColor="White"
+                VerticalOptions="Center" />
+            <Label
+                x:Name="PageLastIndexLable"
+                Text="1"
+                TextColor="White"
+                VerticalOptions="Center" />
+            <Label
+                Text="|"
+                TextColor="WhiteSmoke"
+                VerticalOptions="Center" />
+            <ImageButton
+                x:Name="GetTextButton"
+                BackgroundColor="#333333"
+                HeightRequest="20"
+                WidthRequest="20">
+                <ImageButton.Source>
+                    <FontImageSource
+                        FontAutoScalingEnabled="True"
+                        FontFamily="FontAwesomeSolid"
+                        Glyph=""
+                        Size="20"
+                        Color="White" />
+                </ImageButton.Source>
+            </ImageButton>
+            <Label
+                Text="|"
+                TextColor="WhiteSmoke"
+                VerticalOptions="Center" />
+            <ImageButton
+                x:Name="GetWordsButton"
+                BackgroundColor="#333333"
+                HeightRequest="20"
+                WidthRequest="20">
+                <ImageButton.Source>
+                    <FontImageSource
+                        FontAutoScalingEnabled="True"
+                        FontFamily="FontAwesomeSolid"
+                        Glyph=""
+                        Size="20"
+                        Color="White" />
+                </ImageButton.Source>
+            </ImageButton>
+            <Label
+                Text="|"
+                TextColor="WhiteSmoke"
+                VerticalOptions="Center" />
+            <ImageButton
+                x:Name="SwitchDayAndLightButton"
+                BackgroundColor="#333333"
+                Clicked="SwitchDayAndLightButton_Clicked"
+                HeightRequest="20"
+                WidthRequest="20">
+                <ImageButton.Source>
+                    <FontImageSource
+                        FontAutoScalingEnabled="True"
+                        FontFamily="FontAwesomeSolid"
+                        Glyph=""
+                        Size="20"
+                        Color="White" />
+                </ImageButton.Source>
+            </ImageButton>
+        </HorizontalStackLayout>
+
+        <ScrollView x:Name="PageScrollViewer">
+            <Image x:Name="PageImage" />
+        </ScrollView>
+        <ScrollView x:Name="DocTreeView" HorizontalScrollBarVisibility="Always">
+            <ListView
+                x:Name="bookmarksView"
+                BackgroundColor="#333333"
+                HasUnevenRows="True"
+                ItemsSource="{Binding Bookmarks}"
+                SeparatorColor="Pink">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <ViewCell>
+                            <Grid>
+                                <HorizontalStackLayout Margin="5,10,10,10" Spacing="5">
+                                    <Image
+                                        HeightRequest="16"
+                                        VerticalOptions="Center"
+                                        WidthRequest="16">
+                                        <Image.Source>
+                                            <FontImageSource
+                                                FontFamily="FontAwesomeSolid"
+                                                Glyph=""
+                                                Size="16" />
+                                        </Image.Source>
+                                    </Image>
+                                    <Label
+                                        LineBreakMode="CharacterWrap"
+                                        MaxLines="2"
+                                        Text="{Binding Name}"
+                                        TextColor="White"
+                                        VerticalOptions="CenterAndExpand"
+                                        WidthRequest="150" />
+                                    <Label
+                                        Text="{Binding Children.Count, StringFormat='({0})'}"
+                                        TextColor="White"
+                                        VerticalOptions="Center" />
+                                </HorizontalStackLayout>
+
+                            </Grid>
+                        </ViewCell>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+        </ScrollView>
+        <ActivityIndicator x:Name="GetTextActivityIndicator" Color="AliceBlue" />
+    </layout:ConstraintLayout>
+</ContentPage>

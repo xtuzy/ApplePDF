@@ -1,9 +1,13 @@
-﻿using System;
-using System.Linq;
-using System.Threading.Tasks;
-using ApplePDF.PdfKit;
+﻿using ApplePDF.PdfKit;
+using ApplePDF.PdfKit.Annotation;
 using NUnit.Framework;
 using PDFiumCore;
+using System;
+using System.Drawing;
+using System.IO;
+using System.Linq;
+using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 
 namespace ApplePDF.Test
 {
@@ -26,24 +30,25 @@ namespace ApplePDF.Test
             }
         }
 
-
         [Theory]
-        public void PageIndex_WhenCalled_ShouldReturnCorrectIndex()
+        [TestCase("Docs/simple_0.pdf")]
+        public void PageIndex_WhenCalled_ShouldReturnCorrectIndex(string filePath)
         {
             var random = new Random();
 
             var index = random.Next(19);
 
-            ExecuteForDocument("Docs/simple_0.pdf", null, index, pageReader =>
+            ExecuteForDocument(filePath, null, index, pageReader =>
              {
                  Assert.AreEqual(index, pageReader.PageIndex);
              });
         }
 
         [Theory]
-        public void GetCharacters_WhenCalled_ShouldReturnCorrectCharacters()
+        [TestCase("Docs/simple_6.pdf", "Horizontal", "Vertical")]
+        public void GetCharacters_WhenCalled_ShouldReturnCorrectCharacters(string filePath, string hopeFirstWord, string hopeSecondWord)
         {
-            ExecuteForDocument("Docs/simple_6.pdf", null, 0, pageReader =>
+            ExecuteForDocument(filePath, null, 0, pageReader =>
             {
                 var characters = pageReader.GetCharacters().ToArray();
 
@@ -61,7 +66,7 @@ namespace ApplePDF.Test
                     firstText += ch.Char;
                 }
 
-                Assert.AreEqual("Horizontal", firstText);
+                Assert.AreEqual(hopeFirstWord, firstText);
 
                 var secondText = string.Empty;
 
@@ -75,7 +80,7 @@ namespace ApplePDF.Test
                     secondText += ch.Char;
                 }
 
-                Assert.AreEqual("Vertical", secondText);
+                Assert.AreEqual(hopeSecondWord, secondText);
             });
         }
 
@@ -88,7 +93,7 @@ namespace ApplePDF.Test
         [TestCase("Docs/simple_2.pdf", 3, "4 CONTENTS")]
         [TestCase("Docs/simple_4.pdf", 0, "")]
         [TestCase("Docs/simple_5.pdf", 0, "test.md 11/11/2018\r\n1 / 1\r\nTest document")]
-        public void GetText_WhenCalled_ShouldReturnValidText(string filePath, int pageIndex, string expectedText)
+        public void GetText_WhenCalled_ShouldReturnCorrectText(string filePath, int pageIndex, string expectedText)
         {
             ExecuteForDocument(filePath, null, pageIndex, pageReader =>
             {
@@ -109,7 +114,7 @@ namespace ApplePDF.Test
         [TestCase("Docs/simple_3.pdf", null, 1, "The end, and just as well.")]
         [TestCase("Docs/simple_0.pdf", null, 4, "ASCIIHexDecode")]
         [TestCase("Docs/protected_0.pdf", "password", 0, "The Secret (2016 film)")]
-        public void GetText_WhenCalled_ShouldContainValidText(string filePath, string password, int pageIndex, string expectedText)
+        public void GetText_WhenCalled_ShouldContainCorrectText(string filePath, string password, int pageIndex, string expectedText)
         {
             ExecuteForDocument(filePath, password, pageIndex, pageReader =>
           {
@@ -117,6 +122,17 @@ namespace ApplePDF.Test
               var c = text.Contains(expectedText, StringComparison.Ordinal);
               Assert.AreEqual(true, c);
           });
+        }
+
+        [TestCase("Docs/mytest_chinese.pdf", null, 0, "另一端")]
+        public void GetText_Chinese_WhenCalled_ShouldContainCorrectText(string filePath, string password, int pageIndex, string expectedText)
+        {
+            ExecuteForDocument(filePath, password, pageIndex, pageReader =>
+            {
+                var text = pageReader.Text;
+                var c = text.Contains(expectedText, StringComparison.Ordinal);
+                Assert.AreEqual(true, c);
+            });
         }
 
         [Theory]
@@ -128,7 +144,7 @@ namespace ApplePDF.Test
         [TestCase("Docs/simple_2.pdf", null, 3, 10)]
         [TestCase("Docs/simple_5.pdf", null, 0, 40)]
         [TestCase("Docs/protected_0.pdf", "password", 0, 2009)]
-        public void GetCharacters_WhenCalled_ShouldReturnCharacters(string filePath, string password, int pageIndex, int charCount)
+        public void GetCharacters_WhenCalled_ShouldReturnCorrectCharactersLength(string filePath, string password, int pageIndex, int charCount)
         {
             ExecuteForDocument(filePath, password, pageIndex, pageReader =>
             {
@@ -149,10 +165,29 @@ namespace ApplePDF.Test
         {
             ExecuteForDocument(filePath, password, pageIndex, pageReader =>
             {
-                var bytes = pageReader.GetImage(1f, 1f, 0).ToArray();
+                var bytes = pageReader.Draw(1f, 1f, 0).ToArray();
 
                 Assert.True(bytes.Length > 0);
                 Assert.IsNotEmpty(bytes.Where(x => x != 0));
+            });
+        }
+
+        [TestCase("Docs/mytest_chinese.pdf", "thumbnail.png")]
+        public void GetThumbil_WhenCalled_ShouldReturnNonZeroRawByteArray(string filePath, string thumbnailFilePath)
+        {
+            ExecuteForDocument(filePath, null, 0, pageReader =>
+            {
+                var pageSize = pageReader.GetSize();
+                var bytes = pageReader.GetThumbnail(new Size((int)pageSize.Width, (int)pageSize.Height), PdfDisplayBox.Media);
+                var data = bytes as byte[];
+                var gcHandle = GCHandle.Alloc(data, GCHandleType.Pinned);
+                using (var memoryStream = new MemoryStream(data))
+                using (var fileStream = new FileStream(thumbnailFilePath, FileMode.OpenOrCreate))
+                {
+                    memoryStream.CopyTo(fileStream);
+                    //fileStream.Write(data, 0, data.Length);
+                }
+                Assert.Ignore();
             });
         }
 
@@ -197,7 +232,7 @@ namespace ApplePDF.Test
         [TestCase("Docs/simple_0.pdf", null, 1, 595, 841)]
         [TestCase("Docs/simple_0.pdf", null, 10, 5953, 8419)]
         [TestCase("Docs/simple_0.pdf", null, 15, 8929, 12628)]
-        public void GetPageWidthOrHeight_WhenCalledWithScalingFactor_ShouldMach(string filePath, string password, double scaling, int expectedWidth, int expectedHeight)
+        public void GetSize_WhenCalledWithScalingFactor_ShouldMatch(string filePath, string password, double scaling, int expectedWidth, int expectedHeight)
         {
             ExecuteForDocument(filePath, password, 0, (Action<PdfPage>)(pageReader =>
            {
@@ -215,7 +250,7 @@ namespace ApplePDF.Test
         {
             ExecuteForDocument("Docs/annotation_0.pdf", null, 0, pageReader =>
            {
-               var bytes = pageReader.GetImage(1, 1, 0).ToArray();
+               var bytes = pageReader.Draw(1, 1, 0).ToArray();
                Assert.True(bytes.All(x => x == 0));
            });
         }
@@ -226,7 +261,7 @@ namespace ApplePDF.Test
             ExecuteForDocument("Docs/annotation_0.pdf", null, 0, pageReader =>
            {
                // verify pixel in center of image is the correct yellow color
-               var bytes = pageReader.GetImage(1, 1, (int)RenderFlags.RenderAnnotations).ToArray();
+               var bytes = pageReader.Draw(1, 1, (int)RenderFlags.RenderAnnotations).ToArray();
                const int bpp = 4;
                var center = bytes.Length / bpp / 2 * bpp; // note integer division by 2 here.  we're getting the first byte in the central pixel
                Assert.AreEqual(133, bytes[center]); // Blue
@@ -242,7 +277,7 @@ namespace ApplePDF.Test
             ExecuteForDocument("Docs/annotation_0.pdf", null, 0, pageReader =>
            {
                // verify pixel in center of image is the correct gray color
-               var bytes = pageReader.GetImage(1, 1, (int)(RenderFlags.RenderAnnotations | RenderFlags.Grayscale)).ToArray();
+               var bytes = pageReader.Draw(1, 1, (int)(RenderFlags.RenderAnnotations | RenderFlags.Grayscale)).ToArray();
                const int bpp = 4;
                var center = bytes.Length / bpp / 2 * bpp; // note integer division by 2 here. we're getting the first byte in the central pixel
                Assert.AreEqual(234, bytes[center]); // Blue
@@ -270,22 +305,157 @@ namespace ApplePDF.Test
 
                     var scale = Math.Min(scaleOne, scalingTwo);
                     //return pageReader.GetImage().Count(x => x != 0);
-                    return pageReader.GetImage(scale, scale, 0).Count(x => x != 0);
+                    return pageReader.Draw(scale, scale, 0).Count(x => x != 0);
                 }
             }
         }
-     
+
         [TestCase("Docs/mytest_4_highlightannotation.pdf", 4)]
         [TestCase("Docs/mytest_5_inkannotation.pdf", 5)]
         [TestCase("Docs/mytest_4_freetextannotation.pdf", 4)]
         [TestCase("Docs/mytest_4_rectangleannotation.pdf", 4)]
         [TestCase("Docs/mytest_4_linkannotation.pdf", 4)]
-        public void Annotations_WhenCalled_ShouldGetCurrectAnnotationsCount(string filePath,int annotationsCount)
+        public void Annotations_WhenCalled_ShouldGetCurrectAnnotationsCount(string filePath, int annotationsCount)
         {
             ExecuteForDocument(filePath, null, 0, pageReader =>
             {
                 var annots = pageReader.Annotations;
                 Assert.AreEqual(annotationsCount, annots.Count);
+            });
+        }
+
+        [TestCase("Docs/mytest_chinese.pdf", "这是一个中文注释")]
+        public void Annotations_Chinese_WhenCalled_ShouldGetCurrectTextOfPopup(string filePath, string text)
+        {
+            ExecuteForDocument(filePath, null, 0, pageReader =>
+            {
+                var annots = pageReader.Annotations;
+                var isContain = (annots[0] as PdfHighlightAnnotation).PopupAnnotation.Text.Contains(text);
+                Assert.AreEqual(true, isContain);
+            });
+        }
+
+        /// <summary>
+        /// Error:Any char instead will be \ufffe
+        /// </summary>
+        /// <param name="filePath"></param>
+        /// <param name="oldText"></param>
+        /// <param name="newText"></param>
+        [TestCase("Docs/mytest_edit_annotation.pdf", "little", "123456")]
+        public void InsteadText_WhenCalled_ShouldResultPdfHaveNewText(string filePath, string oldText, string newText)
+        {
+            ExecuteForDocument(filePath, null, 0, pageReader =>
+            {
+                pageReader.InsteadText(oldText, newText);
+                var success = pageReader.SaveNewContent();
+                var text = pageReader.Text;
+                var doc = pageReader.Document;
+                pageReader.Dispose();
+                var newPage = doc.GetPage(0);
+                text = newPage.Text;
+                Assert.IsTrue(text.Contains(newText));
+                if (File.Exists("Result.pdf"))
+                    File.Delete("Result.pdf");
+                Pdfium.Instance.Save(doc, "Result.pdf");
+            });
+
+            ExecuteForDocument("Result.pdf", null, 0, pageReader =>
+            {
+                var text = pageReader.Text;
+                var success = text.Contains(newText);
+                Assert.IsTrue(success);
+            });
+        }
+
+        [TestCase("Docs/mytest_edit_annotation.pdf", "Helvetica", 12, "0123456789abcdABCD-+/.<>?@!#%*", 200, 200, 2)]
+        public void AddText_UseStandardFont_WhenCalled_ShouldResultPdfHaveNewText(string filePath, string fontName, float fontSize, string addText, double x, double y, double scale)
+        {
+            ExecuteForDocument(filePath, null, 0, pageReader =>
+            {
+                PdfFont font = new PdfFont(pageReader.Document, fontName);
+                pageReader.AddText(font, fontSize, addText, x, y, scale);
+                var success = pageReader.SaveNewContent();
+                var text = pageReader.Text;
+                var doc = pageReader.Document;
+                pageReader.Dispose();
+                if (File.Exists("Result.pdf"))
+                    File.Delete("Result.pdf");
+                Pdfium.Instance.Save(doc, "Result.pdf");
+            });
+
+            ExecuteForDocument("Result.pdf", null, 0, pageReader =>
+            {
+                var text = pageReader.Text;
+                var success = text.Contains(addText);
+                Assert.IsTrue(success);
+            });
+        }
+
+        [TestCase("Docs/mytest_edit_annotation.pdf", "Fonts/YouYuan.ttf", 12, "0123456789你好abcdABCD-+/.<>?@!#%*你好", 200, 200, 2)]
+        public void AddText_UseCustomFont_WhenCalled_ShouldResultPdfHaveNewText(string filePath, string customFontPath, float fontSize, string addText, double x, double y, double scale)
+        {
+            ExecuteForDocument(filePath, null, 0, pageReader =>
+            {
+                var fontData = File.ReadAllBytes(customFontPath);
+                PdfFont font = new PdfFont(pageReader.Document, fontData, PdfFontType.FPDF_FONT_TRUETYPE);
+                pageReader.AddText(font, fontSize, addText, x, y, scale);
+                var success = pageReader.SaveNewContent();
+                var text = pageReader.Text;
+                var doc = pageReader.Document;
+                pageReader.Dispose();
+                if (File.Exists("Result.pdf"))
+                    File.Delete("Result.pdf");
+                Pdfium.Instance.Save(doc, "Result.pdf");
+            });
+
+            ExecuteForDocument("Result.pdf", null, 0, pageReader =>
+            {
+                var text = pageReader.Text;
+                var success = text.Contains(addText);
+                Assert.IsTrue(success);
+            });
+        }
+
+        [TestCase("Docs/mytest_edit_annotation.pdf", 40, 805, 126, 787, "First paragraph")]
+        public void GetSelection_InTwoPoint_ShouldReturnTextInPoints(string filePath, int x1, int y1, int x2, int y2, string text)
+        {
+            ExecuteForDocument(filePath, null, 0, pageReader =>
+            {
+                var selection = pageReader.GetSelection(new System.Drawing.PointF(x1, y1), new System.Drawing.PointF(x2, y2));
+                Assert.AreEqual(text, selection.Text);
+            });
+        }
+
+        [TestCase("Docs/mytest_edit_annotation.pdf", 40, 805, 126, 787, "First paragraph")]
+        public void GetSelection_InRect_ShouldReturnTextInRect(string filePath, int x1, int y1, int x2, int y2, string text)
+        {
+            ExecuteForDocument(filePath, null, 0, pageReader =>
+            {
+                var selection = pageReader.GetSelection(RectangleF.FromLTRB(x1, y1, x2, y2));
+                Assert.AreEqual(text, selection.Text);
+            });
+        }
+
+        [TestCase("Docs/mytest_edit_annotation.pdf", 62, 795, "First paragraph")]
+        [TestCase("Docs/mytest_edit_annotation.pdf", 143, 782, "Another paragraph, this time a little bit longer to make sure, this line will be divided into at least")]
+        public void SelectLine_ShouldReturnTextInLine(string filePath, int x1, int y1, string text)
+        {
+            ExecuteForDocument(filePath, null, 0, pageReader =>
+            {
+                var selection = pageReader.SelectLine(new PointF(x1, y1));
+                var actual = selection.Text;
+                Assert.IsTrue(actual.Contains(text));//使用Contains，因为返回值可能有换行符号
+            });
+        }
+
+        [TestCase("Docs/mytest_edit_annotation.pdf", 73, 795, "p")]
+        public void SelectWord_ShouldReturnTextInLine(string filePath, int x1, int y1, string text)
+        {
+            ExecuteForDocument(filePath, null, 0, pageReader =>
+            {
+                var selection = pageReader.SelectWord(new PointF(x1, y1));
+                var actual = selection.Text;
+                Assert.IsTrue(actual.Contains(text));//使用Contains，因为返回值可能有换行符号
             });
         }
     }
