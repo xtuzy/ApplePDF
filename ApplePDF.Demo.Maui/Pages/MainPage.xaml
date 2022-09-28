@@ -122,6 +122,24 @@
                 TextColor="WhiteSmoke"
                 VerticalOptions="Center" />
             <ImageButton
+                x:Name="GetWordsButton"
+                BackgroundColor="#333333"
+                HeightRequest="20"
+                WidthRequest="20">
+                <ImageButton.Source>
+                    <FontImageSource
+                        FontAutoScalingEnabled="True"
+                        FontFamily="FontAwesomeSolid"
+                        Glyph=""
+                        Size="20"
+                        Color="White" />
+                </ImageButton.Source>
+            </ImageButton>
+            <Label
+                Text="|"
+                TextColor="WhiteSmoke"
+                VerticalOptions="Center" />
+            <ImageButton
                 x:Name="SwitchDayAndLightButton"
                 BackgroundColor="#333333"
                 Clicked="SwitchDayAndLightButton_Clicked"

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ApplePDF.Demo.Maui.Services
 {
-    public struct OcrData
+    public class OcrData
     {
         public List<OcrData> Childs;
         public string Text;

@@ -32,7 +32,7 @@ namespace ApplePDF.Demo.Maui.Services
                     paint.Color = SKColors.Red.WithAlpha(150);
                     foreach (var line in ocrLines)
                     {
-                        canvas.DrawLine((float)line.BaselineBounds.X, (float)line.BaselineBounds.Y, (float)line.BaselineBounds.Right, (float)line.BaselineBounds.Bottom, paint);
+                        canvas.DrawLine((float)line.BaselineBounds.Left, (float)line.BaselineBounds.Top, (float)line.BaselineBounds.Right, (float)line.BaselineBounds.Bottom, paint);
                     }
                 }
             }

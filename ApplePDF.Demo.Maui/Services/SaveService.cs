@@ -13,9 +13,8 @@ namespace ApplePDF.Demo.Maui.Services
         public static void Save(SKBitmap bitmap, string fileName)
         {
             using (MemoryStream memStream = new MemoryStream())
-            using (SKManagedWStream wstream = new SKManagedWStream(memStream))
             {
-                bitmap.Encode(wstream, SKEncodedImageFormat.Png, 300);
+                bitmap.Encode(memStream, SKEncodedImageFormat.Png, 300);
                 byte[] data = memStream.ToArray();
 
                 if (data == null)

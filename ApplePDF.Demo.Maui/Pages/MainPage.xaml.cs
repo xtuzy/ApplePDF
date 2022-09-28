@@ -42,6 +42,7 @@ namespace ApplePDF.Demo.Maui
 
             SelectFileButton.Clicked += SelectFileButton_ClickedAsync;
             GetTextButton.Clicked += GetTextButton_Clicked;
+            GetWordsButton.Clicked += GetWordsButton_Clicked;
             int lastPageIndex = 1;
             PageCurrentIndexEntry.Completed += (sender, e) =>
             {

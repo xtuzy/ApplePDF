@@ -5,6 +5,7 @@ using Microsoft.Maui;
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.Controls.Compatibility;
 using Microsoft.Maui.Media;
+using Microsoft.Maui.Storage;
 using SkiaSharp;
 using System;
 using System.Collections.Generic;
@@ -167,102 +168,227 @@ namespace ApplePDF.Demo.Maui.Services
         /// <returns></returns>
         public async Task<List<OcrData>> RecognizeWords(MemoryStream stream, string lang = "chi_sim")
         {
-            List<OcrData> lines = new List<OcrData>();
-            try
+            //Ocr行和Words
+            async Task<List<OcrData>> StandardOcrAsync(MemoryStream stream, string lang)
             {
-                activityIndicator.Dispatcher.Dispatch(() => activityIndicator.IsRunning = true);
-                await Task.Run(() =>
+                List<OcrData> lines = new List<OcrData>();
+                try
                 {
-                    if (Directory.Exists(modelFolderPath))
+                    activityIndicator.Dispatcher.Dispatch(() => activityIndicator.IsRunning = true);
+                    await Task.Run(() =>
                     {
-                        if (!(new DirectoryInfo(modelFolderPath).GetFileSystemInfos().Length > 0))
+                        if (Directory.Exists(modelFolderPath))
                         {
-                            InitTesseractDataAsync();
-                        }
-                    }
-                    else
-                        InitTesseractDataAsync();
-                    if (tesseractEngine == null)
-                        tesseractEngine = new TesseractEngine(modelFolderPath, lang, EngineMode.Default);
-                    try
-                    {
-                        using (var img = Pix.LoadFromMemory(stream.ToArray())) //LoadFromFile(testImagePath))
-                        {
-                            using (var page = tesseractEngine.Process(img))
+                            if (!(new DirectoryInfo(modelFolderPath).GetFileSystemInfos().Length > 0))
                             {
-                                Debug.WriteLine(page.GetText());
-                                //Debug.WriteLine("Mean confidence: {0}", page.GetMeanConfidence());
-                                using (var iter = page.GetIterator())
+                                InitTesseractDataAsync();
+                            }
+                        }
+                        else
+                            InitTesseractDataAsync();
+                        if (tesseractEngine == null)
+                            tesseractEngine = new TesseractEngine(modelFolderPath, lang, EngineMode.Default);
+                        try
+                        {
+                            using (var img = Pix.LoadFromMemory(stream.ToArray())) //LoadFromFile(testImagePath))
+                            {
+                                using (var page = tesseractEngine.Process(img))
                                 {
-                                    iter.Begin();
-                                    var language = iter.GetWordRecognitionLanguage();
-                                    do
+                                    Debug.WriteLine(page.GetText());
+                                    //Debug.WriteLine("Mean confidence: {0}", page.GetMeanConfidence());
+                                    using (var iter = page.GetIterator())
                                     {
+                                        iter.Begin();
+                                        var language = iter.GetWordRecognitionLanguage();
                                         do
                                         {
                                             do
                                             {
-                                                //行
-                                                var lineLevel = PageIteratorLevel.TextLine;
-                                                iter.TryGetBoundingBox(lineLevel, out var lineRect);
-                                                iter.TryGetBaseline(lineLevel, out var lineBaselineRect);
-                                                var lineText = iter.GetText(lineLevel).Replace('\n', ' ');
-                                                //判断是否单含有中文(不判断字符),如果含有中文,则纠正英文字符为中文字符,如果没有中文,则纠正中文字符为英文字符.
-                                                //参考:https://blog.51cto.com/u_3664660/3213618
-                                                var existChinese = lineText.Matches("[\u4e00-\u9fa5]");
-                                                if (existChinese)
-                                                {
-                                                    //替换英文字符
-                                                    lineText = EnglishPunctuation2Chineseunctuation(lineText);
-                                                }
-                                                else
-                                                {
-                                                    //替换中文字符
-                                                    lineText = ChinesePunctuation2EnglishPunctuation(lineText);
-                                                }
-                                                var line = new OcrData()
-                                                {
-                                                    Childs = new List<OcrData>(),
-                                                    Text = lineText,
-                                                    Bounds = new Microsoft.Maui.Graphics.Rect(lineRect.X1, lineRect.Y1, lineRect.Width, lineRect.Height),
-                                                    BaselineBounds = new Microsoft.Maui.Graphics.Rect(lineBaselineRect.X1, lineBaselineRect.Y1, lineBaselineRect.Width, lineBaselineRect.Height),
-                                                };
-                                                lines.Add(line);
                                                 do
                                                 {
-                                                    //Word
-                                                    var level = PageIteratorLevel.Word;
-                                                    iter.TryGetBoundingBox(level, out var rect);
-                                                    iter.TryGetBaseline(level, out var baselineRect);
-                                                    line.Childs.Add(new OcrData()
+                                                    //行
+                                                    var lineLevel = PageIteratorLevel.TextLine;
+                                                    iter.TryGetBoundingBox(lineLevel, out var lineRect);
+                                                    iter.TryGetBaseline(lineLevel, out var lineBaselineRect);
+                                                    var lineText = iter.GetText(lineLevel).Replace('\n', ' ');
+                                                    //判断是否单含有中文(不判断字符),如果含有中文,则纠正英文字符为中文字符,如果没有中文,则纠正中文字符为英文字符.
+                                                    //参考:https://blog.51cto.com/u_3664660/3213618
+                                                    var existChinese = lineText.Matches("[\u4e00-\u9fa5]");
+                                                    if (existChinese)
                                                     {
-                                                        Text = iter.GetText(level).Replace('\n', ' '),
-                                                        Bounds = new Microsoft.Maui.Graphics.Rect(rect.X1, rect.Y1, rect.Width, rect.Height),
-                                                        BaselineBounds = new Microsoft.Maui.Graphics.Rect(baselineRect.X1, baselineRect.Y1, baselineRect.Width, baselineRect.Height),
-                                                    });
+                                                        //替换英文字符
+                                                        lineText = EnglishPunctuation2Chineseunctuation(lineText);
+                                                    }
+                                                    else
+                                                    {
+                                                        //替换中文字符
+                                                        lineText = ChinesePunctuation2EnglishPunctuation(lineText);
+                                                    }
+                                                    var line = new OcrData()
+                                                    {
+                                                        Childs = new List<OcrData>(),
+                                                        Text = lineText,
+                                                        Bounds = new Microsoft.Maui.Graphics.Rect(lineRect.X1, lineRect.Y1, lineRect.Width, lineRect.Height),
+                                                        BaselineBounds = new Microsoft.Maui.Graphics.Rect(lineBaselineRect.X1, lineBaselineRect.Y1, lineBaselineRect.Width, lineBaselineRect.Height),
+                                                    };
+                                                    lines.Add(line);
+                                                    do
+                                                    {
+                                                        //Word
+                                                        var level = PageIteratorLevel.Word;
+                                                        iter.TryGetBoundingBox(level, out var rect);
+                                                        iter.TryGetBaseline(level, out var baselineRect);
+                                                        line.Childs.Add(new OcrData()
+                                                        {
+                                                            Text = iter.GetText(level).Replace('\n', ' '),
+                                                            Bounds = new Microsoft.Maui.Graphics.Rect(rect.X1, rect.Y1, rect.Width, rect.Height),
+                                                            BaselineBounds = new Microsoft.Maui.Graphics.Rect(baselineRect.X1, baselineRect.Y1, baselineRect.Width, baselineRect.Height),
+                                                        });
 
-                                                } while (iter.Next(PageIteratorLevel.TextLine, PageIteratorLevel.Word));
-                                            } while (iter.Next(PageIteratorLevel.Para, PageIteratorLevel.TextLine));
-                                        } while (iter.Next(PageIteratorLevel.Block, PageIteratorLevel.Para));
-                                    } while (iter.Next(PageIteratorLevel.Block));
+                                                    } while (iter.Next(PageIteratorLevel.TextLine, PageIteratorLevel.Word));
+                                                } while (iter.Next(PageIteratorLevel.Para, PageIteratorLevel.TextLine));
+                                            } while (iter.Next(PageIteratorLevel.Block, PageIteratorLevel.Para));
+                                        } while (iter.Next(PageIteratorLevel.Block));
+                                    }
+                                }
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            Trace.TraceError(e.ToString());
+                        }
+                    });
+                }
+                catch (System.Exception ex)
+                {
+                    App.Current?.MainPage?.DisplayAlert("Error", ex.Message, "Cancel");
+                }
+                finally
+                {
+                    activityIndicator.IsRunning = false;
+                }
+
+                return lines;
+            }
+            List<OcrData> lines = await StandardOcrAsync(stream, lang);
+            /* 
+             * Tess初步识别的坐标需要修正
+             */
+            //1.行矩形是一般比较标准的，但有极端情况，如黑色背景时可能会识别整个黑色区域为行，我们需要修正和重新识别
+            //2.标准的行矩形可以作为文字大小参考，需要考虑宽高。
+            //3.单个文字区域重复需要考虑区域偏移，左右结构汉字区域错误。一般可以从后往前推。
+            //先实现3
+            void FixWordBoundsHorizontalOffset(List<OcrData> lines)
+            {
+                foreach (var line in lines)
+                {
+                    for (var index = 0; index < line.Childs.Count; index++)
+                    {
+                        var currentWord = line.Childs[index];
+                        var currentWordWidthIsTooBig = currentWord.Bounds.Width > 2 * currentWord.Bounds.Height;//估计是否包含多个中文单词的宽度
+                        if (index + 1 < line.Childs.Count)
+                        {
+                            var nextWord = line.Childs[index + 1];
+                            var nextWordWidthIsTooBig = nextWord.Bounds.Width > 2 * nextWord.Bounds.Height;//估计是否包含多个中文单词的宽度
+                            //当前word与后一个word对比，分析宽度关系
+
+                            if (currentWord.Bounds.Left < nextWord.Bounds.Left
+                                && currentWord.Bounds.Right > nextWord.Bounds.Left)//若当前word右侧包含next的一部分
+                            {
+                                /*
+                                 * |  curr       |
+                                 *   |   next  |
+                                 */
+                                if (!nextWordWidthIsTooBig)//next宽度是标准的，那么一般是在对的位置
+                                {
+                                    /*
+                                     * |  curr      |
+                                     *       |next|
+                                     */
+                                    currentWord.Bounds.Right = nextWord.Bounds.Left - 1;//缩小current范围到next左边
+                                }
+                                else
+                                {
+
+                                    if (nextWord.Bounds.Left - currentWord.Bounds.Left > currentWord.Bounds.Width * 0.8) //如果留出足够的空间放current
+                                    {
+                                        /*
+                                         * |  curr         |
+                                         *  ****|   next  |
+                                         */
+                                        currentWord.Bounds.Left = nextWord.Bounds.Left - 1;//缩小当前word范围
+                                    }
+                                    else//没有留够足够空间时，我们尝试为当前字符腾一个字符宽度出来
+                                    {
+                                        /*
+                                         * |  curr        |
+                                         *  **|   next  |
+                                         */
+                                        currentWord.Bounds.Width = currentWord.Bounds.Height;//先把宽度正常化
+                                        nextWord.Bounds.Left = currentWord.Bounds.Right + 1;//再移动下一个word
+                                    }
+                                }
+                            }
+                            else if (currentWord.Bounds.Left > nextWord.Bounds.Left) //如果当前左侧超过了下一个单词左侧
+                            {
+                                /*
+                                 *    |  curr        |
+                                 * |   next  |
+                                 */
+                                if (!currentWordWidthIsTooBig)//当前宽度正常
+                                {
+                                    /*
+                                     *    |curr|
+                                     * |   next  |
+                                     */
+                                    nextWord.Bounds.Left = currentWord.Bounds.Right + 1;
+                                }
+                                else
+                                {
+                                    /*
+                                     *    |  curr  |
+                                     * |   next  |
+                                     */
+                                    currentWord.Bounds.Width = currentWord.Bounds.Height;//先把宽度正常化
+                                    nextWord.Bounds.Left = currentWord.Bounds.Right + 1;
                                 }
                             }
                         }
                     }
-                    catch (Exception e)
+                }
+            }
+#if DEBUG
+            SKBitmap PrintImageDebug(MemoryStream stream, List<OcrData> lines)
+            {
+                var array = stream.ToArray();
+                var sourceBitmap = SKBitmap.Decode(array);
+                //var sourceBitmap = SKBitmap.Decode(stream);
+                //绘制Word边框
+                using (var canvas = new SKCanvas(sourceBitmap))
+                {
+                    using (var paint = new SKPaint() { Style = SKPaintStyle.Stroke, Color = SKColors.Red })
                     {
-                        Trace.TraceError(e.ToString());
+                        foreach (var line in lines)
+                        {
+                            foreach (var word in line.Childs)
+                            {
+                                canvas.DrawRect((float)word.Bounds.X, (float)word.Bounds.Y, (float)word.Bounds.Width, (float)word.Bounds.Height, paint);
+                            }
+                        }
                     }
-                });
+                }
+                return sourceBitmap;
             }
-            catch (System.Exception ex)
-            {
-                App.Current?.MainPage?.DisplayAlert("Error", ex.Message, "Cancel");
-            }
-            finally
-            {
-                activityIndicator.IsRunning = false;
-            }
+            var source = PrintImageDebug(stream, new List<OcrData>());
+            SaveService.Save(source, $"{nameof(RecognizeWords)}.Source.Debug.png");
+            var sourceWithRectBitmap = PrintImageDebug(stream, lines);
+            SaveService.Save(sourceWithRectBitmap, $"{nameof(RecognizeWords)}.SourceWithRect.Debug.png");
+#endif
+            FixWordBoundsHorizontalOffset(lines);
+#if DEBUG
+            var fixedBitmap = PrintImageDebug(stream, lines);
+            SaveService.Save(fixedBitmap, $"{nameof(RecognizeWords)}.Fixed.Debug.png");
+#endif
             return lines;
         }
 
@@ -331,12 +457,14 @@ namespace ApplePDF.Demo.Maui.Services
         /// <summary>
         /// 202209221200针对Tess对行文本会识别到错误的字符想到的切割单独行识别的方法
         /// 1.先识别一遍确定行宽高，切割图像再单独每行识别
+        /// 
         /// </summary>
         /// <param name="stream"></param>
         /// <param name="lang"></param>
         /// <returns></returns>
         public async Task<List<OcrData>> RecognizeLines(MemoryStream stream, string lang = "chi_sim")
         {
+            //获取所有Line的数据
             List<OcrData> GetLineOcrData(MemoryStream image, TesseractEngine tesseractEngine)
             {
                 List<OcrData> lines = new List<OcrData>();
@@ -385,7 +513,8 @@ namespace ApplePDF.Demo.Maui.Services
                 return lines;
             }
 
-            (List<OcrData>,string) GetLineWordsOcrData(MemoryStream image, TesseractEngine tesseractEngine)
+            //获取局部图片中的Words，可能存在多行
+            (List<OcrData>, string) GetLineWordsOcrData(MemoryStream image, TesseractEngine tesseractEngine)
             {
                 List<OcrData> words = new List<OcrData>();
                 string lineText = "";
@@ -401,33 +530,33 @@ namespace ApplePDF.Demo.Maui.Services
                             {
                                 iter.Begin();
                                 var language = iter.GetWordRecognitionLanguage();
-                                //do
-                                //{
-                                //    do
-                                //    {
-                                //        do
-                                //        {
                                 do
                                 {
-
-                                    //行
-                                    var wordLevel = PageIteratorLevel.Word;
-                                    iter.TryGetBoundingBox(wordLevel, out var wordRect);
-                                    iter.TryGetBaseline(PageIteratorLevel.TextLine, out var lineBaselineRect);
-                                    var wordText = iter.GetText(wordLevel);
-                                    if (wordText != null)
-                                        wordText = wordText.Replace('\n', ' ');
-                                    var word = new OcrData()
+                                    do
                                     {
-                                        Text = wordText,
-                                        Bounds = new Microsoft.Maui.Graphics.Rect(wordRect.X1, wordRect.Y1, wordRect.Width, wordRect.Height),
-                                        BaselineBounds = new Microsoft.Maui.Graphics.Rect(lineBaselineRect.X1, lineBaselineRect.Y1, lineBaselineRect.Width, lineBaselineRect.Height),
-                                    };
-                                    words.Add(word);
-                                } while (iter.Next(PageIteratorLevel.TextLine, PageIteratorLevel.Word));
-                                //        } while (iter.Next(PageIteratorLevel.Para, PageIteratorLevel.TextLine));
-                                //    } while (iter.Next(PageIteratorLevel.Block, PageIteratorLevel.Para));
-                                //} while (iter.Next(PageIteratorLevel.Block));
+                                        do
+                                        {
+                                            do
+                                            {
+
+                                                //行
+                                                var wordLevel = PageIteratorLevel.Word;
+                                                iter.TryGetBoundingBox(wordLevel, out var wordRect);
+                                                iter.TryGetBaseline(PageIteratorLevel.TextLine, out var lineBaselineRect);
+                                                var wordText = iter.GetText(wordLevel);
+                                                if (wordText != null)
+                                                    wordText = wordText.Replace('\n', ' ');
+                                                var word = new OcrData()
+                                                {
+                                                    Text = wordText,
+                                                    Bounds = new Microsoft.Maui.Graphics.Rect(wordRect.X1, wordRect.Y1, wordRect.Width, wordRect.Height),
+                                                    BaselineBounds = new Microsoft.Maui.Graphics.Rect(lineBaselineRect.X1, lineBaselineRect.Y1, lineBaselineRect.Width, lineBaselineRect.Height),
+                                                };
+                                                words.Add(word);
+                                            } while (iter.Next(PageIteratorLevel.TextLine, PageIteratorLevel.Word));
+                                        } while (iter.Next(PageIteratorLevel.Para, PageIteratorLevel.TextLine));
+                                    } while (iter.Next(PageIteratorLevel.Block, PageIteratorLevel.Para));
+                                } while (iter.Next(PageIteratorLevel.Block));
                             }
                         }
                     }
@@ -436,10 +565,11 @@ namespace ApplePDF.Demo.Maui.Services
                 {
                     Trace.TraceError(e.ToString());
                 }
-                return (words,lineText);
+                return (words, lineText);
             }
 
             List<OcrData> lines = null;
+            Dictionary<OcrData, List<OcrData>> needInsteadLines = new Dictionary<OcrData, List<OcrData>>();
             try
             {
                 activityIndicator.Dispatcher.Dispatch(() => activityIndicator.IsRunning = true);
@@ -495,6 +625,7 @@ namespace ApplePDF.Demo.Maui.Services
                         if (bottomAdjacentSpaceHeight == 1000) bottomAdjacentSpaceHeight = 0;
                         //宽度两边也增加
                         int horizentalSpace = 12;
+                        //TODO:这里的区域改变了，如果遇到之前整体识别时有没有识别到的，那么这里就会覆盖，所以要考虑替换已存在在该区域内的行
                         using (var cropBitmap = new SKBitmap((int)line.Bounds.Width + 2 * horizentalSpace, (int)(line.Bounds.Height + topAdjacentSpaceHeight + bottomAdjacentSpaceHeight)))
                         {
                             using (var canvas = new SKCanvas(cropBitmap))
@@ -504,9 +635,8 @@ namespace ApplePDF.Demo.Maui.Services
                             }
                             var newResult = GetLineWordsOcrData(cropBitmap.SKBitmapToStream(), tesseractEngine);
                             var words = newResult.Item1;
-                            line.Text = newResult.Item2;//替换原来识别的
-                            if (words != null)
-                                line.Childs = words;//words数据用来绘制验证
+#if DEBUG
+                            //打印每行的图片
                             using (var canvas = new SKCanvas(cropBitmap))
                             {
                                 using (var paint = new SKPaint() { Style = SKPaintStyle.Stroke, Color = SKColors.Red })
@@ -516,6 +646,20 @@ namespace ApplePDF.Demo.Maui.Services
                                     }
                             }
                             SaveService.Save(cropBitmap, $"{lineIndex}.png");
+#endif
+                            if (line.Text != newResult.Item2)//替换原来识别的
+                            {
+                                //存储时图片区域纠正
+                                foreach (var word in words)
+                                {
+                                    word.Bounds.X = word.Bounds.X + line.Bounds.X - horizentalSpace;
+                                    word.Bounds.Y = word.Bounds.Y + line.Bounds.Y - topAdjacentSpaceHeight;
+                                    word.BaselineBounds.X = word.BaselineBounds.X + line.Bounds.X - horizentalSpace;
+                                    word.BaselineBounds.Y = word.BaselineBounds.Y + line.Bounds.Y - topAdjacentSpaceHeight;
+                                }
+                                line.Childs = words;//words数据用来绘制验证
+                                needInsteadLines.Add(line, newResult.Item1);
+                            }
                         }
                     }
                 });
@@ -528,7 +672,11 @@ namespace ApplePDF.Demo.Maui.Services
             {
                 activityIndicator.IsRunning = false;
             }
-
+            foreach (var needInstead in needInsteadLines)
+            {
+                lines.Remove(needInstead.Key);
+                lines.AddRange(needInstead.Value);
+            }
             return lines;
         }
     }
