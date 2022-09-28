@@ -16,12 +16,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Condition="$(TargetFramework.Contains('-android'))" Include="..\ApplePDF.NativeAssets.Android\ApplePDF.NativeAssets.Android.net6.csproj" />
-    <ProjectReference Condition="$(TargetFramework.Contains('-ios'))" Include="..\ApplePDF.NativeAssets.iOS\ApplePDF.NativeAssets.iOS.net6.csproj" />
+    <!--ProjectReference Condition="$(TargetFramework.Contains('-android'))" Include="..\ApplePDF.NativeAssets.Android\ApplePDF.NativeAssets.Android.net6.csproj" /-->
+    <!--ProjectReference Condition="$(TargetFramework.Contains('-ios'))" Include="..\ApplePDF.NativeAssets.iOS\ApplePDF.NativeAssets.iOS.net6.csproj" /-->
     <!--ProjectReference Condition="$(TargetFramework.Contains('-windows'))" Include="..\ApplePDF.NativeAssets.Desktop\ApplePDF.NativeAssets.Desktop.csproj" /-->
-    <ProjectReference Condition="$(TargetFramework.Contains('-mac'))" Include="..\ApplePDF.NativeAssets.Desktop\ApplePDF.NativeAssets.Desktop.csproj" />
+    <!--ProjectReference Condition="$(TargetFramework.Contains('-mac'))" Include="..\ApplePDF.NativeAssets.Desktop\ApplePDF.NativeAssets.Desktop.csproj" /-->
     <PackageReference Include="bblanchon.PDFium.Win32" Version="104.0.5079" Condition="$(TargetFramework.Contains('-windows'))" />
     <PackageReference Include="bblanchon.PDFium.Android" Version="104.0.5079" Condition="$(TargetFramework.Contains('-android'))" />
+    <PackageReference Include="bblanchon.PDFium.iOS" Version="104.0.5079" Condition="$(TargetFramework.Contains('-ios'))" />
+    <PackageReference Include="bblanchon.PDFium.macOS" Version="104.0.5079" Condition="$(TargetFramework.Contains('-mac'))" />
     <PackageReference Include="System.Drawing.Common" Version="6.0.0" Condition="$(TargetFramework.Contains('-windows'))"/>
 
     <ProjectReference Include="..\ApplePDF\ApplePDF.csproj" />
@@ -35,3 +37,4 @@
   </ItemGroup>
 
 </Project>
+
