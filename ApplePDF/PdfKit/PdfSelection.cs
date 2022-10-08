@@ -2,11 +2,12 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 using System.Text;
 
 namespace ApplePDF.PdfKit
 {
-    public class PdfSelection : IPdfSelection
+    public class PdfSelection : IPdfSelection, ICloneable
     {
         public PdfSelection(PdfPage page, RectangleF rectangle)
         {
@@ -25,6 +26,38 @@ namespace ApplePDF.PdfKit
                 foreach (var selection in Selections)
                     s.Append(GetSelectTextInPage(selection.Value, selection.Key));
                 return s.ToString();
+            }
+        }
+
+        public List<PdfAttributedString> AttributedString
+        {
+            get
+            {
+                var list = new List<PdfAttributedString>();
+                //TODO:分析选择区域内有哪些字符
+                foreach (var selection in Selections)
+                {
+                    var page = selection.Value;
+                    var xTolerance = 5;
+                    var yTolerance = 5;
+                    var firstSelectedCharIndex = fpdf_text.FPDFTextGetCharIndexAtPos(page.TextPage, selection.Key.Left, selection.Key.Top, xTolerance, yTolerance);
+                    if(firstSelectedCharIndex == -1)//没找到，扩大范围重试
+                        firstSelectedCharIndex = fpdf_text.FPDFTextGetCharIndexAtPos(page.TextPage, selection.Key.Left, selection.Key.Top, 10, 10);
+                    var lastSelectedCharIndex = fpdf_text.FPDFTextGetCharIndexAtPos(page.TextPage, selection.Key.Right, selection.Key.Bottom, xTolerance, yTolerance);
+                    if(lastSelectedCharIndex == -1)
+                        lastSelectedCharIndex = fpdf_text.FPDFTextGetCharIndexAtPos(page.TextPage, selection.Key.Right, selection.Key.Bottom, 10, 10);
+                    if (firstSelectedCharIndex == -1 || lastSelectedCharIndex == -1)
+                        throw new ArgumentException($"Can't find char index in start and end of Rectangle {selection.Key}");
+                    var count = lastSelectedCharIndex - firstSelectedCharIndex;
+                    var rects = page.GetCharactersBounds(firstSelectedCharIndex, count);
+                    foreach (var rect in rects)
+                    {
+                        firstSelectedCharIndex = fpdf_text.FPDFTextGetCharIndexAtPos(page.TextPage, rect.Left, rect.Top, 2, 2);
+                        var str = GetSelectTextInPage(page, rect);
+                        list.Add(new PdfAttributedString(str, rect, firstSelectedCharIndex));
+                    }
+                }
+                return list;
             }
         }
 
@@ -105,6 +138,24 @@ namespace ApplePDF.PdfKit
         {
             Selections.Clear();
             Selections = null;
+        }
+
+        public object Clone()
+        {
+            var first = Selections.First();
+            var selection = new PdfSelection(first.Value, first.Key);
+            foreach (var child in Selections)
+            {
+                if (selection.Selections.ContainsKey(child.Key))
+                {
+                    continue;
+                }
+                else
+                {
+                    selection.AddSelection(new PdfSelection(child.Value, child.Key));
+                }
+            }
+            return selection;
         }
     }
 }

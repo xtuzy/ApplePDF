@@ -1,6 +1,7 @@
 ﻿using ApplePDF.PdfKit;
 using ApplePDF.PdfKit.Annotation;
 using NUnit.Framework;
+using Pdf.Net.Test.Extensions;
 using PDFiumCore;
 using System;
 using System.Drawing;
@@ -449,13 +450,48 @@ namespace ApplePDF.Test
         }
 
         [TestCase("Docs/mytest_edit_annotation.pdf", 73, 795, "p")]
-        public void SelectWord_ShouldReturnTextInLine(string filePath, int x1, int y1, string text)
+        public void SelectWord_ShouldReturnWordAtPosition(string filePath, int x1, int y1, string text)
         {
             ExecuteForDocument(filePath, null, 0, pageReader =>
             {
                 var selection = pageReader.SelectWord(new PointF(x1, y1));
                 var actual = selection.Text;
                 Assert.IsTrue(actual.Contains(text));//使用Contains，因为返回值可能有换行符号
+            });
+        }
+
+        [TestCase("Docs/mytest_edit_annotation.pdf", 62, 795, "First paragraph")]
+        public void GetCharactersBounds_ShouldReturnBoundsOfText(string filePath, int x1, int y1, string text)
+        {
+            ExecuteForDocument(filePath, null, 0, pageReader =>
+            {
+                //获得文字的矩形区域
+                var actual = pageReader.GetCharactersBounds(0, text.Length);
+                Assert.IsTrue(actual.Count > 0);
+                Assert.IsTrue(actual[0].IsContainPoint(new PointF(x1, y1)));
+                //选择矩形区域
+                var selection0 = pageReader.GetSelection(actual[0]);
+                Assert.IsTrue(selection0.Text.Contains("First"));
+                var selection1 = pageReader.GetSelection(actual[1]);
+                Assert.IsTrue(selection1.Text.Contains("paragraph"));
+                var selections = selection0.Clone() as PdfSelection;
+                selections.AddSelection(selection1);
+                Assert.IsTrue(selections.Text.Contains("First paragraph"));
+                var attrStrs = selections.AttributedString;
+                foreach(var attr in attrStrs)
+                {
+                    attr.Page = pageReader;
+                    var fontSize = attr.FontSize;
+                    var strokeColor = attr.StrokeColor;
+                    Assert.IsTrue(strokeColor.A == Color.Black.A &&
+                        strokeColor.R == Color.Black.R &&
+                        strokeColor.G== Color.Black.G &&
+                        strokeColor.B == Color.Black.B);
+                    var fillColor = attr.FillColor;
+                    var fontName = attr.FontName;
+                    var fontWeight = attr.FontWeight;
+                    var angle = attr.Angle;
+                }
             });
         }
     }

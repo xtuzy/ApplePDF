@@ -9,7 +9,10 @@ namespace ApplePDF.PdfKit
     using System.Linq;
     using System.Runtime.InteropServices;
     using System.Text;
-
+    /// <summary>
+    /// 注意：
+    /// Pdf的坐标系原点是左下角，此库中获取得到的<see cref="Point"/>都是基于此，返回<see cref="Rectangle"/>的由于其来自System.Drawing，其基于左上角原点，请只使用其上下左右的位置信息，不要使用大小信息，否则会出现大小为负数。
+    /// </summary>
     public class PdfPage : IPdfPage_Pdfium, IDisposable
     {
         private static readonly object @lock = new object();
@@ -309,6 +312,37 @@ namespace ApplePDF.PdfKit
             return RectangleF.FromLTRB((float)left, (float)top, (float)right, (float)bottom);
         }
 
+        /// <summary>
+        /// 获取连续字符的边框。在需要快速确定区域时(比如选择文字高亮时)可能用到。
+        /// <see cref="fpdf_text.FPDFTextCountRects">:This function, along with FPDFText_GetRect can be used by applications to detect the position on the page for a text segment, so proper areas can be highlighted. The FPDFText_* functions will automatically merge small character boxes into bigger one if those characters are on the same line and use same font settings.
+        /// </summary>
+        /// <param name="index">从0开始</param>
+        /// <param name="count"></param>
+        /// <returns></returns>
+        public List<RectangleF> GetCharactersBounds(int index, int count)
+        {
+            var result = new List<RectangleF>();
+            if (index < CharacterCount && (index + count) < CharacterCount)
+            {
+                int rectCount = fpdf_text.FPDFTextCountRects(TextPage, index, count);
+                if (rectCount > 0)
+                {
+                    for (int rectIndex = 0; rectIndex < rectCount; rectIndex++)
+                    {
+                        double x1 = 0.0; double y1 = 0.0; double x2 = 0.0; double y2 = 0.0;
+
+                        if(fpdf_text.FPDFTextGetRect(TextPage, rectIndex, ref x1, ref y1, ref x2, ref y2) == 0 )
+                            throw new NotImplementedException("Get a bounds info not success, this let the count of bounds not equal to count of rects when GetCharactersBounds");
+
+                        RectangleF rect = RectangleF.FromLTRB((float)x1, (float)y1, (float)x2, (float)y2);
+
+                        result.Add(rect);
+                    }
+                }
+            }
+            return result;
+        }
+
         public int GetCharacterIndex(PointF point)
         {
             var result = fpdf_text.FPDFTextGetCharIndexAtPos(this.TextPage, point.X, point.Y, 5, 5);//TODO:寻找最佳x，y tolerance
@@ -320,9 +354,11 @@ namespace ApplePDF.PdfKit
                 return result;
         }
 
-        public PdfSelection GetSelection(PointF startPoint, PointF endPoint)
+        public PdfSelection GetSelection(PointF leftPoint, PointF rightPoint)
         {
-            return new PdfSelection(this, RectangleF.FromLTRB(startPoint.X, startPoint.Y, endPoint.X, endPoint.Y));
+            if(leftPoint.Y < rightPoint.Y)
+                return new PdfSelection(this, RectangleF.FromLTRB(leftPoint.X, rightPoint.Y, rightPoint.X, leftPoint.Y));
+            return new PdfSelection(this, RectangleF.FromLTRB(leftPoint.X, leftPoint.Y, rightPoint.X, rightPoint.Y));
         }
 
         public PdfSelection GetSelection(RectangleF rect)
@@ -341,6 +377,7 @@ namespace ApplePDF.PdfKit
             return new PdfSelection(this, new RectangleF(0, charBounds.Y, size.Width, charBounds.Height));//TODO:验证取行宽和字符高度确定行的逻辑是否正确
         }
 
+        //TODO:当前只获得到char，需要加入分词
         public PdfSelection SelectWord(PointF point)
         {
             //获得该位置的字符序号
@@ -348,7 +385,7 @@ namespace ApplePDF.PdfKit
             return new PdfSelection(this, GetCharacterBounds(index));
         }
 
-        private string GetTextInPage(int fromeIndex, int count)
+        private string GetTextInPage(int fromeIndex, int count = 1)
         {
             lock (@lock)
             {

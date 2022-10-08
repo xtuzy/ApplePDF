@@ -41,4 +41,21 @@
     </PackageReference>
   </ItemGroup>
 
+  <ItemGroup Condition="$(TargetFramework.Contains('ios')) == false and $(TargetFramework.Contains('maccatalyst'))==false">
+    <Compile Remove="**\*.iOS.cs" />
+    <None Include="**\*.iOS.cs" />
+    <Compile Remove="**\iOS\*.cs" />
+    <None Include="**\iOS\*.cs" />
+    <Compile Remove="**\iOS\**\*.cs" />
+    <None Include="**\iOS\**\*.cs" />
+  </ItemGroup>
+
+  <ItemGroup Condition="$(TargetFramework.Contains('android')) == false">
+    <Compile Remove="**\*.Android.cs" />
+    <None Include="**\*.Android.cs" />
+    <Compile Remove="**\Android\*.cs" />
+    <None Include="**\Android\*.cs" />
+    <Compile Remove="**\Android\**\*.cs" />
+    <None Include="**\Android\**\*.cs" />
+  </ItemGroup>
 </Project>

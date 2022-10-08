@@ -183,4 +183,61 @@
         FPDF_PRINTMODE_POSTSCRIPT3_TYPE42_PASSTHROUGH = 8
     }
     #endregion
+
+    #region fpdf_text
+    /// <summary>
+    /// <see cref="fpdf_text.FPDFTextGetFontInfo"/>会返回flag，我从PdfReference1.7获取
+    /// </summary>
+    public enum FontDescriptorFlags
+    {
+        /// <summary>
+        /// All glyphs have the same width (as opposed to proportional or variable-pitch
+        /// fonts, which have different widths).
+        /// </summary>
+        FixedPitch = 1,
+        /// <summary>
+        /// Glyphs have serifs, which are short strokes drawn at an angle on the top and
+        /// bottom of glyph stems. (Sans serif fonts do not have serifs.)
+        /// </summary>
+        Serif = 2,
+        /// <summary>
+        /// Font contains glyphs outside the Adobe standard Latin character set. This
+        /// flag and the Nonsymbolic flag cannot both be set or both be clear (see be-low).
+        /// </summary>
+        Symbolic = 3,
+        /// <summary>
+        /// Glyphs resemble cursive handwriting.
+        /// </summary>
+        Script = 4,
+        /// <summary>
+        /// Font uses the Adobe standard Latin character set or a subset of it (see below).
+        /// </summary>
+        Nonsymbolic = 6,
+        /// <summary>
+        /// Glyphs have dominant vertical strokes that are slanted.
+        /// </summary>
+        Italic = 7,
+        /// <summary>
+        /// Font contains no lowercase letters; typically used for display purposes, such
+        /// as for titles or headlines.
+        /// </summary>
+        AllCap = 17,
+        /// <summary>
+        /// Font contains both uppercase and lowercase letters. The uppercase letters are
+        /// similar to those in the regular version of the same typeface family. The glyphs
+        /// for the lowercase letters have the same shapes as the corresponding uppercase
+        /// letters, but they are sized and their proportions adjusted so that they have the
+        /// same size and stroke weight as lowercase glyphs in the same typeface family.
+        /// </summary>
+        SmallCap = 18,
+        /// <summary>
+        /// Font contains both uppercase and lowercase letters. The uppercase letters are
+        /// similar to those in the regular version of the same typeface family. The glyphs
+        /// for the lowercase letters have the same shapes as the corresponding uppercase
+        /// letters, but they are sized and their proportions adjusted so that they have the
+        /// same size and stroke weight as lowercase glyphs in the same typeface family.
+        /// </summary>
+        ForceBold = 19
+    }
+    #endregion
 }

@@ -6,7 +6,11 @@ namespace ApplePDF.PdfKit
 {
     public interface IPdfSelection : IDisposable
     {
+        /// <summary>
+        /// 具有单个字符或字符范围的属性的字符串.
+        /// </summary>
         //NSAttributedString AttributedString { get; }
+        List<PdfAttributedString> AttributedString { get; }
         //IntPtr ClassHandle { get; }
         /// <summary>
         /// iOS:Gets or sets the color with which to draw the selection.
