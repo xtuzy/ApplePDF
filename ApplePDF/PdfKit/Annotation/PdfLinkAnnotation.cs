@@ -7,7 +7,7 @@ namespace ApplePDF.PdfKit.Annotation
 {
     public class PdfLinkAnnotation : PdfAnnotation
     {
-        public PdfLinkAnnotation(PdfAnnotationSubtype type) : base(type)
+        public PdfLinkAnnotation() : base(PdfAnnotationSubtype.Link)
         {
         }
 
@@ -21,7 +21,6 @@ namespace ApplePDF.PdfKit.Annotation
         internal override void AddToPage(PdfPage page)
         {
            base.AddToPage(page);
-           
         }
     }
 }

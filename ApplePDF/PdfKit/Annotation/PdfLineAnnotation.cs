@@ -3,19 +3,18 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
-using System.Text;
 
 namespace ApplePDF.PdfKit.Annotation
 {
-    public class PdfLineAnnotation : PdfAnnotation
+    public class PdfLineAnnotation : PdfAnnotation, IStrokeColorAnnotation
     {
-        public Color? FillColor { get; private set; }
-
-        public Color? StrokeColor { get; private set; }
+        const string TAG = nameof(PdfLineAnnotation);
+        public Color? StrokeColor { get; set; }
 
         List<List<PdfSegmentPath>> Paths;
 
-        public PdfLineAnnotation(Color? strokeColor = null, Color? fillColor = null) : base(PdfAnnotationSubtype.Line)
+        public PdfLineAnnotation() 
+            : base(PdfAnnotationSubtype.Line)
         {
         }
 
@@ -32,32 +31,13 @@ namespace ApplePDF.PdfKit.Annotation
                 EndLocation = new PointF(end.X, end.Y);
             }
 
+            // 颜色
+            StrokeColor = GetFillAndStrokeColor().StrokeColor;
+
             //More line detail
             var objectCount = fpdf_annot.FPDFAnnotGetObjectCount(Annotation);
-
             if (objectCount >= 1)
             {
-                // 颜色
-                uint R = 0;
-                uint G = 0;
-                uint B = 0;
-                uint A = 0;
-                var firstObj = fpdf_annot.FPDFAnnotGetObject(Annotation, 0);
-                if (firstObj != null)
-                {
-                    success = fpdf_edit.FPDFPageObjGetFillColor(firstObj, ref R, ref G, ref B, ref A) == 1;
-                    if (success)
-                        FillColor = System.Drawing.Color.FromArgb((int)A, (int)R, (int)G, (int)B);
-                    else
-                        Debug.WriteLine("No fill color");
-                    success = fpdf_edit.FPDFPageObjGetStrokeColor(firstObj, ref R, ref G, ref B, ref A) == 1;
-
-                    if (success)
-                        StrokeColor = System.Drawing.Color.FromArgb((int)A, (int)R, (int)G, (int)B);
-                    else
-                        Debug.WriteLine("No stroke color");
-                }
-
                 Paths = new List<List<PdfSegmentPath>>();
 
                 for (int i = 0; i < objectCount; i++)
@@ -73,7 +53,11 @@ namespace ApplePDF.PdfKit.Annotation
                         if (objectType == (int)PdfPageObjectTypeFlag.PATH)
                         {
                             var segmentCount = fpdf_edit.FPDFPathCountSegments(lineObj);
-                            if (segmentCount == -1) throw new NotImplementedException("Can't get segment count");
+                            if (segmentCount == -1)
+                            {
+                                throw new NotImplementedException($"{TAG}:Can't get segment count");
+                            }
+
                             float x = 0;
                             float y = 0;
                             for (int j = 0; j < segmentCount; j++)
@@ -116,25 +100,24 @@ namespace ApplePDF.PdfKit.Annotation
         internal override void AddToPage(PdfPage page)
         {
             base.AddToPage(page);
-            var lineObj = fpdf_edit.FPDFPageObjCreateNewPath(StartLocation.X, StartLocation.Y);
-            var success = fpdf_edit.FPDFPathLineTo(lineObj, EndLocation.X, EndLocation.Y) == 1;
-            if (!success) throw new NotImplementedException("Add line fail");
-            success = fpdf_edit.FPDFPathClose(lineObj) == 1;
-            if (!success) throw new NotImplementedException("Close line fail");
-            if (FillColor != null)
-            {
-                success = fpdf_edit.FPDFPageObjSetFillColor(lineObj, FillColor.Value.R, FillColor.Value.G, FillColor.Value.B, FillColor.Value.A) == 1;
-                if (!success) throw new NotImplementedException("Set fill colr fail");
-            }
+            // 当前仅支持画直线
+            var pathObj = fpdf_edit.FPDFPageObjCreateNewPath(StartLocation.X, StartLocation.Y);
+            var success = fpdf_edit.FPDFPathLineTo(pathObj, EndLocation.X, EndLocation.Y) == 1;
+            if (!success) throw new NotImplementedException($"{TAG}:Add line fail");
+            success = fpdf_edit.FPDFPathClose(pathObj) == 1;
+            if (!success) throw new NotImplementedException($"{TAG}:Close line fail");
+
             if (StrokeColor != null)
             {
-                success = fpdf_edit.FPDFPageObjSetStrokeColor(lineObj, StrokeColor.Value.R, StrokeColor.Value.G, StrokeColor.Value.B, StrokeColor.Value.A) == 1;
-                if (!success) throw new NotImplementedException("Set stroke color fail");
+                success = fpdf_edit.FPDFPageObjSetStrokeColor(pathObj, StrokeColor.Value.R, StrokeColor.Value.G, StrokeColor.Value.B, StrokeColor.Value.A) == 1;
+                if (!success) throw new NotImplementedException($"{TAG}:Set stroke color fail");
             }
-            success = fpdf_edit.FPDFPageObjSetStrokeWidth(lineObj, StrokeWidth) == 1;
-            if (!success) throw new NotImplementedException("Set line width fail");
-            success = fpdf_annot.FPDFAnnotAppendObject(Annotation, lineObj) == 1;
-            if (!success) throw new NotImplementedException("Append line fail");
+
+            success = fpdf_edit.FPDFPageObjSetStrokeWidth(pathObj, StrokeWidth) == 1;
+            if (!success) throw new NotImplementedException($"{TAG}:Set line width fail");
+
+            success = fpdf_annot.FPDFAnnotAppendObject(Annotation, pathObj) == 1;
+            if (!success) throw new NotImplementedException($"{TAG}:Append line fail");
         }
     }
 }

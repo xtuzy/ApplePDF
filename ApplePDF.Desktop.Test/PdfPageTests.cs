@@ -432,7 +432,7 @@ namespace ApplePDF.Test
         {
             ExecuteForDocument(filePath, null, 0, pageReader =>
             {
-                var selection = pageReader.GetSelection(RectangleF.FromLTRB(x1, y1, x2, y2));
+                var selection = pageReader.GetSelection(PdfRectangleF.FromLTRB(x1, y1, x2, y2));
                 Assert.AreEqual(text, selection.Text);
             });
         }

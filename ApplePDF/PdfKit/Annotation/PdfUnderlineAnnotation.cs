@@ -1,19 +1,18 @@
 ﻿using PDFiumCore;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
-using System.Text;
 
 namespace ApplePDF.PdfKit.Annotation
 {
     public class PdfUnderlineAnnotation : PdfAnnotation
     {
-        List<RectangleF> UnderlineLocation = new List<RectangleF>();
-        public PdfUnderlineAnnotation(PdfAnnotationSubtype type) : base(type)
+        List<PdfRectangleF> UnderlineLocation = new List<PdfRectangleF>();
+        public PdfUnderlineAnnotation()
+            : base(PdfAnnotationSubtype.Underline)
         {
         }
 
-        internal PdfUnderlineAnnotation(PdfPage page,FpdfAnnotationT annotation, PdfAnnotationSubtype type, int index) : base(page,annotation,type, index)
+        internal PdfUnderlineAnnotation(PdfPage page, FpdfAnnotationT annotation, PdfAnnotationSubtype type, int index) : base(page, annotation, type, index)
         {
             var count = (int)fpdf_annot.FPDFAnnotCountAttachmentPoints(Annotation);
             var success = count == 0;
@@ -23,12 +22,12 @@ namespace ApplePDF.PdfKit.Annotation
             {
                 success = fpdf_annot.FPDFAnnotGetAttachmentPoints(Annotation, (ulong)i, point) == 1;
                 if (!success) throw new NotImplementedException("Get highlight point fail");
-                var rect = new RectangleF(point.X1, point.Y1, point.X4 - point.X1, point.Y4 - point.Y1);
+                var rect = PdfRectangleF.FromLTRB(point.X1, point.Y1, point.X4, point.Y4);
                 UnderlineLocation.Add(rect);
             }
         }
 
-        public void AppendAnnotationPoint(RectangleF rect)
+        public void AppendAnnotationPoint(PdfRectangleF rect)
         {
             var success = fpdf_annot.FPDFAnnotAppendAttachmentPoints(Annotation, new FS_QUADPOINTSF()
             {

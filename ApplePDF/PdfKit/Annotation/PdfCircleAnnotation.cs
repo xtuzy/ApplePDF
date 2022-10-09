@@ -7,7 +7,7 @@ namespace ApplePDF.PdfKit.Annotation
 {
     public class PdfCircleAnnotation : PdfAnnotation
     {
-        public PdfCircleAnnotation(PdfAnnotationSubtype type) : base(type)
+        public PdfCircleAnnotation() : base(PdfAnnotationSubtype.Circle)
         {
         }
 

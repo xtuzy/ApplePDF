@@ -57,7 +57,7 @@ namespace ApplePDF.PdfKit
         /// </summary>
         /// <param name="index"></param>
         /// <returns></returns>
-        RectangleF GetCharacterBounds(int index);
+        PdfRectangleF GetCharacterBounds(int index);
         /// <summary>
         /// iOS:Returns the index of the character at the specified point.
         /// </summary>
@@ -76,7 +76,7 @@ namespace ApplePDF.PdfKit
         /// </summary>
         /// <param name="rect"></param>
         /// <returns></returns>
-        PdfSelection? GetSelection(RectangleF rect);
+        PdfSelection? GetSelection(PdfRectangleF rect);
         //PdfSelection? GetSelection(NSRange range);
         /// <summary>
         /// 获取缩略图，iOS默认返回UIImage
@@ -103,7 +103,7 @@ namespace ApplePDF.PdfKit
         /// <param name="point"></param>
         /// <returns></returns>
         PdfSelection? SelectWord(PointF point);
-        RectangleF GetBoundsForBox(PdfDisplayBox pdfDisplayBox);
+        PdfRectangleF GetBoundsForBox(PdfDisplayBox pdfDisplayBox);
         //void SetBoundsForBox(Rectangle bounds, PdfDisplayBox box);
         //void TransformContext(CGContext context, PdfDisplayBox box);
     }

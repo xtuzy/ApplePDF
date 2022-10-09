@@ -56,7 +56,7 @@ namespace ApplePDF.PdfKit
         /// </summary>
         /// <param name="page"></param>
         /// <returns></returns>
-        RectangleF GetBoundsForPage(PdfPage page);
+        PdfRectangleF GetBoundsForPage(PdfPage page);
         int GetNumberOfTextRanges(PdfPage page);
         //NSRange GetRange(nuint index, PdfPage page);
         /// <summary>

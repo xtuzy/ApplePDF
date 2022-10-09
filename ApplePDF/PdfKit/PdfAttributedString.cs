@@ -20,7 +20,7 @@ namespace ApplePDF.PdfKit
         /// <summary>
         /// 文本所在的矩形边界
         /// </summary>
-        public RectangleF Bounds { get; }
+        public PdfRectangleF Bounds { get; }
 
         public float Angle
         {
@@ -132,7 +132,7 @@ namespace ApplePDF.PdfKit
             }
         }
 
-        public PdfAttributedString(string str, RectangleF box, int index)
+        public PdfAttributedString(string str, PdfRectangleF box, int index)
         {
             Text = str;
             Bounds = box;

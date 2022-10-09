@@ -9,13 +9,13 @@ namespace ApplePDF.PdfKit
 {
     public class PdfSelection : IPdfSelection, ICloneable
     {
-        public PdfSelection(PdfPage page, RectangleF rectangle)
+        public PdfSelection(PdfPage page, PdfRectangleF rectangle)
         {
-            Selections = new Dictionary<RectangleF, PdfPage>();
+            Selections = new Dictionary<PdfRectangleF, PdfPage>();
             Selections.Add(rectangle, page);
         }
 
-        internal Dictionary<RectangleF, PdfPage> Selections { get; private set; }
+        internal Dictionary<PdfRectangleF, PdfPage> Selections { get; private set; }
         public Color Color { get; set; }
         public IEnumerable<PdfPage> Pages { get => Selections.Values; }
         public string Text
@@ -61,16 +61,16 @@ namespace ApplePDF.PdfKit
             }
         }
 
-        string GetSelectTextInPage(PdfPage page, RectangleF rectangle)
+        string GetSelectTextInPage(PdfPage page, PdfRectangleF rectangle)
         {
             ushort[] buffer = new ushort[1];
             int canCharactersWritten;
             //获取字符数
-            canCharactersWritten = fpdf_text.FPDFTextGetBoundedText(page.TextPage, rectangle.X, rectangle.Y, rectangle.Right, rectangle.Bottom, ref buffer[0], 0);
+            canCharactersWritten = fpdf_text.FPDFTextGetBoundedText(page.TextPage, rectangle.Left, rectangle.Top, rectangle.Right, rectangle.Bottom, ref buffer[0], 0);
             if (canCharactersWritten > 0)
             {
                 buffer = new ushort[canCharactersWritten];
-                var finalCharactersWritten = fpdf_text.FPDFTextGetBoundedText(page.TextPage, rectangle.X, rectangle.Y, rectangle.Right, rectangle.Bottom, ref buffer[0], buffer.Length);
+                var finalCharactersWritten = fpdf_text.FPDFTextGetBoundedText(page.TextPage, rectangle.Left, rectangle.Top, rectangle.Right, rectangle.Bottom, ref buffer[0], buffer.Length);
                 if (finalCharactersWritten == canCharactersWritten)
                 {
                     //参考:https://stackoverflow.com/a/274207/13254773
@@ -119,7 +119,7 @@ namespace ApplePDF.PdfKit
             throw new NotImplementedException();
         }
 
-        public RectangleF GetBoundsForPage(PdfPage page)
+        public PdfRectangleF GetBoundsForPage(PdfPage page)
         {
             throw new NotImplementedException();
         }

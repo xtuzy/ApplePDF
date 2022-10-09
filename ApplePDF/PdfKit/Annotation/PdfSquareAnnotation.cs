@@ -1,23 +1,29 @@
 ﻿using PDFiumCore;
-using System;
-using System.Collections.Generic;
-using System.Text;
+using System.Drawing;
 
 namespace ApplePDF.PdfKit.Annotation
 {
-    public class PdfSquareAnnotation : PdfAnnotation
+    public class PdfSquareAnnotation : PdfAnnotation, IFillColorAnnotation, IStrokeColorAnnotation
     {
-        public PdfSquareAnnotation(PdfAnnotationSubtype type) : base(type)
+        public PdfSquareAnnotation()
+            : base(PdfAnnotationSubtype.Square)
         {
         }
 
-        internal PdfSquareAnnotation(PdfPage page,FpdfAnnotationT annotation, PdfAnnotationSubtype type, int index) : base(page,annotation,type, index)
+        internal PdfSquareAnnotation(PdfPage page, FpdfAnnotationT annotation, PdfAnnotationSubtype type, int index) : base(page, annotation, type, index)
         {
+            var colors = GetFillAndStrokeColor();
+            FillColor = colors.FillColor;
+            StrokeColor = colors.StrokeColor;
         }
+
+        public Color? FillColor { get; private set; }
+
+        public Color? StrokeColor { get; private set; }
 
         internal override void AddToPage(PdfPage page)
         {
-           base.AddToPage(page);
+            base.AddToPage(page);
         }
     }
 }

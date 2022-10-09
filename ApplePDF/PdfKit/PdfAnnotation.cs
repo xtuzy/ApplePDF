@@ -2,11 +2,8 @@
 using ApplePDF.PdfKit.Annotation;
 using PDFiumCore;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
-using System.Linq;
-using System.Text;
 
 namespace ApplePDF.PdfKit
 {
@@ -25,26 +22,20 @@ namespace ApplePDF.PdfKit
             this.Annotation = annotation;
             this.AnnotationType = type;
             this.Index = index;
-            // 颜色
-            uint R = 0;
-            uint G = 0;
-            uint B = 0;
-            uint A = 0;
-            var success = fpdf_annot.FPDFAnnotGetColor(Annotation, FPDFANNOT_COLORTYPE.FPDFANNOT_COLORTYPE_Color, ref R, ref G, ref B, ref A) == 1;
-            if (success)
-                AnnotColor = System.Drawing.Color.FromArgb((int)A, (int)R, (int)G, (int)B);
-            else
-                Debug.WriteLine("Get Annotation Color fail.");
 
             // 位置
             var position = new FS_RECTF_();
-            success = fpdf_annot.FPDFAnnotGetRect(Annotation, position) == 1;
+            var success = fpdf_annot.FPDFAnnotGetRect(Annotation, position) == 1;
             if (success)
-                AnnotBox = new RectangleF(position.Left, position.Top, position.Right - position.Left, position.Top - position.Bottom);
+                AnnotBox = PdfRectangleF.FromLTRB(position.Left, position.Top, position.Right, position.Bottom);
             else
-                Debug.WriteLine("Get Annotation Position fail.");
+                Debug.WriteLine($"{this.GetType()}:Get AnnotBox fail.");
         }
 
+        /// <summary>
+        /// 为创建新注释
+        /// </summary>
+        /// <param name="type"></param>
         public PdfAnnotation(PdfAnnotationSubtype type)
         {
             AnnotationType = type;
@@ -55,34 +46,26 @@ namespace ApplePDF.PdfKit
         public PdfPage Page { get; protected set; }
         public PdfAnnotationSubtype AnnotationType { get; protected set; }
         #region 用户设置
-        /// <summary>
-        /// Default color is yellow.
-        /// </summary>
-        public Color? AnnotColor { get; set; }
 
         /// <summary>
         /// The annot 's edge box?
         /// I don't know the different of AnnotBox and Annot Points,maybe add point will auto update box?
         /// </summary>
-        public RectangleF AnnotBox { get; set; }
+        public PdfRectangleF AnnotBox { get; set; }
 
         #endregion 用户设置
         internal virtual void AddToPage(PdfPage page)
         {
             this.Page = page;
-            //创建注释
+
+            // 创建注释
             var annot = fpdf_annot.FPDFPageCreateAnnot(page.Page, (int)this.AnnotationType);
             this.Annotation = annot;
             var index = fpdf_annot.FPDFPageGetAnnotIndex(page.Page, this.Annotation);
             this.Index = index;
             bool success = false;
-            //颜色
-            if (AnnotColor != null)
-            {
-                success = fpdf_annot.FPDFAnnotSetColor(Annotation, FPDFANNOT_COLORTYPE.FPDFANNOT_COLORTYPE_Color, AnnotColor.Value.R, AnnotColor.Value.G, AnnotColor.Value.B, AnnotColor.Value.A) == 1;
-                if (!success) throw new NotImplementedException();
-            }
-            //位置
+
+            // 位置
             fpdf_annot.FPDFAnnotSetRect(Annotation, new FS_RECTF_()
             {
                 Left = AnnotBox.Left,
@@ -90,9 +73,89 @@ namespace ApplePDF.PdfKit
                 Right = AnnotBox.Right,
                 Bottom = AnnotBox.Bottom
             });
-            //Flag?
+
+            // Flag?
             success = fpdf_annot.FPDFAnnotSetFlags(Annotation, 4) == 1;
-            if (!success) new NotImplementedException();
+            if (!success) new NotImplementedException($"{this.GetType()}:Set AnnotBox fail");
+        }
+
+        /// <summary>
+        /// 请勿使用,仅为测试
+        /// </summary>
+        /// <returns></returns>
+        public (Color? AnnotColor, Color? FillColor, Color? StrokeColor) TryGetColor()
+        {
+            var colors = GetFillAndStrokeColor();
+            return (GetAnnotColor(), colors.FillColor, colors.StrokeColor);
+        }
+
+        /// <summary>
+        /// For FPDFAnnotGetColor()
+        /// </summary>
+        /// <returns></returns>
+        protected Color? GetAnnotColor()
+        {
+            // 获取颜色
+            uint R = 0;
+            uint G = 0;
+            uint B = 0;
+            uint A = 0;
+            var success = fpdf_annot.FPDFAnnotGetColor(Annotation, FPDFANNOT_COLORTYPE.FPDFANNOT_COLORTYPE_Color, ref R, ref G, ref B, ref A) == 1;
+            if (success)
+                return System.Drawing.Color.FromArgb((int)A, (int)R, (int)G, (int)B);
+            else
+                Debug.WriteLine($"{this.GetType()}:Get AnnotColor fail.");
+            return null;
+        }
+
+        /// <summary>
+        /// For FPDFPageObjGetFillColor() and FPDFPageObjGetStrokeColor(). 仅取第一个obj的颜色
+        /// </summary>
+        /// <returns></returns>
+        protected (Color? FillColor, Color? StrokeColor) GetFillAndStrokeColor()
+        {
+            Color? FillColor = null; Color? StrokeColor = null;
+
+            var objectCount = fpdf_annot.FPDFAnnotGetObjectCount(Annotation);
+
+            //此处分析注释数据时只当注释只有一个文本和图像对象
+            for (int objIndex = 0; objIndex < objectCount; objIndex++)
+            {
+                var obj = fpdf_annot.FPDFAnnotGetObject(Annotation, objIndex);
+                if (obj != null)
+                {
+                    //var objectType = fpdf_edit.FPDFPageObjGetType(obj);
+                    // 颜色
+                    uint R = 0;
+                    uint G = 0;
+                    uint B = 0;
+                    uint A = 0;
+                    var success = fpdf_edit.FPDFPageObjGetFillColor(obj, ref R, ref G, ref B, ref A) == 1;
+                    if (success)
+                    {
+                        FillColor = System.Drawing.Color.FromArgb((int)A, (int)R, (int)G, (int)B);
+                    }
+                    else
+                    {
+                        Debug.WriteLine($"{nameof(PdfFreeTextAnnotation)}:No fill color");
+                    }
+
+                    success = fpdf_edit.FPDFPageObjGetStrokeColor(obj, ref R, ref G, ref B, ref A) == 1;
+
+                    if (success)
+                    {
+                        StrokeColor = System.Drawing.Color.FromArgb((int)A, (int)R, (int)G, (int)B);
+                    }
+                    else
+                    {
+                        Debug.WriteLine($"{nameof(PdfFreeTextAnnotation)}:No stroke color");
+                    }
+
+                    break;//识别第一个
+
+                }
+            }
+            return (FillColor, StrokeColor);
         }
 
         public void Dispose()

@@ -9,6 +9,9 @@ namespace ApplePDF.PdfKit
 {
     public interface IPdfPage_Pdfium : IPdfPage
     {
+        /// <summary>
+        /// 从0开始
+        /// </summary>
         int PageIndex { get; }
         int AnnotationCount { get; }
         SizeF GetSize();

@@ -272,7 +272,7 @@ namespace ApplePDF.PdfKit
             }
         }
 
-        public RectangleF GetBoundsForBox(PdfDisplayBox pdfDisplayBox)
+        public PdfRectangleF GetBoundsForBox(PdfDisplayBox pdfDisplayBox)
         {
             float left = 0;
             float top = 0;
@@ -296,11 +296,11 @@ namespace ApplePDF.PdfKit
                     fpdf_transformpage.FPDFPageGetArtBox(Page, ref left, ref bottom, ref right, ref top);
                     break;
             }
-            return RectangleF.FromLTRB(left, top, right, bottom);
+            return PdfRectangleF.FromLTRB(left, top, right, bottom);
         }
 
         //In "User Sapce"
-        public RectangleF GetCharacterBounds(int index)
+        public PdfRectangleF GetCharacterBounds(int index)
         {
             double left = 0;
             double right = 0;
@@ -308,8 +308,8 @@ namespace ApplePDF.PdfKit
             double top = 0;
             var result = fpdf_text.FPDFTextGetCharBox(TextPage, index, ref left, ref right, ref bottom, ref top);
             if (result == 0)
-                return RectangleF.Empty;
-            return RectangleF.FromLTRB((float)left, (float)top, (float)right, (float)bottom);
+                return PdfRectangleF.Empty;
+            return PdfRectangleF.FromLTRB((float)left, (float)top, (float)right, (float)bottom);
         }
 
         /// <summary>
@@ -319,9 +319,9 @@ namespace ApplePDF.PdfKit
         /// <param name="index">从0开始</param>
         /// <param name="count"></param>
         /// <returns></returns>
-        public List<RectangleF> GetCharactersBounds(int index, int count)
+        public List<PdfRectangleF> GetCharactersBounds(int index, int count)
         {
-            var result = new List<RectangleF>();
+            var result = new List<PdfRectangleF>();
             if (index < CharacterCount && (index + count) < CharacterCount)
             {
                 int rectCount = fpdf_text.FPDFTextCountRects(TextPage, index, count);
@@ -331,10 +331,10 @@ namespace ApplePDF.PdfKit
                     {
                         double x1 = 0.0; double y1 = 0.0; double x2 = 0.0; double y2 = 0.0;
 
-                        if(fpdf_text.FPDFTextGetRect(TextPage, rectIndex, ref x1, ref y1, ref x2, ref y2) == 0 )
+                        if (fpdf_text.FPDFTextGetRect(TextPage, rectIndex, ref x1, ref y1, ref x2, ref y2) == 0)
                             throw new NotImplementedException("Get a bounds info not success, this let the count of bounds not equal to count of rects when GetCharactersBounds");
 
-                        RectangleF rect = RectangleF.FromLTRB((float)x1, (float)y1, (float)x2, (float)y2);
+                        var rect = PdfRectangleF.FromLTRB((float)x1, (float)y1, (float)x2, (float)y2);
 
                         result.Add(rect);
                     }
@@ -356,12 +356,12 @@ namespace ApplePDF.PdfKit
 
         public PdfSelection GetSelection(PointF leftPoint, PointF rightPoint)
         {
-            if(leftPoint.Y < rightPoint.Y)
-                return new PdfSelection(this, RectangleF.FromLTRB(leftPoint.X, rightPoint.Y, rightPoint.X, leftPoint.Y));
-            return new PdfSelection(this, RectangleF.FromLTRB(leftPoint.X, leftPoint.Y, rightPoint.X, rightPoint.Y));
+            if (leftPoint.Y < rightPoint.Y)
+                return new PdfSelection(this, PdfRectangleF.FromLTRB(leftPoint.X, rightPoint.Y, rightPoint.X, leftPoint.Y));
+            return new PdfSelection(this, PdfRectangleF.FromLTRB(leftPoint.X, leftPoint.Y, rightPoint.X, rightPoint.Y));
         }
 
-        public PdfSelection GetSelection(RectangleF rect)
+        public PdfSelection GetSelection(PdfRectangleF rect)
         {
             return new PdfSelection(this, rect);
         }
@@ -374,7 +374,7 @@ namespace ApplePDF.PdfKit
             //var textSize = fpdf_text.FPDFTextGetFontSize(TextPage, index);
             var charBounds = GetCharacterBounds(index);
             var size = this.GetSize();
-            return new PdfSelection(this, new RectangleF(0, charBounds.Y, size.Width, charBounds.Height));//TODO:验证取行宽和字符高度确定行的逻辑是否正确
+            return new PdfSelection(this, PdfRectangleF.FromLTRB(0, charBounds.Top, size.Width, charBounds.Top - charBounds.Bottom));//TODO:验证取行宽和字符高度确定行的逻辑是否正确
         }
 
         //TODO:当前只获得到char，需要加入分词

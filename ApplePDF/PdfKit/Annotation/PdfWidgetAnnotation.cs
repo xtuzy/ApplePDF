@@ -7,7 +7,7 @@ namespace ApplePDF.PdfKit.Annotation
 {
     public class PdfWidgetAnnotation : PdfAnnotation
     {
-        public PdfWidgetAnnotation(PdfAnnotationSubtype type) : base(type)
+        public PdfWidgetAnnotation() : base(PdfAnnotationSubtype.Widget)
         {
         }
 

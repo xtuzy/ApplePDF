@@ -1,17 +1,19 @@
 ﻿using PDFiumCore;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 
 namespace ApplePDF.PdfKit.Annotation
 {
-    public class PdfHighlightAnnotation : PdfAnnotation
+    public class PdfHighlightAnnotation : PdfAnnotation, IDefaultColorAnnotation
     {
-        List<RectangleF> HighlightLocation = new List<RectangleF>();
+        List<PdfRectangleF> HighlightLocation = new List<PdfRectangleF>();
 
         public PdfPopupAnnotation PopupAnnotation;
 
-        public PdfHighlightAnnotation(PdfAnnotationSubtype type) : base(type)
+        public PdfHighlightAnnotation()
+            : base(PdfAnnotationSubtype.Highlight)
         {
         }
 
@@ -25,11 +27,11 @@ namespace ApplePDF.PdfKit.Annotation
             {
                 success = fpdf_annot.FPDFAnnotGetAttachmentPoints(Annotation, (ulong)i, point) == 1;
                 if (!success) throw new NotImplementedException("Get highlight point fail");
-                var rect = new RectangleF(point.X1, point.Y1, point.X4 - point.X1, point.Y4 - point.Y1);
+                var rect = PdfRectangleF.FromLTRB(point.X1, point.Y1, point.X4, point.Y4);
                 HighlightLocation.Add(rect);
             }
 
-            //获取附着在其上的Popup注释
+            // 获取附着在其上的Popup注释
             var havePopup = fpdf_annot.FPDFAnnotHasKey(annotation, PdfPopupAnnotation.kPopupKey);
             if (havePopup == 1)
             {
@@ -56,9 +58,26 @@ namespace ApplePDF.PdfKit.Annotation
                     }
                 }
             }
+
+            // 先尝试最简单的方式获取颜色
+            AnnotColor = GetAnnotColor();
+            if (AnnotColor == null)
+            {
+                // 尝试使用对象来获取颜色,Edge标注的存放在这里
+                AnnotColor = GetFillAndStrokeColor().FillColor;
+            }
         }
 
-        public void AppendAnnotationPoint(RectangleF rect)
+        /// <summary>
+        /// Default color is yellow. Edge注释的黄色是#fff066
+        /// </summary>
+        public Color? AnnotColor
+        {
+            get;
+            set;
+        }
+
+        public void AppendAnnotationPoint(PdfRectangleF rect)
         {
             var success = fpdf_annot.FPDFAnnotAppendAttachmentPoints(Annotation, new FS_QUADPOINTSF()
             {
@@ -77,6 +96,15 @@ namespace ApplePDF.PdfKit.Annotation
         internal override void AddToPage(PdfPage page)
         {
             base.AddToPage(page);
+
+            // 设置颜色,我们不管其它软件是否使用对象来设置颜色,我们用最简单的方式
+            if (AnnotColor != null)
+            {
+                var success = fpdf_annot.FPDFAnnotSetColor(Annotation, FPDFANNOT_COLORTYPE.FPDFANNOT_COLORTYPE_Color, AnnotColor.Value.R, AnnotColor.Value.G, AnnotColor.Value.B, AnnotColor.Value.A) == 1;
+                if (!success)
+                    throw new NotImplementedException($"{this.GetType()}:Set AnnotColor fail, Fails when called on annotations with appearance streams already defined; instead use FPDFPath_Set(Stroke|Fill)Color().");
+            }
+
             AppendAnnotationPoint(this.AnnotBox);
         }
     }

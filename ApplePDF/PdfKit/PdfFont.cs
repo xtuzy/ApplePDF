@@ -1,7 +1,7 @@
 ﻿using PDFiumCore;
 using System;
 using System.Linq;
-using System.Reflection.Metadata;
+using System.Text;
 
 namespace ApplePDF.PdfKit
 {
@@ -54,6 +54,29 @@ namespace ApplePDF.PdfKit
                 throw new ArgumentException($"fontName:{fontName} not a standard font");
             else
                 Font = fpdf_edit.FPDFTextLoadStandardFont(doc.Document, fontName);
+        }
+
+        public PdfFont(FpdfFontT fpdfFont)
+        {
+            Font = fpdfFont;
+        }
+
+        public unsafe string Name
+        {
+            get
+            {
+                var count = fpdf_edit.FPDFFontGetFontName(Font, null, 0);
+                sbyte[] sbytes = new sbyte[count];
+
+                fixed (sbyte* dataPtr = &sbytes[0])
+                {
+                    if (fpdf_edit.FPDFFontGetFontName(Font, dataPtr, count) == count)
+                    {
+                        return new string(dataPtr, 0, (int)count, Encoding.UTF8);
+                    }
+                }
+                return string.Empty;
+            }
         }
 
         public void Dispose()
