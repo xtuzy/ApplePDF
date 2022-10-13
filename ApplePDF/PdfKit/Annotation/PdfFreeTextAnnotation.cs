@@ -1,7 +1,7 @@
 ﻿using PDFiumCore;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
-using System.Drawing;
 using System.Text;
 
 namespace ApplePDF.PdfKit.Annotation
@@ -9,7 +9,7 @@ namespace ApplePDF.PdfKit.Annotation
     /// <summary>
     /// A free text annotation (PDF 1.3) displays text directly on the page. Unlike an ordinary text annotation (see PdfTextAnnotation), a free text annotation has no open or closed state; instead of being displayed in a pop-up window, the text is always visible.
     /// </summary>
-    public class PdfFreeTextAnnotation : PdfAnnotation, IFillColorAnnotation
+    public class PdfFreeTextAnnotation : PdfAnnotation_ReadonlyPdfPageObj
     {
         private const string TAG = nameof(PdfFreeTextAnnotation);
         public PdfFreeTextAnnotation()
@@ -50,70 +50,27 @@ namespace ApplePDF.PdfKit.Annotation
                 }
             }
 
-            // 颜色
-            uint R = 0;
-            uint G = 0;
-            uint B = 0;
-            uint A = 0;
             var objectCount = fpdf_annot.FPDFAnnotGetObjectCount(Annotation);
-            if (objectCount == 1)
+            if (objectCount > 0)
             {
-                var obj = fpdf_annot.FPDFAnnotGetObject(Annotation, 0);
-                if (obj != null)
+                var pdfPageObjs = new PdfPageObj[objectCount];
+                PdfPageObjs = pdfPageObjs;
+                for (int objIndex = 0; objIndex < objectCount; objIndex++)
                 {
-                    var objectType = fpdf_edit.FPDFPageObjGetType(obj);
-                    if (objectType == (int)PdfPageObjectTypeFlag.TEXT)
+                    var obj = fpdf_annot.FPDFAnnotGetObject(Annotation, 0);
+                    if (obj != null)
                     {
-                        var success = fpdf_edit.FPDFPageObjGetFillColor(obj, ref R, ref G, ref B, ref A) == 1;
-                        if (success)
+                        var objectType = fpdf_edit.FPDFPageObjGetType(obj);
+                        if (objectType == (int)PdfPageObjectTypeFlag.TEXT)
                         {
-                            this.FillColor = System.Drawing.Color.FromArgb((int)A, (int)R, (int)G, (int)B);
-                        }
-                        else
-                        {
-                            Debug.WriteLine($"{TAG}:No fill color");
-                        }
-
-                        // 如果从StringValue获取文本为空,尝试从文本对象获取
-                        if (result == 2)
-                        {
-                            result = fpdf_edit.FPDFTextObjGetText(obj, page.TextPage, ref buffer[0], (uint)buffer.Length);
-                            if (result != 0)
-                            {
-                                unsafe
-                                {
-                                    fixed (ushort* dataPtr = &buffer[0])
-                                    {
-                                        this.Text = new string((char*)dataPtr, 0, (int)result);
-                                    }
-                                }
-                            }
+                            pdfPageObjs[objIndex] = new PdfPageTextObj(obj);
                         }
                     }
                 }
             }
-            else if (objectCount == 0)
-                ;// 测试mytest_4_freetextannotation.pdf时,为0时貌似也可能正确,这个注释好像是不显示的
-            else
-            {
-                throw new NotImplementedException($"{TAG}:Not only one object, don't know how to get correct object");
-            }
-            //Get TextSize
-
         }
 
-        public Color? FillColor { get; private set; }
-
         public string? Text { get; set; }
-
-        /// <summary>
-        /// Default is 12
-        /// </summary>
-        public float TextSize { get; private set; }
-        /// <summary>
-        /// Default is Arial
-        /// </summary>
-        public string TextFont { get; private set; }
 
         internal override void AddToPage(PdfPage page)
         {

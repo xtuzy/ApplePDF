@@ -1,12 +1,11 @@
 ﻿using PDFiumCore;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Drawing;
 
 namespace ApplePDF.PdfKit.Annotation
 {
-    public class PdfHighlightAnnotation : PdfAnnotation, IDefaultColorAnnotation
+    public class PdfHighlightAnnotation : PdfAnnotation_ReadonlyPdfPageObj, IColorAnnotation
     {
         List<PdfRectangleF> HighlightLocation = new List<PdfRectangleF>();
 
@@ -63,19 +62,31 @@ namespace ApplePDF.PdfKit.Annotation
             AnnotColor = GetAnnotColor();
             if (AnnotColor == null)
             {
-                // 尝试使用对象来获取颜色,Edge标注的存放在这里
-                AnnotColor = GetFillAndStrokeColor().FillColor;
+                var objectCount = fpdf_annot.FPDFAnnotGetObjectCount(Annotation);
+                if (objectCount > 0)
+                {
+                    var pdfPageObjs = new PdfPageObj[objectCount];
+                    PdfPageObjs = pdfPageObjs;
+                    for (int objIndex = 0; objIndex < objectCount; objIndex++)
+                    {
+                        var obj = fpdf_annot.FPDFAnnotGetObject(Annotation, 0);
+                        if (obj != null)
+                        {
+                            var objectType = fpdf_edit.FPDFPageObjGetType(obj);
+                            if (objectType == (int)PdfPageObjectTypeFlag.PATH)
+                            {
+                                pdfPageObjs[objIndex] = new PdfPagePathObj(obj);
+                            }
+                        }
+                    }
+                }
             }
         }
 
         /// <summary>
         /// Default color is yellow. Edge注释的黄色是#fff066
         /// </summary>
-        public Color? AnnotColor
-        {
-            get;
-            set;
-        }
+        public Color? AnnotColor { get; set; }
 
         public void AppendAnnotationPoint(PdfRectangleF rect)
         {

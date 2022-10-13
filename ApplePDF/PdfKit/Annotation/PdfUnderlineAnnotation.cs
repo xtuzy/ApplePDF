@@ -1,10 +1,11 @@
 ﻿using PDFiumCore;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 
 namespace ApplePDF.PdfKit.Annotation
 {
-    public class PdfUnderlineAnnotation : PdfAnnotation
+    public class PdfUnderlineAnnotation : PdfAnnotation, IColorAnnotation
     {
         List<PdfRectangleF> UnderlineLocation = new List<PdfRectangleF>();
         public PdfUnderlineAnnotation()
@@ -25,7 +26,11 @@ namespace ApplePDF.PdfKit.Annotation
                 var rect = PdfRectangleF.FromLTRB(point.X1, point.Y1, point.X4, point.Y4);
                 UnderlineLocation.Add(rect);
             }
+
+            AnnotColor = GetAnnotColor();
         }
+
+        public Color? AnnotColor { get; set; }
 
         public void AppendAnnotationPoint(PdfRectangleF rect)
         {
@@ -46,6 +51,8 @@ namespace ApplePDF.PdfKit.Annotation
         internal override void AddToPage(PdfPage page)
         {
             base.AddToPage(page);
+            if (Annotation != null)
+                SetAnnotColor(AnnotColor);
             AppendAnnotationPoint(this.AnnotBox);
         }
     }

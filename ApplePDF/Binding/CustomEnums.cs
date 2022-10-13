@@ -82,10 +82,14 @@
     }
 
     /// <summary>
-    /// Pdf save flag
+    /// Pdf save flag, for <see cref="fpdfsave.FPDF_SaveAsCopy(System.IntPtr, fpdfsave.FpdfStreamWriter, uint)"/>
     /// </summary>
     public enum PdfSaveFlag
     {
+        /// <summary>
+        /// Notice, this default flag not in Pdfium api, i see Pdfium's test all use 0, so add it.
+        /// </summary>
+        DefaultInTest = 0,
         Incremental = 1,
         NoIncremental = 2,
         RemoveSecurity = 3,

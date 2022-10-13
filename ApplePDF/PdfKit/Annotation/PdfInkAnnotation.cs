@@ -6,10 +6,10 @@ using System.Drawing;
 namespace ApplePDF.PdfKit.Annotation
 {
     /// <summary>
-    /// How to use:
-    /// If you want add a new PdfInkAnnotation to Page, you can set <see cref="Inks"/>, then 
+    /// Ink的生成有两种,一种使用<see cref="InkPointPaths"/>和<see cref="AnnotColor"/>,
+    /// 另一种使用<see cref="PdfPagePathObj"/>, 建议使用后者
     /// </summary>
-    public class PdfInkAnnotation : PdfAnnotation, IDefaultColorAnnotation
+    public class PdfInkAnnotation : PdfAnnotation_CanWritePdfPageObj, IColorAnnotation
     {
         public PdfInkAnnotation() : base(PdfAnnotationSubtype.Ink)
         {
@@ -19,14 +19,68 @@ namespace ApplePDF.PdfKit.Annotation
             : base(page, annotation, type, index)
         {
             AnnotColor = GetAnnotColor();
-            if (AnnotColor == null)
-                AnnotColor = GetFillAndStrokeColor().StrokeColor;
+
+            var objectCount = fpdf_annot.FPDFAnnotGetObjectCount(Annotation);
+            if (objectCount > 0)
+            {
+                var pdfPageObjs = new List<PdfPageObj>();
+                PdfPageObjs = pdfPageObjs;
+                for (int objIndex = 0; objIndex < objectCount; objIndex++)
+                {
+                    var obj = fpdf_annot.FPDFAnnotGetObject(Annotation, 0);
+                    if (obj != null)
+                    {
+                        var objectType = fpdf_edit.FPDFPageObjGetType(obj);
+                        if (objectType == (int)PdfPageObjectTypeFlag.PATH)
+                        {
+                            pdfPageObjs.Add(new PdfPagePathObj(obj));
+                        }
+                    }
+                }
+            }
         }
 
-        List<List<PointF>> inks;
-        public List<List<PointF>> Inks
+        /// <summary>
+        /// After change content of <see cref="PdfPageObj"/>, you need load this method let it's annot update.
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <returns></returns>
+        public bool UpdateObj(PdfPageObj obj)
         {
-            get { if (inks == null) GetInks(); return inks; }
+            return UpdateObjOfAnnot(obj);
+        }
+
+        public bool AppendObj(PdfPageObj obj)
+        {
+            return AppendObjToAnnot(obj);
+        }
+
+        internal override void AddToPage(PdfPage page)
+        {
+            base.AddToPage(page);
+
+            //添加时使用PdfPageObj优先级高,其可以控制更多细节
+            if (PdfPageObjs != null)
+            {
+                foreach (PdfPageObj obj in PdfPageObjs)
+                    AppendObjToAnnot(obj);
+            }
+            /*else
+            {
+                foreach (var i in InkPointPaths)
+                {
+                    AddInkPoints(i);
+                }
+                SetAnnotColor(AnnotColor);
+            }*/
+        }
+
+        #region 使用InkList的Api
+
+        List<List<PointF>> inks;
+        public List<List<PointF>> InkPointPaths
+        {
+            get { if (inks == null) GetInkPoints(); return inks; }
             set { inks = value; }
         }
 
@@ -35,23 +89,15 @@ namespace ApplePDF.PdfKit.Annotation
         /// </summary>
         public Color? AnnotColor { get; set; }
 
-        internal override void AddToPage(PdfPage page)
+        /// <summary>
+        /// 设置新的<see cref="AnnotColor"/>后,调用此方法更新
+        /// </summary>
+        public void UpdateInkPointPathsAnnotColor()
         {
-            base.AddToPage(page);
-            foreach (var i in Inks)
-            {
-                AddInk(i);
-            }
-            // 设置颜色,我们不管其它软件是否使用对象来设置颜色,我们用最简单的方式
-            if (AnnotColor != null)
-            {
-                var success = fpdf_annot.FPDFAnnotSetColor(Annotation, FPDFANNOT_COLORTYPE.FPDFANNOT_COLORTYPE_Color, AnnotColor.Value.R, AnnotColor.Value.G, AnnotColor.Value.B, AnnotColor.Value.A) == 1;
-                if (!success)
-                    throw new NotImplementedException($"{this.GetType()}:Set AnnotColor fail, Fails when called on annotations with appearance streams already defined; instead use FPDFPath_Set(Stroke|Fill)Color().");
-            }
+            SetAnnotColor(AnnotColor);
         }
 
-        public int AddInk(List<PointF> ink)
+        public int AddInkPoints(List<PointF> ink)
         {
             FS_POINTF_[] points = new FS_POINTF_[ink.Count];
             for (var index = 0; index < ink.Count; index++)
@@ -60,12 +106,12 @@ namespace ApplePDF.PdfKit.Annotation
             }
             var success = fpdf_annot.FPDFAnnotAddInkStroke(Annotation, points[0], (ulong)points.LongLength);
             if (success == -1)
-                throw new NotImplementedException();
+                throw new NotImplementedException("Add InkStroke fail");
             else
             {
-                if (!Inks.Contains(ink))
+                if (!InkPointPaths.Contains(ink))
                 {
-                    Inks.Add(ink);
+                    InkPointPaths.Add(ink);
                 }
                 return success;
             }
@@ -74,23 +120,23 @@ namespace ApplePDF.PdfKit.Annotation
         public void RemoveAllInk()
         {
             fpdf_annot.FPDFAnnotRemoveInkList(Annotation);
-            Inks.Clear();
+            InkPointPaths.Clear();
         }
 
-        public void RemoveInk(List<PointF> ink)
+        public void RemoveInkPoints(List<PointF> ink)
         {
             // 先移除全部
             fpdf_annot.FPDFAnnotRemoveInkList(Annotation);
-            if (!Inks.Contains(ink)) throw new NotImplementedException();
+            if (!InkPointPaths.Contains(ink)) throw new NotImplementedException();
             // 再重新添加
-            Inks.Remove(ink);
-            foreach (var i in Inks)
+            InkPointPaths.Remove(ink);
+            foreach (var i in InkPointPaths)
             {
-                AddInk(i);
+                AddInkPoints(i);
             }
         }
 
-        private void GetInks()
+        private void GetInkPoints()
         {
             var count = fpdf_annot.FPDFAnnotGetInkListCount(Annotation);
             if (count == 0)
@@ -108,12 +154,15 @@ namespace ApplePDF.PdfKit.Annotation
                 if (!success)
                     throw new NotImplementedException();
                 var ink = new List<PointF>();
+                float minLimit = 0.001f;//读取的很小的值可能有问题,直接筛掉
                 foreach (var point in points)
                 {
-                    ink.Add(new PointF(point.X, point.Y));
+                    ink.Add(new PointF(point.X > minLimit ? point.X : 0f, point.Y > minLimit ? point.Y : 0f));
                 }
                 inks.Add(ink);
             }
         }
+
+        #endregion
     }
 }

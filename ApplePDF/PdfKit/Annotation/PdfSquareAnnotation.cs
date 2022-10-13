@@ -1,9 +1,10 @@
 ﻿using PDFiumCore;
+using System.Collections.Generic;
 using System.Drawing;
 
 namespace ApplePDF.PdfKit.Annotation
 {
-    public class PdfSquareAnnotation : PdfAnnotation, IFillColorAnnotation, IStrokeColorAnnotation
+    public class PdfSquareAnnotation : PdfAnnotation_ReadonlyPdfPageObj
     {
         public PdfSquareAnnotation()
             : base(PdfAnnotationSubtype.Square)
@@ -12,18 +13,30 @@ namespace ApplePDF.PdfKit.Annotation
 
         internal PdfSquareAnnotation(PdfPage page, FpdfAnnotationT annotation, PdfAnnotationSubtype type, int index) : base(page, annotation, type, index)
         {
-            var colors = GetFillAndStrokeColor();
-            FillColor = colors.FillColor;
-            StrokeColor = colors.StrokeColor;
+            var objectCount = fpdf_annot.FPDFAnnotGetObjectCount(Annotation);
+            if (objectCount > 0)
+            {
+                var pdfPageObjs = new PdfPageObj[objectCount];
+                PdfPageObjs = pdfPageObjs;
+                for (int objIndex = 0; objIndex < objectCount; objIndex++)
+                {
+                    var obj = fpdf_annot.FPDFAnnotGetObject(Annotation, 0);
+                    if (obj != null)
+                    {
+                        var objectType = fpdf_edit.FPDFPageObjGetType(obj);
+                        if (objectType == (int)PdfPageObjectTypeFlag.PATH)
+                        {
+                            pdfPageObjs[objIndex] = new PdfPagePathObj(obj);
+                        }
+                    }
+                }
+            }
         }
-
-        public Color? FillColor { get; private set; }
-
-        public Color? StrokeColor { get; private set; }
 
         internal override void AddToPage(PdfPage page)
         {
             base.AddToPage(page);
         }
+
     }
 }

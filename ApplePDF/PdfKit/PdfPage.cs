@@ -140,7 +140,7 @@ namespace ApplePDF.PdfKit
         public void AddAnnotation(PdfAnnotation annotation)
         {
             annotation.AddToPage(this);
-            Annotations.Add(annotation);
+            //Annotations.Add(annotation);
         }
 
         public PdfAnnotation GetAnnotations(PointF point)

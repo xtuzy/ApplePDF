@@ -100,6 +100,7 @@ namespace ApplePDF.PdfKit
                 Save(childDoc, stream);
             }
         }
+
         //TODO:find a way save big file by use small memory.
         public bool Save(PdfDocument doc, Stream stream, PdfSaveFlag saveFlag = PdfSaveFlag.NoIncremental)
         {
@@ -115,12 +116,12 @@ namespace ApplePDF.PdfKit
             }
         }
 
-        public bool Save(PdfDocument doc, string filePath)
+        public bool Save(PdfDocument doc, string filePath, PdfSaveFlag saveFlag = PdfSaveFlag.NoIncremental)
         {
             bool success;
             using (var stream = File.OpenWrite(filePath))
             {
-                success = Save(doc, stream);
+                success = Save(doc, stream, saveFlag);
             }
             return success;
         }
