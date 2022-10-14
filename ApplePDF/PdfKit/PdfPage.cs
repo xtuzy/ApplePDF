@@ -95,6 +95,7 @@ namespace ApplePDF.PdfKit
                     switch (annotationType)
                     {
                         case PdfAnnotationSubtype.Text:
+                            annotations.Add(new PdfTextAnnotation(this, annotation, annotationType, index));
                             break;
                         case PdfAnnotationSubtype.Link:
                             annotations.Add(new PdfLinkAnnotation(this, annotation, annotationType, index));

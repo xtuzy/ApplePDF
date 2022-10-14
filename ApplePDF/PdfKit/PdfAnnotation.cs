@@ -12,11 +12,11 @@ namespace ApplePDF.PdfKit
         const string TAG = nameof(PdfAnnotation);
 
         //参考:https://github.com/LibreOffice/core/blob/92cba30d5ce45e4f4a9516a80c9fe9915add6905/include/vcl/filter/PDFiumLibrary.hxx
-        public static string ConstDictionaryKeyTitle = "T";
-        public static string ConstDictionaryKeyContents = "Contents";
-        public static string ConstDictionaryKeyPopup = "Popup";
-        public static string ConstDictionaryKeyModificationDate = "M";
-        public static string ConstDictionaryKeyInteriorColor = "IC";
+        public const string ConstDictionaryKeyTitle = "T";
+        public const string ConstDictionaryKeyContents = "Contents";
+        public const string ConstDictionaryKeyPopup = "Popup";
+        public const string ConstDictionaryKeyModificationDate = "M";
+        public const string ConstDictionaryKeyInteriorColor = "IC";
 
         internal PdfAnnotation(PdfPage page, FpdfAnnotationT annotation, PdfAnnotationSubtype type, int index)
         {
@@ -53,7 +53,7 @@ namespace ApplePDF.PdfKit
         /// The annot 's edge box?
         /// I don't know the different of AnnotBox and Annot Points,maybe add point will auto update box?
         /// </summary>
-        public PdfRectangleF AnnotBox { get; set; }
+        public PdfRectangleF AnnotBox { get; set; } = PdfRectangleF.Empty;
 
         #endregion 用户设置
         internal virtual void AddToPage(PdfPage page)
@@ -62,20 +62,28 @@ namespace ApplePDF.PdfKit
 
             // 创建注释
             var annot = fpdf_annot.FPDFPageCreateAnnot(page.Page, (int)this.AnnotationType);
+            if (annot == null)
+            {
+                throw new NotImplementedException($"Cant't create new {AnnotationType} annotation");
+            }
             this.Annotation = annot;
             var index = fpdf_annot.FPDFPageGetAnnotIndex(page.Page, this.Annotation);
             this.Index = index;
             bool success = false;
 
             // 位置
-            success = fpdf_annot.FPDFAnnotSetRect(Annotation, new FS_RECTF_()
+            if(AnnotBox != PdfRectangleF.Empty)
             {
-                Left = AnnotBox.Left,
-                Top = AnnotBox.Top,
-                Right = AnnotBox.Right,
-                Bottom = AnnotBox.Bottom
-            }) == 1;
-            if (!success) new NotImplementedException($"{this.GetType()}:Set AnnotBox fail");
+                success = fpdf_annot.FPDFAnnotSetRect(Annotation, new FS_RECTF_()
+                {
+                    Left = AnnotBox.Left,
+                    Top = AnnotBox.Top,
+                    Right = AnnotBox.Right,
+                    Bottom = AnnotBox.Bottom
+                }) == 1;
+                if (!success) new NotImplementedException($"{this.GetType()}:Set AnnotBox fail");
+
+            }
 
             // Flag?
             //success = fpdf_annot.FPDFAnnotSetFlags(Annotation, 4) == 1;

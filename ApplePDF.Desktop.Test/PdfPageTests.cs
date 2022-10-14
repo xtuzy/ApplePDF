@@ -32,7 +32,7 @@ namespace ApplePDF.Test
         }
 
         [Theory]
-        [TestCase("Docs/simple_0.pdf")]
+        [TestCase("Docs/Docnet/simple_0.pdf")]
         public void PageIndex_WhenCalled_ShouldReturnCorrectIndex(string filePath)
         {
             var random = new Random();
@@ -46,7 +46,7 @@ namespace ApplePDF.Test
         }
 
         [Theory]
-        [TestCase("Docs/simple_6.pdf", "Horizontal", "Vertical")]
+        [TestCase("Docs/Docnet/simple_6.pdf", "Horizontal", "Vertical")]
         public void GetCharacters_WhenCalled_ShouldReturnCorrectCharacters(string filePath, string hopeFirstWord, string hopeSecondWord)
         {
             ExecuteForDocument(filePath, null, 0, pageReader =>
@@ -86,14 +86,14 @@ namespace ApplePDF.Test
         }
 
         [Theory]
-        [TestCase("Docs/simple_2.pdf", 1, "2")]
-        [TestCase("Docs/simple_2.pdf", 3, "4 CONTENTS")]
-        [TestCase("Docs/simple_4.pdf", 0, "")]
-        [TestCase("Docs/simple_5.pdf", 0, "test.md 11/11/2018\r\n1 / 1\r\nTest document")]
-        [TestCase("Docs/simple_2.pdf", 1, "2")]
-        [TestCase("Docs/simple_2.pdf", 3, "4 CONTENTS")]
-        [TestCase("Docs/simple_4.pdf", 0, "")]
-        [TestCase("Docs/simple_5.pdf", 0, "test.md 11/11/2018\r\n1 / 1\r\nTest document")]
+        [TestCase("Docs/Docnet/simple_2.pdf", 1, "2")]
+        [TestCase("Docs/Docnet/simple_2.pdf", 3, "4 CONTENTS")]
+        [TestCase("Docs/Docnet/simple_4.pdf", 0, "")]
+        [TestCase("Docs/Docnet/simple_5.pdf", 0, "test.md 11/11/2018\r\n1 / 1\r\nTest document")]
+        [TestCase("Docs/Docnet/simple_2.pdf", 1, "2")]
+        [TestCase("Docs/Docnet/simple_2.pdf", 3, "4 CONTENTS")]
+        [TestCase("Docs/Docnet/simple_4.pdf", 0, "")]
+        [TestCase("Docs/Docnet/simple_5.pdf", 0, "test.md 11/11/2018\r\n1 / 1\r\nTest document")]
         public void GetText_WhenCalled_ShouldReturnCorrectText(string filePath, int pageIndex, string expectedText)
         {
             ExecuteForDocument(filePath, null, pageIndex, pageReader =>
@@ -105,16 +105,16 @@ namespace ApplePDF.Test
         }
 
         [Theory]
-        [TestCase("Docs/simple_3.pdf", null, 1, "Simple PDF File 2")]
-        [TestCase("Docs/simple_3.pdf", null, 1, "Boring. More,")]
-        [TestCase("Docs/simple_3.pdf", null, 1, "The end, and just as well.")]
-        [TestCase("Docs/simple_0.pdf", null, 4, "ASCIIHexDecode")]
-        [TestCase("Docs/protected_0.pdf", "password", 0, "The Secret (2016 film)")]
-        [TestCase("Docs/simple_3.pdf", null, 1, "Simple PDF File 2")]
-        [TestCase("Docs/simple_3.pdf", null, 1, "Boring. More,")]
-        [TestCase("Docs/simple_3.pdf", null, 1, "The end, and just as well.")]
-        [TestCase("Docs/simple_0.pdf", null, 4, "ASCIIHexDecode")]
-        [TestCase("Docs/protected_0.pdf", "password", 0, "The Secret (2016 film)")]
+        [TestCase("Docs/Docnet/simple_3.pdf", null, 1, "Simple PDF File 2")]
+        [TestCase("Docs/Docnet/simple_3.pdf", null, 1, "Boring. More,")]
+        [TestCase("Docs/Docnet/simple_3.pdf", null, 1, "The end, and just as well.")]
+        [TestCase("Docs/Docnet/simple_0.pdf", null, 4, "ASCIIHexDecode")]
+        [TestCase("Docs/Docnet/protected_0.pdf", "password", 0, "The Secret (2016 film)")]
+        [TestCase("Docs/Docnet/simple_3.pdf", null, 1, "Simple PDF File 2")]
+        [TestCase("Docs/Docnet/simple_3.pdf", null, 1, "Boring. More,")]
+        [TestCase("Docs/Docnet/simple_3.pdf", null, 1, "The end, and just as well.")]
+        [TestCase("Docs/Docnet/simple_0.pdf", null, 4, "ASCIIHexDecode")]
+        [TestCase("Docs/Docnet/protected_0.pdf", "password", 0, "The Secret (2016 film)")]
         public void GetText_WhenCalled_ShouldContainCorrectText(string filePath, string password, int pageIndex, string expectedText)
         {
             ExecuteForDocument(filePath, password, pageIndex, pageReader =>
@@ -137,14 +137,14 @@ namespace ApplePDF.Test
         }
 
         [Theory]
-        [TestCase("Docs/simple_2.pdf", null, 1, 1)]
-        [TestCase("Docs/simple_2.pdf", null, 3, 10)]
-        [TestCase("Docs/simple_5.pdf", null, 0, 40)]
-        [TestCase("Docs/protected_0.pdf", "password", 0, 2009)]
-        [TestCase("Docs/simple_2.pdf", null, 1, 1)]
-        [TestCase("Docs/simple_2.pdf", null, 3, 10)]
-        [TestCase("Docs/simple_5.pdf", null, 0, 40)]
-        [TestCase("Docs/protected_0.pdf", "password", 0, 2009)]
+        [TestCase("Docs/Docnet/simple_2.pdf", null, 1, 1)]
+        [TestCase("Docs/Docnet/simple_2.pdf", null, 3, 10)]
+        [TestCase("Docs/Docnet/simple_5.pdf", null, 0, 40)]
+        [TestCase("Docs/Docnet/protected_0.pdf", "password", 0, 2009)]
+        [TestCase("Docs/Docnet/simple_2.pdf", null, 1, 1)]
+        [TestCase("Docs/Docnet/simple_2.pdf", null, 3, 10)]
+        [TestCase("Docs/Docnet/simple_5.pdf", null, 0, 40)]
+        [TestCase("Docs/Docnet/protected_0.pdf", "password", 0, 2009)]
         public void GetCharacters_WhenCalled_ShouldReturnCorrectCharactersLength(string filePath, string password, int pageIndex, int charCount)
         {
             ExecuteForDocument(filePath, password, pageIndex, pageReader =>
@@ -156,12 +156,12 @@ namespace ApplePDF.Test
         }
 
         [Theory]
-        [TestCase("Docs/simple_3.pdf", null, 1)]
-        [TestCase("Docs/simple_0.pdf", null, 18)]
-        [TestCase("Docs/protected_0.pdf", "password", 0)]
-        [TestCase("Docs/simple_3.pdf", null, 1)]
-        [TestCase("Docs/simple_0.pdf", null, 18)]
-        [TestCase("Docs/protected_0.pdf", "password", 0)]
+        [TestCase("Docs/Docnet/simple_3.pdf", null, 1)]
+        [TestCase("Docs/Docnet/simple_0.pdf", null, 18)]
+        [TestCase("Docs/Docnet/protected_0.pdf", "password", 0)]
+        [TestCase("Docs/Docnet/simple_3.pdf", null, 1)]
+        [TestCase("Docs/Docnet/simple_0.pdf", null, 18)]
+        [TestCase("Docs/Docnet/protected_0.pdf", "password", 0)]
         public void GetImage_WhenCalled_ShouldReturnNonZeroRawByteArray(string filePath, string password, int pageIndex)
         {
             ExecuteForDocument(filePath, password, pageIndex, pageReader =>
@@ -193,12 +193,12 @@ namespace ApplePDF.Test
         }
 
         [Theory]
-        [TestCase("Docs/simple_3.pdf", null, 1)]
-        [TestCase("Docs/simple_0.pdf", null, 18)]
-        [TestCase("Docs/protected_0.pdf", "password", 0)]
-        [TestCase("Docs/simple_3.pdf", null, 1)]
-        [TestCase("Docs/simple_0.pdf", null, 18)]
-        [TestCase("Docs/protected_0.pdf", "password", 0)]
+        [TestCase("Docs/Docnet/simple_3.pdf", null, 1)]
+        [TestCase("Docs/Docnet/simple_0.pdf", null, 18)]
+        [TestCase("Docs/Docnet/protected_0.pdf", "password", 0)]
+        [TestCase("Docs/Docnet/simple_3.pdf", null, 1)]
+        [TestCase("Docs/Docnet/simple_0.pdf", null, 18)]
+        [TestCase("Docs/Docnet/protected_0.pdf", "password", 0)]
         public void GetImageWithTransparentConverter_WhenCalled_ShouldReturnNonZeroRawByteArray(string filePath, string password, int pageIndex)
         {
             //ExecuteForDocument( filePath, password,  pageIndex, pageReader =>
@@ -214,11 +214,11 @@ namespace ApplePDF.Test
         [Theory]
         public void Reader_WhenCalledFromDifferentThreads_ShouldBeAbleToHandle()
         {
-            var task1 = Task.Run(() => InRange(GetNonZeroByteCount("Docs/simple_0.pdf", _fixture), 2000000, 2400000));
-            var task2 = Task.Run(() => InRange(GetNonZeroByteCount("Docs/simple_1.pdf", _fixture), 190000, 200000));
-            var task3 = Task.Run(() => InRange(GetNonZeroByteCount("Docs/simple_2.pdf", _fixture), 4500, 4900));
-            var task4 = Task.Run(() => InRange(GetNonZeroByteCount("Docs/simple_3.pdf", _fixture), 20000, 22000));
-            var task5 = Task.Run(() => InRange(GetNonZeroByteCount("Docs/simple_4.pdf", _fixture), 0, 0));
+            var task1 = Task.Run(() => InRange(GetNonZeroByteCount("Docs/Docnet/simple_0.pdf", _fixture), 2000000, 2400000));
+            var task2 = Task.Run(() => InRange(GetNonZeroByteCount("Docs/Docnet/simple_1.pdf", _fixture), 190000, 200000));
+            var task3 = Task.Run(() => InRange(GetNonZeroByteCount("Docs/Docnet/simple_2.pdf", _fixture), 4500, 4900));
+            var task4 = Task.Run(() => InRange(GetNonZeroByteCount("Docs/Docnet/simple_3.pdf", _fixture), 20000, 22000));
+            var task5 = Task.Run(() => InRange(GetNonZeroByteCount("Docs/Docnet/simple_4.pdf", _fixture), 0, 0));
 
             Task.WaitAll(task1, task2, task3, task4, task5);
         }
@@ -230,9 +230,9 @@ namespace ApplePDF.Test
         }
 
         [Theory]
-        [TestCase("Docs/simple_0.pdf", null, 1, 595, 841)]
-        [TestCase("Docs/simple_0.pdf", null, 10, 5953, 8419)]
-        [TestCase("Docs/simple_0.pdf", null, 15, 8929, 12628)]
+        [TestCase("Docs/Docnet/simple_0.pdf", null, 1, 595, 841)]
+        [TestCase("Docs/Docnet/simple_0.pdf", null, 10, 5953, 8419)]
+        [TestCase("Docs/Docnet/simple_0.pdf", null, 15, 8929, 12628)]
         public void GetSize_WhenCalledWithScalingFactor_ShouldMatch(string filePath, string password, double scaling, int expectedWidth, int expectedHeight)
         {
             ExecuteForDocument(filePath, password, 0, (Action<PdfPage>)(pageReader =>
@@ -249,7 +249,7 @@ namespace ApplePDF.Test
         [Test]
         public void GetImage_WhenCalledWithoutRenderAnnotationsFlag_ShouldNotRenderAnnotation()
         {
-            ExecuteForDocument("Docs/annotation_0.pdf", null, 0, pageReader =>
+            ExecuteForDocument("Docs/Docnet/annotation_0.pdf", null, 0, pageReader =>
            {
                var bytes = pageReader.Draw(1, 1, 0).ToArray();
                Assert.True(bytes.All(x => x == 0));
@@ -259,7 +259,7 @@ namespace ApplePDF.Test
         [Test]
         public void GetImage_WhenCalledWithRenderAnnotationsFlag_ShouldRenderAnnotation()
         {
-            ExecuteForDocument("Docs/annotation_0.pdf", null, 0, pageReader =>
+            ExecuteForDocument("Docs/Docnet/annotation_0.pdf", null, 0, pageReader =>
            {
                // verify pixel in center of image is the correct yellow color
                var bytes = pageReader.Draw(1, 1, (int)RenderFlags.RenderAnnotations).ToArray();
@@ -275,7 +275,7 @@ namespace ApplePDF.Test
         [Test]
         public void GetImage_WhenCalledWithRenderAnnotationsAndGrayscaleFlags_ShouldRenderAnnotationGrayscale()
         {
-            ExecuteForDocument("Docs/annotation_0.pdf", null, 0, pageReader =>
+            ExecuteForDocument("Docs/Docnet/annotation_0.pdf", null, 0, pageReader =>
            {
                // verify pixel in center of image is the correct gray color
                var bytes = pageReader.Draw(1, 1, (int)(RenderFlags.RenderAnnotations | RenderFlags.Grayscale)).ToArray();

@@ -7,7 +7,7 @@ namespace ApplePDF.PdfKit.Annotation
 {
     public class PdfHighlightAnnotation : PdfAnnotation_ReadonlyPdfPageObj, IColorAnnotation
     {
-        List<PdfRectangleF> HighlightLocation = new List<PdfRectangleF>();
+        public List<PdfRectangleF> HighlightLocation = new List<PdfRectangleF>();
 
         public PdfPopupAnnotation PopupAnnotation;
 
@@ -101,7 +101,11 @@ namespace ApplePDF.PdfKit.Annotation
                 X4 = rect.Right,
                 Y4 = rect.Bottom
             }) == 1;
-            if (success) HighlightLocation.Add(rect);
+            if (success)
+            {
+                if (!HighlightLocation.Contains(rect))
+                    HighlightLocation.Add(rect);
+            }
         }
 
         internal override void AddToPage(PdfPage page)
@@ -115,8 +119,8 @@ namespace ApplePDF.PdfKit.Annotation
                 if (!success)
                     throw new NotImplementedException($"{this.GetType()}:Set AnnotColor fail, Fails when called on annotations with appearance streams already defined; instead use FPDFPath_Set(Stroke|Fill)Color().");
             }
-
-            AppendAnnotationPoint(this.AnnotBox);
+            foreach (var rect in HighlightLocation)
+                AppendAnnotationPoint(rect);
         }
     }
 }

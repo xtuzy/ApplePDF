@@ -7,7 +7,7 @@ namespace ApplePDF.PdfKit.Annotation
 {
     public class PdfUnderlineAnnotation : PdfAnnotation, IColorAnnotation
     {
-        List<PdfRectangleF> UnderlineLocation = new List<PdfRectangleF>();
+        public List<PdfRectangleF> UnderlineLocation = new List<PdfRectangleF>();
         public PdfUnderlineAnnotation()
             : base(PdfAnnotationSubtype.Underline)
         {
@@ -16,7 +16,7 @@ namespace ApplePDF.PdfKit.Annotation
         internal PdfUnderlineAnnotation(PdfPage page, FpdfAnnotationT annotation, PdfAnnotationSubtype type, int index) : base(page, annotation, type, index)
         {
             var count = (int)fpdf_annot.FPDFAnnotCountAttachmentPoints(Annotation);
-            var success = count == 0;
+            var success = count != 0;
             if (!success) throw new NotImplementedException("No highlight points");
             var point = new FS_QUADPOINTSF();
             for (var i = 0; i < count; i++)
@@ -45,7 +45,11 @@ namespace ApplePDF.PdfKit.Annotation
                 X4 = rect.Right,
                 Y4 = rect.Bottom
             }) == 1;
-            if (success) UnderlineLocation.Add(rect);
+            if (success)
+            {
+                if (!UnderlineLocation.Contains(rect))
+                    UnderlineLocation.Add(rect);
+            }
         }
 
         internal override void AddToPage(PdfPage page)
@@ -53,7 +57,8 @@ namespace ApplePDF.PdfKit.Annotation
             base.AddToPage(page);
             if (Annotation != null)
                 SetAnnotColor(AnnotColor);
-            AppendAnnotationPoint(this.AnnotBox);
+            foreach (var rect in UnderlineLocation)
+                AppendAnnotationPoint(rect);
         }
     }
 }

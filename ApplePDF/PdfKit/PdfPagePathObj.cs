@@ -133,6 +133,30 @@ namespace ApplePDF.PdfKit
             }
         }
 
+        /// <summary>
+        /// return value see <see cref="PdfLineCap"/>. Maybe linecap have more type, so i return int.
+        /// </summary>
+        /// <returns>fail when return -1</returns>
+        public int GetLineCap()
+        {
+            return fpdf_edit.FPDFPageObjGetLineCap(PageObj);
+        }
+
+        public bool SetLineCap(PdfLineCap cap)
+        {
+            return fpdf_edit.FPDFPageObjSetLineCap(PageObj, (int)cap) == 1;
+        }
+
+        public PdfLineJoin GetLineJoin()
+        {
+            return (PdfLineJoin)fpdf_edit.FPDFPageObjGetLineJoin(PageObj);
+        }
+
+        public bool GetLineJoin(PdfLineJoin join)
+        {
+            return fpdf_edit.FPDFPageObjSetLineJoin(PageObj, (int)join) == 1;
+        }
+
         public static PdfPagePathObj Create(PointF startPoint)
         {
             //自己新建的需要标记tag,因为没有添加到pdf就需要主动释放资源

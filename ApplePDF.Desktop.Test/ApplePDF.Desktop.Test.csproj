@@ -22,7 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Docs\annotation_0.pdf">
+    <None Update="Docs\Docnet\annotation_0.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="Docs\mytest_4_freetextannotation.pdf">
@@ -52,34 +52,37 @@
     <None Update="Docs\mytest_edit_annotation.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="Docs\Pdfium\hello_world.pdf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Docs\Pdfium\ink_annot.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="Docs\Pdfium\line_annot.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Docs\protected_0.pdf">
+    <None Update="Docs\Docnet\protected_0.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Docs\simple_0.pdf">
+    <None Update="Docs\Docnet\simple_0.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Docs\simple_1.pdf">
+    <None Update="Docs\Docnet\simple_1.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Docs\simple_2.pdf">
+    <None Update="Docs\Docnet\simple_2.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Docs\simple_3.pdf">
+    <None Update="Docs\Docnet\simple_3.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Docs\simple_4.pdf">
+    <None Update="Docs\Docnet\simple_4.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Docs\simple_5.pdf">
+    <None Update="Docs\Docnet\simple_5.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Docs\simple_6.pdf">
+    <None Update="Docs\Docnet\simple_6.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="Docs\mytest_10_pagecount.pdf">

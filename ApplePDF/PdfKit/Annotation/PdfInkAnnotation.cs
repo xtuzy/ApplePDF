@@ -65,14 +65,14 @@ namespace ApplePDF.PdfKit.Annotation
                 foreach (PdfPageObj obj in PdfPageObjs)
                     AppendObjToAnnot(obj);
             }
-            /*else
+            else
             {
                 foreach (var i in InkPointPaths)
                 {
                     AddInkPoints(i);
                 }
                 SetAnnotColor(AnnotColor);
-            }*/
+            }
         }
 
         #region 使用InkList的Api
@@ -159,7 +159,7 @@ namespace ApplePDF.PdfKit.Annotation
                 {
                     ink.Add(new PointF(point.X > minLimit ? point.X : 0f, point.Y > minLimit ? point.Y : 0f));
                 }
-                inks.Add(ink);
+                inks.Add(ink); fpdf_annot.FPDFAnnotAddInkStroke
             }
         }
 

@@ -9,7 +9,6 @@ namespace ApplePDF.PdfKit.Annotation
     public class PdfLineAnnotation : PdfAnnotation_ReadonlyPdfPageObj
     {
         const string TAG = nameof(PdfLineAnnotation);
-
         public PdfLineAnnotation()
             : base(PdfAnnotationSubtype.Line)
         {

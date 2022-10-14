@@ -15,16 +15,16 @@ namespace ApplePDF.Test
         
         }
 
-        [TestCase("Docs/simple_0.pdf", null, 19)]
-        [TestCase("Docs/simple_0.pdf", null, 19)]
-        [TestCase("Docs/simple_1.pdf", null, 5)]
-        [TestCase("Docs/simple_1.pdf", null, 5)]
-        [TestCase("Docs/simple_2.pdf", null, 10)]
-        [TestCase("Docs/simple_2.pdf", null, 10)]
-        [TestCase("Docs/simple_3.pdf", null, 2)]
-        [TestCase("Docs/simple_3.pdf", null, 2)]
-        [TestCase("Docs/protected_0.pdf", "password", 3)]
-        [TestCase("Docs/protected_0.pdf", "password", 3)]
+        [TestCase("Docs/Docnet/simple_0.pdf", null, 19)]
+        [TestCase("Docs/Docnet/simple_0.pdf", null, 19)]
+        [TestCase("Docs/Docnet/simple_1.pdf", null, 5)]
+        [TestCase("Docs/Docnet/simple_1.pdf", null, 5)]
+        [TestCase("Docs/Docnet/simple_2.pdf", null, 10)]
+        [TestCase("Docs/Docnet/simple_2.pdf", null, 10)]
+        [TestCase("Docs/Docnet/simple_3.pdf", null, 2)]
+        [TestCase("Docs/Docnet/simple_3.pdf", null, 2)]
+        [TestCase("Docs/Docnet/protected_0.pdf", "password", 3)]
+        [TestCase("Docs/Docnet/protected_0.pdf", "password", 3)]
         public void PageCount_WhenCalled_ShouldReturnCorrectResults(string filePath, string password, int expectedCount)
         {
             using (var doc = _fixture.LoadPdfDocument(filePath, password))
@@ -38,7 +38,7 @@ namespace ApplePDF.Test
         [Test]
         public void PageCount_WhenCalledWhenDisposed_ShouldThrow()
         {
-            var doc = _fixture.LoadPdfDocument("Docs/simple_0.pdf", null);
+            var doc = _fixture.LoadPdfDocument("Docs/Docnet/simple_0.pdf", null);
             doc.Dispose();
 
             Assert.Throws<ObjectDisposedException>(() =>
@@ -47,17 +47,16 @@ namespace ApplePDF.Test
             });
         }
 
-
-        [TestCase("Docs/simple_0.pdf", null, 17)]
-        [TestCase("Docs/simple_0.pdf", null, 17)]
-        [TestCase("Docs/simple_1.pdf", null, 13)]
-        [TestCase("Docs/simple_1.pdf", null, 13)]
-        [TestCase("Docs/simple_2.pdf", null, 12)]
-        [TestCase("Docs/simple_2.pdf", null, 12)]
-        [TestCase("Docs/simple_3.pdf", null, 13)]
-        [TestCase("Docs/simple_3.pdf", null, 13)]
-        [TestCase("Docs/protected_0.pdf", "password", 17)]
-        [TestCase("Docs/protected_0.pdf", "password", 17)]
+        [TestCase("Docs/Docnet/simple_0.pdf", null, 17)]
+        [TestCase("Docs/Docnet/simple_0.pdf", null, 17)]
+        [TestCase("Docs/Docnet/simple_1.pdf", null, 13)]
+        [TestCase("Docs/Docnet/simple_1.pdf", null, 13)]
+        [TestCase("Docs/Docnet/simple_2.pdf", null, 12)]
+        [TestCase("Docs/Docnet/simple_2.pdf", null, 12)]
+        [TestCase("Docs/Docnet/simple_3.pdf", null, 13)]
+        [TestCase("Docs/Docnet/simple_3.pdf", null, 13)]
+        [TestCase("Docs/Docnet/protected_0.pdf", "password", 17)]
+        [TestCase("Docs/Docnet/protected_0.pdf", "password", 17)]
         public void MajorVersion_WhenCalled_ShouldReturnCorrectResults(string filePath, string password, int expectedVersion)
         {
             using (var doc = _fixture.LoadPdfDocument(filePath, password))
@@ -71,7 +70,7 @@ namespace ApplePDF.Test
         [Test]
         public void MajorVersion_WhenCalledWhenDisposed_ShouldThrow()
         {
-            var doc = _fixture.LoadPdfDocument("Docs/simple_0.pdf", null);
+            var doc = _fixture.LoadPdfDocument("Docs/Docnet/simple_0.pdf", null);
             doc.Dispose();
 
             Assert.Throws<ObjectDisposedException>(() =>
@@ -81,10 +80,10 @@ namespace ApplePDF.Test
         }
 
         [Theory]
-        [TestCase("Docs/protected_0.pdf", null, -3)]
-        [TestCase("Docs/protected_0.pdf", null, 10)]
-        [TestCase("Docs/protected_0.pdf", null, -3)]
-        [TestCase("Docs/protected_0.pdf", null, 10)]
+        [TestCase("Docs/Docnet/protected_0.pdf", null, -3)]
+        [TestCase("Docs/Docnet/protected_0.pdf", null, 10)]
+        [TestCase("Docs/Docnet/protected_0.pdf", null, -3)]
+        [TestCase("Docs/Docnet/protected_0.pdf", null, 10)]
         public void GetPage_WhenCalledWithInvalidFile_ShouldThrow(string filePath, string password, int pageIndex)
         {
             Assert.Throws<Exception>(() =>  {
@@ -96,10 +95,10 @@ namespace ApplePDF.Test
         }
 
         [Theory]
-        [TestCase("Docs/simple_0.pdf", null, -1)]
-        [TestCase("Docs/simple_0.pdf", null, 19)]
-        [TestCase("Docs/simple_0.pdf", null, -1)]
-        [TestCase("Docs/simple_0.pdf", null, 19)]
+        [TestCase("Docs/Docnet/simple_0.pdf", null, -1)]
+        [TestCase("Docs/Docnet/simple_0.pdf", null, 19)]
+        [TestCase("Docs/Docnet/simple_0.pdf", null, -1)]
+        [TestCase("Docs/Docnet/simple_0.pdf", null, 19)]
         public void GetPage_WhenCalledWithInvalidIndex_ShouldThrow(string filePath, string password, int pageIndex)
         {
             Assert.Throws<ArgumentOutOfRangeException>(() => {
@@ -110,11 +109,10 @@ namespace ApplePDF.Test
             });
         }
 
-
         [Test]
         public void GetPage_WhenCalledWhenDisposed_ShouldThrow()
         {
-            var doc = _fixture.LoadPdfDocument("Docs/simple_0.pdf", null);
+            var doc = _fixture.LoadPdfDocument("Docs/Docnet/simple_0.pdf", null);
             doc.Dispose();
 
             Assert.Throws<ObjectDisposedException>(() =>

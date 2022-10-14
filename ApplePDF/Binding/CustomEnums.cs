@@ -157,7 +157,7 @@
         FPDF_FONT_TRUETYPE = 2
     }
 
-    public enum LineCap
+    public enum PdfLineCap
     {
         FPDF_LINECAP_BUTT = 0,
         FPDF_LINECAP_ROUND = 1,

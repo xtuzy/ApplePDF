@@ -157,6 +157,7 @@ namespace ApplePDF.Test
         }
 
         [TestCase("Docs/mytest_edit_annotation.pdf", 100, 300, 200, 100, "#ff00ffff")]
+        [TestCase("Docs/Pdfium/hello_world.pdf", 100, 300, 200, 100, "#ff00ffff")]
         public void AddAnnotation_HighlightAnnotation_ShouldShowRectangle(string filePath, float left, float top, float right, float bottom, string expectColorStr)
         {
             var expectColor = System.Drawing.ColorTranslator.FromHtml(expectColorStr);
@@ -168,6 +169,7 @@ namespace ApplePDF.Test
                 var pageBounds = pageReader.GetSize();
                 annot.AnnotBox = PdfRectangleF.FromLTRB(left, top, right, bottom);
                 annot.AnnotColor = expectColor;
+                annot.HighlightLocation.Add(annot.AnnotBox);
                 pageReader.AddAnnotation(annot);
                 annot.Dispose();
                 Assert.AreEqual(1, pageReader.AnnotationCount);
@@ -189,8 +191,9 @@ namespace ApplePDF.Test
             });
         }
 
-        [TestCase("Docs/mytest_edit_annotation.pdf", "Hello 12345")]
-        public void AddAnnotation_FreeTextAnnotation_ShouldShowFreeText(string filePath, string exceptText)
+        [TestCase("Docs/mytest_edit_annotation.pdf", 35, 165, 53, 150, "Hello 12345")]
+        [TestCase("Docs/Pdfium/hello_world.pdf", 35, 165, 53, 150, "Hello 12345")]
+        public void AddAnnotation_FreeTextAnnotation_ShouldShowFreeText(string filePath, float left, float top, float right, float bottom, string exceptText)
         {
             ExecuteForDocument(filePath, null, 0, pageReader =>
             {
@@ -198,16 +201,8 @@ namespace ApplePDF.Test
                 Assert.AreEqual(0, annots.Count);
                 var annot = new PdfFreeTextAnnotation();
                 annot.Text = exceptText;
-                var pageBounds = pageReader.GetSize();
-                var annotSize = new SizeF(100, 100);
-                //居中
-                var left = pageBounds.Width / 2 - annotSize.Width / 2;
-                var top = pageBounds.Height / 2 + annotSize.Height / 2;
-                var right = pageBounds.Width / 2 + annotSize.Width / 2;
-                var bottom = pageBounds.Height / 2 - annotSize.Height / 2;
                 annot.AnnotBox = PdfRectangleF.FromLTRB(left, top, right, bottom);
                 pageReader.AddAnnotation(annot);
-                //annot.AppendAnnotationPoint(annot.AnnotBox);
                 annot.Dispose();
                 Assert.AreEqual(1, pageReader.AnnotationCount, "添加的注释数目为1");
                 var doc = pageReader.Document;
@@ -215,10 +210,88 @@ namespace ApplePDF.Test
             });
             ExecuteForDocument("Result.pdf", null, 0, pageReader =>
             {
+                var annot = pageReader.Annotations[0];
+                Assert.AreEqual(1, pageReader.Annotations.Count, "添加的注释数目为1");
+                Assert.AreEqual(PdfAnnotationSubtype.FreeText, annot.AnnotationType);
+                Assert.AreEqual(exceptText, (annot as PdfFreeTextAnnotation).Text, "注释中的文本应该一样");
+            });
+        }
+
+        [TestCase("Docs/mytest_edit_annotation.pdf", 35, 165, 53, 150, "Hello! This is a customized content.好", "Red")]
+        [TestCase("Docs/Pdfium/hello_world.pdf", 35, 165, 53, 150, "Hello! This is a customized content.", "Red")]
+        public void AddAnnotation_TextAnnotation_ShouldShowText(string filePath, float left, float top, float right, float bottom, string exceptText, string colorName)
+        {
+            var expectColor = Color.FromName(colorName);
+            ExecuteForDocument(filePath, null, 0, pageReader =>
+            {
                 var annots = pageReader.Annotations;
-                Assert.AreEqual(1, annots.Count, "添加的注释数目为1");
-                Assert.AreEqual(PdfAnnotationSubtype.FreeText, annots[0].AnnotationType);
-                Assert.AreNotEqual((annots[0] as PdfFreeTextAnnotation).Text, exceptText, "注释中的文本应该一样");
+                Assert.AreEqual(0, annots.Count);
+                var annot = new PdfTextAnnotation();
+                annot.Text = exceptText;
+                annot.AnnotBox = PdfRectangleF.FromLTRB(left, top, right, bottom);
+                annot.AnnotColor = expectColor;
+                pageReader.AddAnnotation(annot);
+                annot.Dispose();
+                Assert.AreEqual(1, pageReader.AnnotationCount, "添加的注释数目为1");
+                var doc = pageReader.Document;
+                Pdfium.Instance.Save(doc, "Result.pdf");
+            });
+            ExecuteForDocument("Result.pdf", null, 0, pageReader =>
+            {
+                var annot = pageReader.Annotations[0];
+                Assert.AreEqual(1, pageReader.Annotations.Count, "添加的注释数目为1");
+                Assert.AreEqual(PdfAnnotationSubtype.Text, annot.AnnotationType);
+                Assert.IsTrue(expectColor.IsEqual((annot as PdfTextAnnotation).AnnotColor.Value));
+                Assert.AreEqual(exceptText, (annot as PdfTextAnnotation).Text, "注释中的文本应该一样");
+            });
+        }
+
+        [TestCase("Docs/mytest_edit_annotation.pdf", 100, 300, 200, 100, "Red")]
+        [TestCase("Docs/Pdfium/hello_world.pdf", 100, 300, 200, 100, "Red")]
+        public void AddAnnotation_UnderlineAnnotation_ShouldShowUnderline(string filePath, float left, float top, float right, float bottom, string colorName)
+        {
+            var expectColor = Color.FromName(colorName);
+            ExecuteForDocument(filePath, null, 0, pageReader =>
+            {
+                var annots = pageReader.Annotations;
+                Assert.AreEqual(0, annots.Count);
+                var annot = new PdfUnderlineAnnotation();
+                var rects = pageReader.GetCharactersBounds(0, 10);
+                annot.AnnotBox = PdfRectangleF.FromLTRB(left, top, right, bottom);
+                annot.UnderlineLocation.AddRange(rects);
+                annot.AnnotColor = expectColor;
+                pageReader.AddAnnotation(annot);
+                annot.Dispose();
+                Assert.AreEqual(1, pageReader.AnnotationCount, "添加的注释数目为1");
+                Assert.AreEqual(PdfAnnotationSubtype.Underline, pageReader.Annotations[0].AnnotationType, "添加的注释数目为1");
+                var doc = pageReader.Document;
+                Pdfium.Instance.Save(doc, "Result.pdf");
+            });
+            ExecuteForDocument("Result.pdf", null, 0, pageReader =>
+            {
+                var annot = pageReader.Annotations[0];
+                Assert.AreEqual(1, pageReader.Annotations.Count, "添加的注释数目为1");
+                Assert.AreEqual(PdfAnnotationSubtype.Underline, annot.AnnotationType);
+                Assert.IsTrue(expectColor.IsEqual((annot as PdfUnderlineAnnotation).AnnotColor.Value));
+            });
+        }
+
+        [TestCase("Docs/mytest_edit_annotation.pdf", 100, 300, 200, 100, "Red")]
+        [TestCase("Docs/Pdfium/hello_world.pdf", 100, 300, 200, 100, "Red")]
+        public void AddAnnotation_LineAnnotation_ShouldThrowNotImplementedException(string filePath, float left, float top, float right, float bottom, string colorName)
+        {
+            var expectColor = Color.FromName(colorName);
+            ExecuteForDocument(filePath, null, 0, pageReader =>
+            {
+                var annots = pageReader.Annotations;
+                Assert.AreEqual(0, annots.Count);
+                var annot = new PdfLineAnnotation();
+                var rects = pageReader.GetCharactersBounds(0, 10);
+                annot.AnnotBox = PdfRectangleF.FromLTRB(left, top, right, bottom);
+                Assert.Catch<NotImplementedException>(() =>
+                {
+                    pageReader.AddAnnotation(annot);
+                });
             });
         }
 
@@ -236,11 +309,12 @@ namespace ApplePDF.Test
                 annot.AnnotColor = exceptColor;
                 annot.InkPointPaths = new List<List<PointF>>()
                 {
-                    new List<PointF>(){new PointF(annot.AnnotBox.Left,annot.AnnotBox.Top), new PointF(annot.AnnotBox.Right, annot.AnnotBox.Bottom),new PointF(100,100) },
-                };
+                    new List<PointF>(){new PointF(annot.AnnotBox.Left, annot.AnnotBox.Top), new PointF(annot.AnnotBox.Right, annot.AnnotBox.Bottom),new PointF(100, 100) },
+                 };
                 pageReader.AddAnnotation(annot);
                 annot.Dispose();
                 Assert.AreEqual(1, pageReader.AnnotationCount);
+                annots = pageReader.Annotations;
                 var doc = pageReader.Document;
                 Pdfium.Instance.Save(doc, "Result.pdf");
             });
@@ -301,7 +375,7 @@ namespace ApplePDF.Test
             {
                 var text = pageReader.Text;
                 var firstAnnot = pageReader.Annotations[0] as PdfInkAnnotation;
-                var pointPaths =  firstAnnot.InkPointPaths;
+                var pointPaths = firstAnnot.InkPointPaths;
                 //颜色
                 var objs = firstAnnot.PdfPageObjs as List<PdfPageObj>;
                 Assert.IsNotNull(objs);
@@ -358,7 +432,7 @@ namespace ApplePDF.Test
                 var firstAnnot = annots[0] as PdfInkAnnotation;
                 var pointPaths = firstAnnot.InkPointPaths;
                 Assert.AreEqual(1, pointPaths.Count);
-               foreach(var annot in annots)
+                foreach (var annot in annots)
                 {
                     var temp = annot as PdfInkAnnotation;
                     temp.PdfPageObjs = null;
@@ -442,14 +516,14 @@ namespace ApplePDF.Test
                         }
                     }
                 }
-                //firstAnnot.PdfPageObjs = null;
+                firstAnnot.PdfPageObjs = null;
                 firstAnnot.Dispose();
             });
         }
 
         [TestCase("Docs/mytest_5_inkannotation.pdf", 5, "Red")]
         [TestCase("Docs/Pdfium/ink_annot.pdf", 2, "Red")]
-        public void InkAnnot_PdfPageObjs_Set_WhenCalled_ShouldSetInfoForInk(string filePath, int inkCount, string colorName)
+        public void InkAnnot_PdfPageObjs_UpdateColor_WhenCalled_ShouldSetInfoForInk(string filePath, int inkCount, string colorName)
         {
             var exceptColor = Color.FromName(colorName);
             ExecuteForDocument(filePath, null, 0, pageReader =>
@@ -500,9 +574,9 @@ namespace ApplePDF.Test
 
         #region LineAnnotation
 
-        [TestCase("Docs/mytest_4_lineannotation.pdf",110,715,179,721)]
+        [TestCase("Docs/mytest_4_lineannotation.pdf", 110, 715, 179, 721)]
         [TestCase("Docs/Pdfium/line_annot.pdf", 159, 296, 472, 243)]
-        public void LineAnnot_StartLocation_ShouldGetLinePosition(string filePath, int x1, int y1,int x2,int y2)
+        public void LineAnnot_Get_StartLocation_ShouldGetLinePosition(string filePath, int x1, int y1, int x2, int y2)
         {
             ExecuteForDocument(filePath, null, 0, pageReader =>
             {

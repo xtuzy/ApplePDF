@@ -36,5 +36,32 @@ namespace ApplePDF.PdfKit
         {
             return IsContainPoint(new PointF(x1, y1));
         }
+
+        /// <include file='doc\Rectangle.uex' path='docs/doc[@for="Rectangle.operator=="]/*' />
+        /// <devdoc>
+        ///    <para>
+        ///       Tests whether two <see cref='System.Drawing.Rectangle'/>
+        ///       objects have equal location and size.
+        ///    </para>
+        /// </devdoc>
+        public static bool operator ==(PdfRectangleF left, PdfRectangleF right)
+        {
+            return (left.Left == right.Left
+                    && left.Top == right.Top
+                    && left.Right == right.Right
+                    && left.Bottom == right.Bottom);
+        }
+
+        /// <include file='doc\Rectangle.uex' path='docs/doc[@for="Rectangle.operator!="]/*' />
+        /// <devdoc>
+        ///    <para>
+        ///       Tests whether two <see cref='System.Drawing.Rectangle'/>
+        ///       objects differ in location or size.
+        ///    </para>
+        /// </devdoc>
+        public static bool operator !=(PdfRectangleF left, PdfRectangleF right)
+        {
+            return !(left == right);
+        }
     }
 }

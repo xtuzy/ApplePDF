@@ -1,7 +1,7 @@
 ﻿using PDFiumCore;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
 using System.Text;
 
 namespace ApplePDF.PdfKit.Annotation
@@ -9,11 +9,11 @@ namespace ApplePDF.PdfKit.Annotation
     /// <summary>
     /// A free text annotation (PDF 1.3) displays text directly on the page. Unlike an ordinary text annotation (see PdfTextAnnotation), a free text annotation has no open or closed state; instead of being displayed in a pop-up window, the text is always visible.
     /// </summary>
-    public class PdfFreeTextAnnotation : PdfAnnotation_ReadonlyPdfPageObj
+    public class PdfTextAnnotation : PdfAnnotation, IColorAnnotation
     {
-        private const string TAG = nameof(PdfFreeTextAnnotation);
-        public PdfFreeTextAnnotation()
-            : base(PdfAnnotationSubtype.FreeText)
+        private const string TAG = nameof(PdfTextAnnotation);
+        public PdfTextAnnotation()
+            : base(PdfAnnotationSubtype.Text)
         {
             // Set some default
             // TextFont = "Arial";
@@ -28,7 +28,7 @@ namespace ApplePDF.PdfKit.Annotation
         /// <param name="type"></param>
         /// <param name="index"></param>
         /// <exception cref="NotImplementedException"></exception>
-        internal PdfFreeTextAnnotation(PdfPage page, FpdfAnnotationT annotation, PdfAnnotationSubtype type, int index) : base(page, annotation, type, index)
+        internal PdfTextAnnotation(PdfPage page, FpdfAnnotationT annotation, PdfAnnotationSubtype type, int index) : base(page, annotation, type, index)
         {
             // 先尝试使用StringValue获取文本，当返回2时就是没有
             ushort[] buffer = new ushort[1];
@@ -52,27 +52,13 @@ namespace ApplePDF.PdfKit.Annotation
                 }
             }
 
-            var objectCount = fpdf_annot.FPDFAnnotGetObjectCount(Annotation);
-            if (objectCount > 0)
-            {
-                var pdfPageObjs = new PdfPageObj[objectCount];
-                PdfPageObjs = pdfPageObjs;
-                for (int objIndex = 0; objIndex < objectCount; objIndex++)
-                {
-                    var obj = fpdf_annot.FPDFAnnotGetObject(Annotation, 0);
-                    if (obj != null)
-                    {
-                        var objectType = fpdf_edit.FPDFPageObjGetType(obj);
-                        if (objectType == (int)PdfPageObjectTypeFlag.TEXT)
-                        {
-                            pdfPageObjs[objIndex] = new PdfPageTextObj(obj);
-                        }
-                    }
-                }
-            }
+            //颜色
+            AnnotColor = GetAnnotColor();
         }
 
         public string? Text { get; set; }
+
+        public Color? AnnotColor { get; set; }
 
         internal override void AddToPage(PdfPage page)
         {
@@ -88,6 +74,8 @@ namespace ApplePDF.PdfKit.Annotation
             var success = fpdf_annot.FPDFAnnotSetStringValue(Annotation, ConstDictionaryKeyContents, ref value[0]) == 1;
             if (!success)
                 throw new InvalidOperationException($"{TAG}:Set free text fail");
+
+            SetAnnotColor(AnnotColor);
         }
     }
 }
