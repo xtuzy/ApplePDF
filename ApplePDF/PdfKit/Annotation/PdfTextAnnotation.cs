@@ -32,7 +32,7 @@ namespace ApplePDF.PdfKit.Annotation
         {
             // 先尝试使用StringValue获取文本，当返回2时就是没有
             ushort[] buffer = new ushort[1];
-            var resultBytesLength = fpdf_annot.FPDFAnnotGetStringValue(Annotation, ConstDictionaryKeyContents, ref buffer[0], (uint)0);
+            var resultBytesLength = fpdf_annot.FPDFAnnotGetStringValue(Annotation, PdfAnnotation.KeyConstant.Common.kContents, ref buffer[0], (uint)0);
             if (resultBytesLength == 0)
             {
                 throw new NotImplementedException($"{TAG}:Create PdfFreeTextAnnotation fail, no reason return.");
@@ -44,7 +44,7 @@ namespace ApplePDF.PdfKit.Annotation
             else
             {
                 buffer = new ushort[resultBytesLength];
-                resultBytesLength = fpdf_annot.FPDFAnnotGetStringValue(Annotation, ConstDictionaryKeyContents, ref buffer[0], (uint)buffer.Length);
+                resultBytesLength = fpdf_annot.FPDFAnnotGetStringValue(Annotation, PdfAnnotation.KeyConstant.Common.kContents, ref buffer[0], (uint)buffer.Length);
                 unsafe
                 {
                     fixed (ushort* dataPtr = &buffer[0])
@@ -71,7 +71,7 @@ namespace ApplePDF.PdfKit.Annotation
             Buffer.BlockCopy(bytes, 0, value, 0, bytes.Length);
 
             //设置注释本身的StringValue
-            var success = fpdf_annot.FPDFAnnotSetStringValue(Annotation, ConstDictionaryKeyContents, ref value[0]) == 1;
+            var success = fpdf_annot.FPDFAnnotSetStringValue(Annotation, PdfAnnotation.KeyConstant.Common.kContents, ref value[0]) == 1;
             if (!success)
                 throw new InvalidOperationException($"{TAG}:Set free text fail");
 

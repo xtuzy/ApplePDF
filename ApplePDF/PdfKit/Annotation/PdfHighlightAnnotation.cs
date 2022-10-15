@@ -37,7 +37,7 @@ namespace ApplePDF.PdfKit.Annotation
                 PopupAnnotation = new PdfPopupAnnotation(this);
                 // Get Text
                 var buffer = new ushort[100];
-                var result = fpdf_annot.FPDFAnnotGetStringValue(annotation, ConstDictionaryKeyContents, ref buffer[0], (uint)buffer.Length);
+                var result = fpdf_annot.FPDFAnnotGetStringValue(annotation, PdfAnnotation.KeyConstant.Common.kContents, ref buffer[0], (uint)buffer.Length);
                 if (result == 0)
                 {
                     throw new NotImplementedException();

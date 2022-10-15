@@ -11,12 +11,31 @@ namespace ApplePDF.PdfKit
     {
         const string TAG = nameof(PdfAnnotation);
 
-        //参考:https://github.com/LibreOffice/core/blob/92cba30d5ce45e4f4a9516a80c9fe9915add6905/include/vcl/filter/PDFiumLibrary.hxx
-        public const string ConstDictionaryKeyTitle = "T";
-        public const string ConstDictionaryKeyContents = "Contents";
-        public const string ConstDictionaryKeyPopup = "Popup";
-        public const string ConstDictionaryKeyModificationDate = "M";
-        public const string ConstDictionaryKeyInteriorColor = "IC";
+        /// <summary>
+        /// 参考:https://github.com/chromium/pdfium/blob/main/constants/annotation_common.h.
+        /// Pdfium测试中获取和设置文本时使用了<see cref="KeyConstant.Common.KContents"/>, 我对照Pdf Reference 1.7 的8.4节搬运了些.
+        /// 
+        /// </summary>
+        public class KeyConstant
+        {
+            public class Common
+            {
+                public const string kType = "Type";
+                public const string kSubtype = "Subtype";
+                public const string kRect = "Rect";
+                public const string kContents = "Contents";
+                public const string kP = "P";
+                public const string kNM = "NM";
+                public const string kM = "M";
+                public const string kF = "F";
+                public const string kAP = "AP";
+                public const string kAS = "AS";
+                public const string kBorder = "Border";
+                public const string kC = "C";
+                public const string kStructParent = "StructParent";
+                public const string kOC = "OC";
+            }
+        }
 
         internal PdfAnnotation(PdfPage page, FpdfAnnotationT annotation, PdfAnnotationSubtype type, int index)
         {
@@ -24,7 +43,6 @@ namespace ApplePDF.PdfKit
             this.Annotation = annotation;
             this.AnnotationType = type;
             this.Index = index;
-
             // 位置
             var position = new FS_RECTF_();
             var success = fpdf_annot.FPDFAnnotGetRect(Annotation, position) == 1;
