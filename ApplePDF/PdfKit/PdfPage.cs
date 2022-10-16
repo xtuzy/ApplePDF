@@ -73,69 +73,73 @@ namespace ApplePDF.PdfKit
 
         #region 注释
 
-        public int AnnotationCount
+        public int AnnotationCount => fpdf_annot.FPDFPageGetAnnotCount(Page);
+
+        public List<PdfAnnotation> GetAnnotations()
         {
-            get
+            var count = AnnotationCount;
+            List<PdfAnnotation> annotations = new List<PdfAnnotation>();
+
+            for (var index = 0; index < count; index++)
             {
-                return fpdf_annot.FPDFPageGetAnnotCount(Page);
+                var annot = GetAnnotation(index);
+                if (annot != null)
+                    annotations.Add(annot);
             }
+            return annotations;
         }
 
-        public List<PdfAnnotation> Annotations
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="index">form 0 to <see cref="AnnotationCount"></param>
+        /// <returns></returns>
+        public PdfAnnotation GetAnnotation(int index)
         {
-            get
+            var annotation = fpdf_annot.FPDFPageGetAnnot(this.Page, index);
+            var annotationType = (PdfAnnotationSubtype)fpdf_annot.FPDFAnnotGetSubtype(annotation);
+            switch (annotationType)
             {
-                var count = fpdf_annot.FPDFPageGetAnnotCount(Page);
-                List<PdfAnnotation> annotations = new List<PdfAnnotation>();
-
-                for (var index = 0; index < count; index++)
-                {
-                    var annotation = fpdf_annot.FPDFPageGetAnnot(this.Page, index);
-                    var annotationType = (PdfAnnotationSubtype)fpdf_annot.FPDFAnnotGetSubtype(annotation);
-                    switch (annotationType)
-                    {
-                        case PdfAnnotationSubtype.Text:
-                            annotations.Add(new PdfTextAnnotation(this, annotation, annotationType, index));
-                            break;
-                        case PdfAnnotationSubtype.Link:
-                            annotations.Add(new PdfLinkAnnotation(this, annotation, annotationType, index));
-                            break;
-                        case PdfAnnotationSubtype.FreeText:
-                            annotations.Add(new PdfFreeTextAnnotation(this, annotation, annotationType, index));
-                            break;
-                        case PdfAnnotationSubtype.Line:
-                            annotations.Add(new PdfLineAnnotation(this, annotation, annotationType, index));
-                            break;
-                        case PdfAnnotationSubtype.Square:
-                            annotations.Add(new PdfSquareAnnotation(this, annotation, annotationType, index));
-                            break;
-                        case PdfAnnotationSubtype.Circle:
-                            annotations.Add(new PdfCircleAnnotation(this, annotation, annotationType, index));
-                            break;
-                        case PdfAnnotationSubtype.Highlight:
-                            annotations.Add(new PdfHighlightAnnotation(this, annotation, annotationType, index));
-                            break;
-                        case PdfAnnotationSubtype.Underline:
-                            annotations.Add(new PdfUnderlineAnnotation(this, annotation, annotationType, index));
-                            break;
-                        case PdfAnnotationSubtype.StrikeOut:
-                            break;
-                        case PdfAnnotationSubtype.Ink:
-                            annotations.Add(new PdfInkAnnotation(this, annotation, annotationType, index));
-                            break;
-                        case PdfAnnotationSubtype.Stamp:
-                            annotations.Add(new PdfStampAnnotation(this, annotation, annotationType, index));
-                            break;
-                        case PdfAnnotationSubtype.Popup://Popup附着在其它注释上
-                            //annotations.Add(new PdfPopupAnnotation(this, annotation, annotationType, index));
-                            break;
-                        case PdfAnnotationSubtype.Widget:
-                            annotations.Add(new PdfWidgetAnnotation(this, annotation, annotationType, index));
-                            break;
-                    }
-                }
-                return annotations;
+                case PdfAnnotationSubtype.Text:
+                    return new PdfTextAnnotation(this, annotation, annotationType, index);
+                    break;
+                case PdfAnnotationSubtype.Link:
+                    return new PdfLinkAnnotation(this, annotation, annotationType, index);
+                    break;
+                case PdfAnnotationSubtype.FreeText:
+                    return new PdfFreeTextAnnotation(this, annotation, annotationType, index);
+                    break;
+                case PdfAnnotationSubtype.Line:
+                    return new PdfLineAnnotation(this, annotation, annotationType, index);
+                    break;
+                case PdfAnnotationSubtype.Square:
+                    return new PdfSquareAnnotation(this, annotation, annotationType, index);
+                    break;
+                case PdfAnnotationSubtype.Circle:
+                    return new PdfCircleAnnotation(this, annotation, annotationType, index);
+                    break;
+                case PdfAnnotationSubtype.Highlight:
+                    return new PdfHighlightAnnotation(this, annotation, annotationType, index);
+                    break;
+                case PdfAnnotationSubtype.Underline:
+                    return new PdfUnderlineAnnotation(this, annotation, annotationType, index);
+                    break;
+                case PdfAnnotationSubtype.StrikeOut:
+                    break;
+                case PdfAnnotationSubtype.Ink:
+                    return new PdfInkAnnotation(this, annotation, annotationType, index);
+                    break;
+                case PdfAnnotationSubtype.Stamp:
+                    return new PdfStampAnnotation(this, annotation, annotationType, index);
+                    break;
+                case PdfAnnotationSubtype.Popup://Popup附着在其它注释上
+                                                //annotations.Add(new PdfPopupAnnotation(this, annotation, annotationType, index));
+                    break;
+                case PdfAnnotationSubtype.Widget:
+                    return new PdfWidgetAnnotation(this, annotation, annotationType, index);
+                    break;
             }
+            return null;
         }
 
         public void AddAnnotation(PdfAnnotation annotation)
@@ -635,10 +639,10 @@ namespace ApplePDF.PdfKit
         {
             lock (@lock)
             {
-                if (TextPage != null)
+                if (textPage != null)
                 {
-                    fpdf_text.FPDFTextClosePage(TextPage);
-                    TextPage = null;
+                    fpdf_text.FPDFTextClosePage(textPage);
+                    textPage = null;
                 }
                 if (page != null)
                 {

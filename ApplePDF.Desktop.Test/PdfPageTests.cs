@@ -320,8 +320,7 @@ namespace ApplePDF.Test
         {
             ExecuteForDocument(filePath, null, 0, pageReader =>
             {
-                var annots = pageReader.Annotations;
-                Assert.AreEqual(annotationsCount, annots.Count);
+                Assert.AreEqual(annotationsCount, pageReader.AnnotationCount);
             });
         }
 
@@ -330,8 +329,7 @@ namespace ApplePDF.Test
         {
             ExecuteForDocument(filePath, null, 0, pageReader =>
             {
-                var annots = pageReader.Annotations;
-                var isContain = (annots[0] as PdfHighlightAnnotation).PopupAnnotation.Text.Contains(text);
+                var isContain = (pageReader.GetAnnotation(0) as PdfHighlightAnnotation).PopupAnnotation.Text.Contains(text);
                 Assert.AreEqual(true, isContain);
             });
         }

@@ -1,4 +1,6 @@
-﻿namespace PDFiumCore
+﻿using static System.Net.WebRequestMethods;
+
+namespace PDFiumCore
 {
     /// <summary>
     /// More DIB formats,Use at FPDFBitmap_CreateEx.
@@ -114,7 +116,6 @@
     /// </summary>
     public enum PdfColorSpaceFlag
     {
-
         UNKNOWN = 0,
         DEVICEGRAY = 1,
         DEVICERGB = 2,
@@ -242,6 +243,26 @@
         /// same size and stroke weight as lowercase glyphs in the same typeface family.
         /// </summary>
         ForceBold = 19
+    }
+    #endregion
+
+    #region fpdfview
+
+    /// <summary>
+    /// 参考 <see href="https://github.com/chromium/pdfium/blob/main/public/fpdfview.h"/> 
+    /// </summary>
+    public enum PdfObjectType
+    {
+        FPDF_OBJECT_UNKNOWN,
+        FPDF_OBJECT_BOOLEAN,
+        FPDF_OBJECT_NUMBER,
+        FPDF_OBJECT_STRING,
+        FPDF_OBJECT_NAME,
+        FPDF_OBJECT_ARRAY,
+        FPDF_OBJECT_DICTIONARY,
+        FPDF_OBJECT_STREAM,
+        FPDF_OBJECT_NULLOBJ,
+        FPDF_OBJECT_REFERENCE
     }
     #endregion
 }

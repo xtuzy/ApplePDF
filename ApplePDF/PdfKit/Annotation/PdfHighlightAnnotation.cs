@@ -37,7 +37,7 @@ namespace ApplePDF.PdfKit.Annotation
                 PopupAnnotation = new PdfPopupAnnotation(this);
                 // Get Text
                 var buffer = new ushort[100];
-                var result = fpdf_annot.FPDFAnnotGetStringValue(annotation, PdfAnnotation.KeyConstant.Common.kContents, ref buffer[0], (uint)buffer.Length);
+                var result = fpdf_annot.FPDFAnnotGetStringValue(annotation, PdfAnnotation.Constant.CommonKey.kContents, ref buffer[0], (uint)buffer.Length);
                 if (result == 0)
                 {
                     throw new NotImplementedException();
@@ -60,27 +60,6 @@ namespace ApplePDF.PdfKit.Annotation
 
             // 先尝试最简单的方式获取颜色
             AnnotColor = GetAnnotColor();
-            if (AnnotColor == null)
-            {
-                var objectCount = fpdf_annot.FPDFAnnotGetObjectCount(Annotation);
-                if (objectCount > 0)
-                {
-                    var pdfPageObjs = new PdfPageObj[objectCount];
-                    PdfPageObjs = pdfPageObjs;
-                    for (int objIndex = 0; objIndex < objectCount; objIndex++)
-                    {
-                        var obj = fpdf_annot.FPDFAnnotGetObject(Annotation, 0);
-                        if (obj != null)
-                        {
-                            var objectType = fpdf_edit.FPDFPageObjGetType(obj);
-                            if (objectType == (int)PdfPageObjectTypeFlag.PATH)
-                            {
-                                pdfPageObjs[objIndex] = new PdfPagePathObj(obj);
-                            }
-                        }
-                    }
-                }
-            }
         }
 
         /// <summary>

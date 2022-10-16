@@ -119,7 +119,7 @@ namespace ApplePDF.PdfKit
         public bool Save(PdfDocument doc, string filePath, PdfSaveFlag saveFlag = PdfSaveFlag.NoIncremental)
         {
             bool success;
-            using (var stream = File.OpenWrite(filePath))
+            using (var stream = new FileStream(filePath, FileMode.Create))
             {
                 success = Save(doc, stream, saveFlag);
             }

@@ -10,7 +10,7 @@ namespace ApplePDF.PdfKit
         /// <summary>
         /// iOS:Gets an array that contains all the annotations on the PDF page.
         /// </summary>
-        List<PdfAnnotation> Annotations { get; }
+        List<PdfAnnotation> GetAnnotations();
         //NSAttributedString? AttributedString { get; }
         /// <summary>
         /// iOS:Gets the number of characters in the text content of the PDF page.

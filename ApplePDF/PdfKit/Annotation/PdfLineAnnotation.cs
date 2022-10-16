@@ -26,26 +26,6 @@ namespace ApplePDF.PdfKit.Annotation
                 StartLocation = new PointF(start.X, start.Y);
                 EndLocation = new PointF(end.X, end.Y);
             }
-
-            //More line detail,比如箭头
-            var objectCount = fpdf_annot.FPDFAnnotGetObjectCount(Annotation);
-            if (objectCount > 0)
-            {
-                var pdfPageObjs = new PdfPageObj[objectCount];
-                PdfPageObjs = pdfPageObjs;
-                for (int objIndex = 0; objIndex < objectCount; objIndex++)
-                {
-                    var obj = fpdf_annot.FPDFAnnotGetObject(Annotation, 0);
-                    if (obj != null)
-                    {
-                        var objectType = fpdf_edit.FPDFPageObjGetType(obj);
-                        if (objectType == (int)PdfPageObjectTypeFlag.PATH)
-                        {
-                            pdfPageObjs[objIndex] = new PdfPagePathObj(obj);
-                        }
-                    }
-                }
-            }
         }
 
         public PointF StartLocation { get; private set; }

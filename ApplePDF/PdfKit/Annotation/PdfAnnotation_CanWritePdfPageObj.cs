@@ -14,6 +14,38 @@ namespace ApplePDF.PdfKit.Annotation
 
         internal PdfAnnotation_CanWritePdfPageObj(PdfPage page, FpdfAnnotationT annotation, PdfAnnotationSubtype type, int index) : base(page, annotation, type, index)
         {
+            var objectCount = fpdf_annot.FPDFAnnotGetObjectCount(Annotation);
+            if (objectCount > 0)
+            {
+                var pdfPageObjs = new List<PdfPageObj>();
+                PdfPageObjs = pdfPageObjs;
+                //此处分析注释数据时只当注释只有一个文本和图像对象
+                for (int objIndex = 0; objIndex < objectCount; objIndex++)
+                {
+                    var obj = fpdf_annot.FPDFAnnotGetObject(Annotation, objIndex);
+                    if (obj != null)
+                    {
+                        var objectType = fpdf_edit.FPDFPageObjGetType(obj);
+                        if (objectType == (int)PdfPageObjectTypeFlag.TEXT)
+                        {
+                            pdfPageObjs.Add(new PdfPageTextObj(obj));
+                        }
+                        else if (objectType == (int)PdfPageObjectTypeFlag.IMAGE)
+                        {
+                            pdfPageObjs.Add(new PdfPageImageObj(obj));
+                        }
+                        else if (objectType == (int)PdfPageObjectTypeFlag.PATH)
+                        {
+                            pdfPageObjs.Add(new PdfPagePathObj(obj));
+                        }
+                    }
+                }
+            }
+
+            if (objectCount == 0)
+            {
+                // 测试mytest_4_freetextannotation.pdf时,为0时貌似也可能正确,这个注释好像是不显示的
+            }
         }
 
         public IEnumerable<PdfPageObj> PdfPageObjs {  get; set; }

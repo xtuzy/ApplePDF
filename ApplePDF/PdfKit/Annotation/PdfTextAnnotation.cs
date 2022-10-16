@@ -30,28 +30,7 @@ namespace ApplePDF.PdfKit.Annotation
         /// <exception cref="NotImplementedException"></exception>
         internal PdfTextAnnotation(PdfPage page, FpdfAnnotationT annotation, PdfAnnotationSubtype type, int index) : base(page, annotation, type, index)
         {
-            // 先尝试使用StringValue获取文本，当返回2时就是没有
-            ushort[] buffer = new ushort[1];
-            var resultBytesLength = fpdf_annot.FPDFAnnotGetStringValue(Annotation, PdfAnnotation.KeyConstant.Common.kContents, ref buffer[0], (uint)0);
-            if (resultBytesLength == 0)
-            {
-                throw new NotImplementedException($"{TAG}:Create PdfFreeTextAnnotation fail, no reason return.");
-            }
-            else if (resultBytesLength == 2)
-            {
-                Debug.WriteLine($"{TAG}:By FPDFAnnotGetStringValue() create PdfFreeTextAnnotation fail, because don't find text content in this annotation, next will try use textObject.");
-            }
-            else
-            {
-                buffer = new ushort[resultBytesLength];
-                resultBytesLength = fpdf_annot.FPDFAnnotGetStringValue(Annotation, PdfAnnotation.KeyConstant.Common.kContents, ref buffer[0], (uint)buffer.Length);
-                unsafe
-                {
-                    fixed (ushort* dataPtr = &buffer[0])
-                        Text = new string((char*)dataPtr, 0, (int)(resultBytesLength - 2) / 2);//返回的result长度会有结束符,貌似占用两个byte长度,所以减去,ushort占用两个byte,所以除以2
-                }
-            }
-
+            Text = GetStringValue();
             //颜色
             AnnotColor = GetAnnotColor();
         }
@@ -64,17 +43,7 @@ namespace ApplePDF.PdfKit.Annotation
         {
             //基类创建了native注释对象
             base.AddToPage(page);
-            //Set Text
-            //string to ushort 参考:https://stackoverflow.com/a/274207/13254773
-            var bytes = Encoding.Unicode.GetBytes(Text);
-            ushort[] value = new ushort[Text.Length];
-            Buffer.BlockCopy(bytes, 0, value, 0, bytes.Length);
-
-            //设置注释本身的StringValue
-            var success = fpdf_annot.FPDFAnnotSetStringValue(Annotation, PdfAnnotation.KeyConstant.Common.kContents, ref value[0]) == 1;
-            if (!success)
-                throw new InvalidOperationException($"{TAG}:Set free text fail");
-
+            SetStringValue(Text);
             SetAnnotColor(AnnotColor);
         }
     }

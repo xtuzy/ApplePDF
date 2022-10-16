@@ -1,12 +1,13 @@
 ﻿using PDFiumCore;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 
 namespace ApplePDF.PdfKit.Annotation
 {
     /// <summary>
-    /// Ink的生成有两种,一种使用<see cref="InkPointPaths"/>和<see cref="AnnotColor"/>,
+    /// Ink的生成有两种,一种使用<see cref="InkListPaths"/>和<see cref="AnnotColor"/>,
     /// 另一种使用<see cref="PdfPagePathObj"/>, 建议使用后者
     /// </summary>
     public class PdfInkAnnotation : PdfAnnotation_CanWritePdfPageObj, IColorAnnotation
@@ -19,25 +20,6 @@ namespace ApplePDF.PdfKit.Annotation
             : base(page, annotation, type, index)
         {
             AnnotColor = GetAnnotColor();
-
-            var objectCount = fpdf_annot.FPDFAnnotGetObjectCount(Annotation);
-            if (objectCount > 0)
-            {
-                var pdfPageObjs = new List<PdfPageObj>();
-                PdfPageObjs = pdfPageObjs;
-                for (int objIndex = 0; objIndex < objectCount; objIndex++)
-                {
-                    var obj = fpdf_annot.FPDFAnnotGetObject(Annotation, 0);
-                    if (obj != null)
-                    {
-                        var objectType = fpdf_edit.FPDFPageObjGetType(obj);
-                        if (objectType == (int)PdfPageObjectTypeFlag.PATH)
-                        {
-                            pdfPageObjs.Add(new PdfPagePathObj(obj));
-                        }
-                    }
-                }
-            }
         }
 
         /// <summary>
@@ -67,9 +49,12 @@ namespace ApplePDF.PdfKit.Annotation
             }
             else
             {
-                foreach (var i in InkPointPaths)
+                if (InkListPaths != null)
                 {
-                    AddInkPoints(i);
+                    foreach (var i in InkListPaths)
+                    {
+                        AddInkPoints(i);
+                    }
                 }
                 SetAnnotColor(AnnotColor);
             }
@@ -78,7 +63,7 @@ namespace ApplePDF.PdfKit.Annotation
         #region 使用InkList的Api
 
         List<List<PointF>> inks;
-        public List<List<PointF>> InkPointPaths
+        public List<List<PointF>> InkListPaths
         {
             get { if (inks == null) GetInkPoints(); return inks; }
             set { inks = value; }
@@ -92,7 +77,7 @@ namespace ApplePDF.PdfKit.Annotation
         /// <summary>
         /// 设置新的<see cref="AnnotColor"/>后,调用此方法更新
         /// </summary>
-        public void UpdateInkPointPathsAnnotColor()
+        public void UpdateInkListPathsAnnotColor()
         {
             SetAnnotColor(AnnotColor);
         }
@@ -109,9 +94,9 @@ namespace ApplePDF.PdfKit.Annotation
                 throw new NotImplementedException("Add InkStroke fail");
             else
             {
-                if (!InkPointPaths.Contains(ink))
+                if (!InkListPaths.Contains(ink))
                 {
-                    InkPointPaths.Add(ink);
+                    InkListPaths.Add(ink);
                 }
                 return success;
             }
@@ -120,46 +105,56 @@ namespace ApplePDF.PdfKit.Annotation
         public void RemoveAllInk()
         {
             fpdf_annot.FPDFAnnotRemoveInkList(Annotation);
-            InkPointPaths.Clear();
+            InkListPaths.Clear();
         }
 
         public void RemoveInkPoints(List<PointF> ink)
         {
             // 先移除全部
             fpdf_annot.FPDFAnnotRemoveInkList(Annotation);
-            if (!InkPointPaths.Contains(ink)) throw new NotImplementedException();
+            if (!InkListPaths.Contains(ink)) throw new NotImplementedException();
             // 再重新添加
-            InkPointPaths.Remove(ink);
-            foreach (var i in InkPointPaths)
+            InkListPaths.Remove(ink);
+            foreach (var i in InkListPaths)
             {
                 AddInkPoints(i);
             }
         }
 
-        private void GetInkPoints()
+        private bool GetInkPoints()
         {
             var count = fpdf_annot.FPDFAnnotGetInkListCount(Annotation);
-            if (count == 0)
-                throw new NotImplementedException("No ink at this annot");
-            inks = new List<List<PointF>>();
-            for (int index = 0; index < count; index++)
+            if (count != 0)
             {
-                var pointCount = fpdf_annot.FPDFAnnotGetInkListPath(Annotation, (uint)index, null, 0);
-                FS_POINTF_[] points = new FS_POINTF_[pointCount];
-                for (int i = 0; i < pointCount; i++)
+                inks = new List<List<PointF>>();
+                for (int index = 0; index < count; index++)
                 {
-                    points[i] = new FS_POINTF_();
+                    var pointCount = fpdf_annot.FPDFAnnotGetInkListPath(Annotation, (uint)index, null, 0);
+                    FS_POINTF_[] points = new FS_POINTF_[pointCount];
+                    for (int i = 0; i < pointCount; i++)
+                    {
+                        points[i] = new FS_POINTF_();
+                    }
+                    var success = fpdf_annot.FPDFAnnotGetInkListPath(Annotation, (uint)index, points[0], pointCount) == pointCount;
+                    if (!success)
+                    {
+                        Debug.WriteLine("Fail to get ink points, because FPDFAnnotGetInkListPath return 0");
+                        return false;
+                    }
+                    var ink = new List<PointF>();
+                    float minLimit = 0.001f;//读取的很小的值可能有问题,直接筛掉
+                    foreach (var point in points)
+                    {
+                        ink.Add(new PointF(point.X > minLimit ? point.X : 0f, point.Y > minLimit ? point.Y : 0f));
+                    }
+                    inks.Add(ink);
                 }
-                var success = fpdf_annot.FPDFAnnotGetInkListPath(Annotation, (uint)index, points[0], pointCount) == pointCount;
-                if (!success)
-                    throw new NotImplementedException();
-                var ink = new List<PointF>();
-                float minLimit = 0.001f;//读取的很小的值可能有问题,直接筛掉
-                foreach (var point in points)
-                {
-                    ink.Add(new PointF(point.X > minLimit ? point.X : 0f, point.Y > minLimit ? point.Y : 0f));
-                }
-                inks.Add(ink); fpdf_annot.FPDFAnnotAddInkStroke
+                return true;
+            }
+            else
+            {
+                Debug.WriteLine("Fail to get ink points, because no ink at this annot");
+                return false;
             }
         }
 
