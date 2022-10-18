@@ -626,6 +626,7 @@ namespace ApplePDF.PdfKit
         }
 
         #endregion
+
         /// <summary>
         /// 保存对页面内容的操作,如增加文本
         /// </summary>
@@ -634,6 +635,58 @@ namespace ApplePDF.PdfKit
         {
             return fpdf_edit.FPDFPageGenerateContent(Page) == 1 ? true : false;
         }
+
+        #region PageObj
+        public void AppendObj(PdfPageObj obj)
+        {
+            obj.PageObjTag = 2;
+            fpdf_edit.FPDFPageInsertObject(Page, obj.PageObj);
+        }
+
+        internal int GetObjCount()
+        {
+            return fpdf_edit.FPDFPageCountObjects(Page);
+        }
+
+        internal PdfPageObj GetObj(int index)
+        {
+            var obj = fpdf_edit.FPDFPageGetObject(Page, index);
+            if (obj != null)
+            {
+                var objectType = fpdf_edit.FPDFPageObjGetType(obj);
+                if (objectType == (int)PdfPageObjectTypeFlag.TEXT)
+                {
+                    return new PdfPageTextObj(obj) { Index = index };
+                }
+                else if (objectType == (int)PdfPageObjectTypeFlag.IMAGE)
+                {
+                    return new PdfPageImageObj(obj) { Index = index };
+                }
+                else if (objectType == (int)PdfPageObjectTypeFlag.PATH)
+                {
+                    return new PdfPagePathObj(obj) { Index = index };
+                }
+            }
+            return null;
+        }
+
+        public List<PdfPageObj> GetObjs()
+        {
+            var pdfPageObjs = new List<PdfPageObj>();
+            var objectCount = fpdf_edit.FPDFPageCountObjects(Page);
+            if (objectCount > 0)
+            {
+                for (var index = 0; index < objectCount; index++)
+                {
+                    var obj = GetObj(index);
+                    if (obj != null)
+                        pdfPageObjs.Add(obj);
+                }
+            }
+            return pdfPageObjs;
+        }
+
+        #endregion
 
         public void Dispose()
         {

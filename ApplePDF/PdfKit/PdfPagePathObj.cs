@@ -11,7 +11,7 @@ namespace ApplePDF.PdfKit
     {
         const string TAG = nameof(PdfPagePathObj);
 
-        internal PdfPagePathObj(FpdfPageobjectT pageObj) : base(pageObj, PdfPageObjectTypeFlag.PATH)
+        public PdfPagePathObj(FpdfPageobjectT pageObj) : base(pageObj, PdfPageObjectTypeFlag.PATH)
         {
         }
 
@@ -21,7 +21,7 @@ namespace ApplePDF.PdfKit
         /// <param name="pathList"></param>
         /// <param name="color"></param>
         /// <param name="pathWidth"></param>
-        public void SetPath(List<PdfSegmentPath> pathList)
+        public void AddPath(List<PdfSegmentPath> pathList)
         {
             foreach (var path in pathList)
             {
@@ -43,6 +43,10 @@ namespace ApplePDF.PdfKit
                         if (fpdf_edit.FPDFPathMoveTo(PageObj, path.Position.X, path.Position.Y) == 0)
                             Debug.WriteLine($"{TAG}:Fail set MoveTo to path obj of annot");
                         break;
+                }
+                if (path.IsCloseToStart)
+                {
+                    fpdf_edit.FPDFPathClose(PageObj);
                 }
             }
         }
@@ -92,6 +96,10 @@ namespace ApplePDF.PdfKit
                         }
                         else
                             throw new Exception("Fail to get BEZIER segment, because can't get right control points");
+                        if (fpdf_edit.FPDFPathSegmentGetClose(segment2) != 0)
+                        {
+                            path.IsCloseToStart = true;
+                        }
                     }
                     else
                     {
@@ -104,6 +112,10 @@ namespace ApplePDF.PdfKit
                             path.Type = PdfSegmentFlag.FPDF_SEGMENT_UNKNOWN;
                         if (fpdf_edit.FPDFPathSegmentGetPoint(segment, ref x, ref y) == 1)
                         {
+                            if (fpdf_edit.FPDFPathSegmentGetClose(segment) != 0)
+                            {
+                                path.IsCloseToStart = true;
+                            }
                             path.Position = new PointF(x, y);
                             paths.Add(path);
                         }
@@ -119,18 +131,19 @@ namespace ApplePDF.PdfKit
                 Debug.WriteLine($"{TAG}:Fail set StrokeWidth to PageObj of annot");
         }
 
-        public void SetDrawMode(bool useStrokeMode = true)
+        public void SetDrawMode(bool useStrokeMode = true, PdfFillMode fillMode = PdfFillMode.FPDF_FILLMODE_NONE)
         {
-            if (useStrokeMode)
-            {
-                if (fpdf_edit.FPDFPathSetDrawMode(PageObj, (int)PdfFillMode.FPDF_FILLMODE_NONE, 1) == 0)
-                    Debug.WriteLine($"{TAG}:Fail set DrawMode to PageObj of annot");
-            }
-            else
-            {
-                if (fpdf_edit.FPDFPathSetDrawMode(PageObj, (int)PdfFillMode.FPDF_FILLMODE_NONE, 0) == 0)
-                    Debug.WriteLine($"{TAG}:Fail set DrawMode to PageObj of annot");
-            }
+            if (fpdf_edit.FPDFPathSetDrawMode(PageObj, (int)fillMode, useStrokeMode == true ? 1 : 0) == 0)
+                Debug.WriteLine($"{TAG}:Fail set DrawMode to PageObj of annot");
+        }
+
+        public (bool useStrokeMode, PdfFillMode fillMode) GetDrawMode()
+        {
+            int useStrokeMode = -1;
+            int fillMode = -1;
+            if (fpdf_edit.FPDFPathGetDrawMode(PageObj, ref fillMode, ref useStrokeMode) == 0)
+                Debug.WriteLine($"{TAG}:Fail set DrawMode to PageObj of annot");
+            return (useStrokeMode == 1 ? true : false, (PdfFillMode)(fillMode));
         }
 
         /// <summary>
@@ -167,7 +180,7 @@ namespace ApplePDF.PdfKit
     public class PdfPageImageObj : PdfPageObj
     {
         const string TAG = nameof(PdfPageImageObj);
-        internal PdfPageImageObj(FpdfPageobjectT pageObj) : base(pageObj, PdfPageObjectTypeFlag.IMAGE)
+        public PdfPageImageObj(FpdfPageobjectT pageObj) : base(pageObj, PdfPageObjectTypeFlag.IMAGE)
         {
         }
 
@@ -199,7 +212,7 @@ namespace ApplePDF.PdfKit
     public class PdfPageTextObj : PdfPageObj
     {
         const string TAG = nameof(PdfPageTextObj);
-        internal PdfPageTextObj(FpdfPageobjectT pageObj) : base(pageObj, PdfPageObjectTypeFlag.TEXT)
+        public PdfPageTextObj(FpdfPageobjectT pageObj) : base(pageObj, PdfPageObjectTypeFlag.TEXT)
         {
         }
 
@@ -257,6 +270,11 @@ namespace ApplePDF.PdfKit
         public static PdfPageTextObj Create(PdfDocument doc, string fontName, float fontSize)
         {
             return new PdfPageTextObj(fpdf_edit.FPDFPageObjNewTextObj(doc.Document, fontName, fontSize)) { PageObjTag = 1 };
+        }
+
+        public static PdfPageTextObj Create(PdfDocument doc, PdfFont font, float fontSize)
+        {
+            return new PdfPageTextObj(fpdf_edit.FPDFPageObjCreateTextObj(doc.Document, font.Font, fontSize)) { PageObjTag = 1 };
         }
     }
 }

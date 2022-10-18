@@ -365,7 +365,7 @@ namespace ApplePDF.Test
                 var pageBounds = pageReader.GetSize();
                 annot.AnnotBox = PdfRectangleF.FromLTRB(left, top, right, bottom);
                 var pathObj = PdfPagePathObj.Create(new PointF(left, top));
-                pathObj.SetPath(new List<PdfSegmentPath>()
+                pathObj.AddPath(new List<PdfSegmentPath>()
                 {
                     new PdfSegmentPath(){Type=PdfSegmentFlag.FPDF_SEGMENT_MOVETO,Position = new PointF(left,top)},
                     new PdfSegmentPath(){Type=PdfSegmentFlag.FPDF_SEGMENT_LINETO,Position = new PointF(right,bottom)},

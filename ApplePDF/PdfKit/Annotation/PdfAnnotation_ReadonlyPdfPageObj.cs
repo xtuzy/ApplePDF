@@ -28,15 +28,15 @@ namespace ApplePDF.PdfKit.Annotation
                         var objectType = fpdf_edit.FPDFPageObjGetType(obj);
                         if (objectType == (int)PdfPageObjectTypeFlag.TEXT)
                         {
-                            pdfPageObjs[objIndex] = new PdfPageTextObj(obj);
+                            pdfPageObjs[objIndex] = new PdfPageTextObj(obj) { Index = objIndex };
                         }
                         else if (objectType == (int)PdfPageObjectTypeFlag.IMAGE)
                         {
-                            pdfPageObjs[objIndex] = new PdfPageImageObj(obj);
+                            pdfPageObjs[objIndex] = new PdfPageImageObj(obj) { Index = objIndex };
                         }
                         else if (objectType == (int)PdfPageObjectTypeFlag.PATH)
                         {
-                            pdfPageObjs[objIndex] = new PdfPagePathObj(obj);
+                            pdfPageObjs[objIndex] = new PdfPagePathObj(obj) { Index = objIndex };
                         }
                     }
                 }
@@ -49,6 +49,10 @@ namespace ApplePDF.PdfKit.Annotation
         }
 
         public IEnumerable<PdfPageObj> PdfPageObjs { get; protected set; }
+        public int GetObjCount()
+        {
+            return fpdf_edit.FPDFPageCountObjects(Page.Page);
+        }
 
         bool _disposed = false;
         protected override void Dispose(bool disposing)

@@ -18,6 +18,10 @@ namespace ApplePDF.PdfKit
         /// 而如果是添加到了Pdf的,或者是已存在的,调用Destroy方法会造成内存占用冲突.
         /// </summary>
         internal int PageObjTag = 0;
+        /// <summary>
+        /// Pdfium中获取Obj是按照Index获取的,从0开始
+        /// </summary>
+        internal int Index = -1;
         public FpdfPageobjectT PageObj { get; private set; }
 
         public PdfPageObjectTypeFlag Type { get; private set; }

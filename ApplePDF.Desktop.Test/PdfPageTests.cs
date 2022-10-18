@@ -1,9 +1,9 @@
 ﻿using ApplePDF.PdfKit;
 using ApplePDF.PdfKit.Annotation;
 using NUnit.Framework;
-using Pdf.Net.Test.Extensions;
 using PDFiumCore;
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -476,19 +476,101 @@ namespace ApplePDF.Test
                 selections.AddSelection(selection1);
                 Assert.IsTrue(selections.Text.Contains("First paragraph"));
                 var attrStrs = selections.AttributedString;
-                foreach(var attr in attrStrs)
+                foreach (var attr in attrStrs)
                 {
                     attr.Page = pageReader;
                     var fontSize = attr.FontSize;
                     var strokeColor = attr.StrokeColor;
                     Assert.IsTrue(strokeColor.A == Color.Black.A &&
                         strokeColor.R == Color.Black.R &&
-                        strokeColor.G== Color.Black.G &&
+                        strokeColor.G == Color.Black.G &&
                         strokeColor.B == Color.Black.B);
                     var fillColor = attr.FillColor;
                     var fontName = attr.FontName;
                     var fontWeight = attr.FontWeight;
                     var angle = attr.Angle;
+                }
+            });
+        }
+
+        [TestCase("Docs/mytest_edit_annotation.pdf", 73, 795, "p")]
+        public void DrawPath_ShouldReturnWordAtPosition(string filePath, int x1, int y1, string text)
+        {
+            ExecuteForDocument(filePath, null, 0, pageReader =>
+            {
+                var selection = pageReader.SelectWord(new PointF(x1, y1));
+                var rectPathObj = PdfPagePathObj.Create(new PointF(100, 100));
+                rectPathObj.AddPath(PdfSegmentPath.GenerateRectSegments(300, 300, 100, 200));
+                rectPathObj.AddPath(PdfSegmentPath.GenerateRoundRectSegments(250, 350, 100, 200, 20));
+                rectPathObj.SetStrokeColor(Color.HotPink);
+                rectPathObj.SetFillColor(Color.Gray);
+                rectPathObj.SetDrawMode(true);
+                var circlPpathObj = PdfPagePathObj.Create(new PointF(100, 100));
+                circlPpathObj.SetDrawMode(true);
+                circlPpathObj.AddPath(PdfSegmentPath.GenerateTriangleSegments(new PointF(100,100), new PointF(100,400),new PointF(200,400)));
+                circlPpathObj.AddPath(PdfSegmentPath.GenerateCircleSegments(100, 300, 300));
+                circlPpathObj.SetFillColor(Color.Red);
+                circlPpathObj.SetStrokeColor(Color.Blue);
+                var arcPathObj = PdfPagePathObj.Create(new PointF(100, 100));
+                arcPathObj.SetDrawMode(true);
+                arcPathObj.AddPath(PdfSegmentPath.GenerateArcSegments(300, 300, 100, 300 + -360, 180 ));
+                arcPathObj.SetStrokeColor(Color.Green);
+                arcPathObj.SetStrokeWidth(5);
+                pageReader.AppendObj(rectPathObj);
+                pageReader.AppendObj(circlPpathObj);
+                pageReader.AppendObj(arcPathObj);
+                pageReader.SaveNewContent();
+                Pdfium.Instance.Save(pageReader.Document, "Result.pdf");
+            });
+            ExecuteForDocument("Result.pdf", null, 0, pageReader =>
+            {
+                var objectCount = fpdf_edit.FPDFPageCountObjects(pageReader.Page);
+                if (objectCount > 0)
+                {
+                    var pdfPageObjs = new List<PdfPageObj>();
+                    //此处分析注释数据时只当注释只有一个文本和图像对象
+                    for (int objIndex = 0; objIndex < objectCount; objIndex++)
+                    {
+                        var obj = fpdf_edit.FPDFPageGetObject(pageReader.Page, objIndex);
+                        if (obj != null)
+                        {
+                            var objectType = fpdf_edit.FPDFPageObjGetType(obj);
+                            if (objectType == (int)PdfPageObjectTypeFlag.TEXT)
+                            {
+                                pdfPageObjs.Add(new PdfPageTextObj(obj));
+                            }
+                            else if (objectType == (int)PdfPageObjectTypeFlag.IMAGE)
+                            {
+                                pdfPageObjs.Add(new PdfPageImageObj(obj));
+                            }
+                            else if (objectType == (int)PdfPageObjectTypeFlag.PATH)
+                            {
+                                pdfPageObjs.Add(new PdfPagePathObj(obj));
+                            }
+                        }
+                    }
+                    foreach (var obj in pdfPageObjs)
+                    {
+                        switch (obj.Type)
+                        {
+                            case PdfPageObjectTypeFlag.UNKNOWN:
+                                break;
+                            case PdfPageObjectTypeFlag.TEXT:
+                                break;
+                            case PdfPageObjectTypeFlag.PATH:
+                                var pathObj = obj as PdfPagePathObj;
+                                var fillColor = pathObj.GetFillColor();
+                                var strokeColor = pathObj.GetStrokeColor();
+                                var path = pathObj.GetPath();
+                                break;
+                            case PdfPageObjectTypeFlag.IMAGE:
+                                break;
+                            case PdfPageObjectTypeFlag.SHADING:
+                                break;
+                            case PdfPageObjectTypeFlag.FORM:
+                                break;
+                        }
+                    }
                 }
             });
         }
