@@ -6,7 +6,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <NoWarn>1701;1702;1591;0649</NoWarn>
     <SingleProject>true</SingleProject>
-    <version>0.0.1</version>
+    <version>0.0.2</version>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
 
     <Authors>zhouyang</Authors>
