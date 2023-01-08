@@ -499,7 +499,7 @@ namespace ApplePDF.PdfKit
         #region 渲染 Render
 
         /// <summary>
-        /// 获取页面图像。图像的内存由Pdfium开辟
+        /// 获取页面图像。原始图像的内存由Pdfium开辟, 返回的数组是从其拷贝的, 因此有内存拷贝损耗.
         /// </summary>
         /// <param name="xScale"></param>
         /// <param name="yScale"></param>
@@ -514,15 +514,13 @@ namespace ApplePDF.PdfKit
                 var bounds = GetSize();
                 int width = (int)(bounds.Width * xScale);
                 int height = (int)(bounds.Height * yScale);
-                var bitmap = fpdfview.FPDFBitmapCreate(width, height, 1);
-                if (bitmap == null)
+                var bitmap = PdfBitmap.Create(width, height, true);
+                if (bitmap.Bitmap == null)
                 {
                     throw new Exception("failed to create a bitmap object");
                 }
 
-                var stride = fpdfview.FPDFBitmapGetStride(bitmap);
-
-                var result = new byte[stride * height];
+                var result = new byte[bitmap.BufferLength];
 
                 try
                 {
@@ -546,9 +544,9 @@ namespace ApplePDF.PdfKit
                         clipping.Bottom = 0;
                         clipping.Top = height;
 
-                        fpdfview.FPDF_RenderPageBitmapWithMatrix(bitmap, page, matrix, clipping, renderFlag);
+                        fpdfview.FPDF_RenderPageBitmapWithMatrix(bitmap.Bitmap, page, matrix, clipping, renderFlag);
 
-                        var buffer = fpdfview.FPDFBitmapGetBuffer(bitmap);
+                        var buffer = bitmap.Buffer;
 
                         Marshal.Copy(buffer, result, 0, result.Length);
                     }
@@ -559,7 +557,7 @@ namespace ApplePDF.PdfKit
                 }
                 finally
                 {
-                    fpdfview.FPDFBitmapDestroy(bitmap);
+                    bitmap.Dispose();
                 }
 
                 return result;
@@ -567,7 +565,63 @@ namespace ApplePDF.PdfKit
         }
 
         /// <summary>
-        /// 应用开辟内存给Pdfium存储图像
+        /// 该方法使用Pdfium为图像分配内存, 可以使用<see cref="PdfBitmap.Buffer">访问图像数据, 没有内存拷贝的损耗; 注意使用结束需要调用<see cref="PdfBitmap.Dispose"/>释放内存.
+        /// </summary>
+        /// <param name="xScale"></param>
+        /// <param name="yScale"></param>
+        /// <param name="renderFlag"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        public PdfBitmap DrawEx(float xScale, float yScale, int renderFlag)
+        {
+            lock (@lock)
+            {
+                // Get Metrics
+                var bounds = GetSize();
+                int width = (int)(bounds.Width * xScale);
+                int height = (int)(bounds.Height * yScale);
+                PdfBitmap bitmap = PdfBitmap.Create(width, height, true);
+                if (bitmap.Bitmap == null)
+                {
+                    throw new Exception("failed to create a bitmap object");
+                }
+
+                try
+                {
+                    // |          | a b 0 |
+                    // | matrix = | c d 0 |
+                    // |          | e f 1 |
+                    using (var matrix = new FS_MATRIX_())
+                    using (var clipping = new FS_RECTF_())
+                    {
+                        // 使用矩阵对页面进行缩放,使页面适应图片大小
+                        matrix.A = xScale;
+                        matrix.B = 0;
+                        matrix.C = 0;
+
+                        matrix.D = yScale;
+                        matrix.E = 0;
+                        matrix.F = 0;
+
+                        clipping.Left = 0;
+                        clipping.Right = width;
+                        clipping.Bottom = 0;
+                        clipping.Top = height;
+
+                        fpdfview.FPDF_RenderPageBitmapWithMatrix(bitmap.Bitmap, page, matrix, clipping, renderFlag);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception("error rendering page", ex);
+                }
+
+                return bitmap;
+            }
+        }
+
+        /// <summary>
+        /// 应用开辟内存给Pdfium存储图像, 其可以是应用从数组创建, 也可以是通过图像处理库创建的, 记得需要应用自己管理该内存,
         /// </summary>
         /// <param name="imageBufferPointer"></param>
         /// <param name="xScale"></param>
