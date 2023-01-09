@@ -1,6 +1,4 @@
-﻿using Android.Graphics;
-using Android.Hardware.Lights;
-using PDFiumCore;
+﻿using PDFiumCore;
 using System;
 
 namespace ApplePDF.PdfKit
@@ -67,6 +65,14 @@ namespace ApplePDF.PdfKit
             get
             {
                 return Stride * Height;
+            }
+        }
+
+        public FPDFBitmapFormat Format
+        {
+            get
+            {
+                return (FPDFBitmapFormat)fpdfview.FPDFBitmapGetFormat(Bitmap);
             }
         }
 
