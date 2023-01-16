@@ -8,7 +8,7 @@ namespace ApplePDF.Test
     [TestFixture]
     internal class PdfDocumentTests
     {
-        private readonly Pdfium _fixture = Pdfium.Instance;
+        private readonly PdfiumLib _fixture = PdfiumLib.Instance;
 
         public PdfDocumentTests()
         {

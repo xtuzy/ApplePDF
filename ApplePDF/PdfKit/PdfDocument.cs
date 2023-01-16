@@ -54,9 +54,21 @@ namespace ApplePDF.PdfKit
             }
         }
 
-        public PdfDocument()
+        /// <summary>
+        /// For create a new doc, not from stream or file.
+        /// </summary>
+        private PdfDocument()
         {
             document = fpdf_edit.FPDF_CreateNewDocument();
+        }
+
+        /// <summary>
+        /// For create a new doc, not from stream or file.
+        /// </summary>
+        /// <returns></returns>
+        public static PdfDocument Create()
+        {
+            return new PdfDocument();
         }
 
         /// <inheritdoc/>
@@ -115,7 +127,6 @@ namespace ApplePDF.PdfKit
             }
         }
 
-
         public PdfOutline OutlineRoot
         {
             get
@@ -137,7 +148,6 @@ namespace ApplePDF.PdfKit
             }
             set => throw new NotImplementedException();
         }
-
 
         public int PageCount
         {

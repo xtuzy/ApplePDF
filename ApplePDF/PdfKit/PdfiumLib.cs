@@ -8,12 +8,12 @@ using System.Text;
 
 namespace ApplePDF.PdfKit
 {
-    public class Pdfium
+    public class PdfiumLib: ILib
     {
         static readonly object @lock = new object();
 
-        static Pdfium instance;
-        public static Pdfium Instance
+        static PdfiumLib instance;
+        public static PdfiumLib Instance
         {
             get
             {
@@ -24,7 +24,7 @@ namespace ApplePDF.PdfKit
                     {
                         if (instance == null)
                         {
-                            instance = new Pdfium();
+                            instance = new PdfiumLib();
                         }
                     }
                 }
@@ -33,7 +33,7 @@ namespace ApplePDF.PdfKit
             }
         }
 
-        public Pdfium()
+        public PdfiumLib()
         {
             InitLibrary();
         }
@@ -83,7 +83,7 @@ namespace ApplePDF.PdfKit
         public void Split(PdfDocument doc, int fromePageIndex, int toPageIndex, Stream stream)
         {
             var pageRange = $"{fromePageIndex + 1} - {toPageIndex + 1}";
-            using (var childDoc = new PdfDocument())
+            using (var childDoc = PdfDocument.Create())
             {
 
                 var success = fpdf_ppo.FPDF_ImportPages(

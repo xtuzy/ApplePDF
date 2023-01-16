@@ -1,5 +1,4 @@
-﻿using PDFiumCore;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 
@@ -30,7 +29,7 @@ namespace ApplePDF.PdfKit
         /// <summary>
         /// iOS:Gets the Core Graphics PDFPage object for this PDF page
         /// </summary>
-        FpdfPageT? Page { get; }
+        PlatformPdfPage? Page { get; }
         /// <summary>
         /// iOS:Gets or sets the rotation, in degrees, for displaying the page.
         /// </summary>

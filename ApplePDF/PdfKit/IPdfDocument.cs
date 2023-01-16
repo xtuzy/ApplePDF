@@ -1,10 +1,9 @@
-﻿using PDFiumCore;
-using System;
+﻿using System;
 using System.Drawing;
 
 namespace ApplePDF.PdfKit
 {
-    public interface IPdfDocument:IDisposable
+    public interface IPdfDocument : IDisposable
     {
         //PdfAccessPermissions AccessPermissions { get; }
         //bool AllowsCommenting { get; }
@@ -16,7 +15,10 @@ namespace ApplePDF.PdfKit
         //bool AllowsPrinting { get; }
         //System.IntPtr ClassHandle { get; }
         //IPdfDocumentDelegate Delegate { get; set; }
-        FpdfDocumentT? Document { get; }
+        /// <summary>
+        /// Platform doc object, you can do more operate by using it.
+        /// </summary>
+        PlatformPdfDocument? Document { get; }
         //NSDictionary? DocumentAttributes { get; set; }
         //NSUrl? DocumentUrl { get; }
         //ClassForAnnotationTypeDelegate? GetClassForAnnotationType { get; set; }
@@ -26,7 +28,7 @@ namespace ApplePDF.PdfKit
         int MajorVersion { get; }
         int MinorVersion { get; }
 
-        
+
         PdfOutline? OutlineRoot { get; set; }
         //Class PageClass { get; }
         int PageCount { get; }

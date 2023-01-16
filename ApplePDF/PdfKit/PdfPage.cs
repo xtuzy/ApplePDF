@@ -13,7 +13,7 @@ namespace ApplePDF.PdfKit
     /// 注意：
     /// Pdf的坐标系原点是左下角，此库中获取得到的<see cref="Point"/>都是基于此，返回<see cref="Rectangle"/>的由于其来自System.Drawing，其基于左上角原点，请只使用其上下左右的位置信息，不要使用大小信息，否则会出现大小为负数。
     /// </summary>
-    public class PdfPage : IPdfPage_Pdfium, IDisposable
+    public class PdfPage : IPdfPage_Pdfium, IPdfPage, IDisposable
     {
         private static readonly object @lock = new object();
         public PdfDocument Document { get; private set; }

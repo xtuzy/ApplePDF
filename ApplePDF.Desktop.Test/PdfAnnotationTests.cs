@@ -12,7 +12,7 @@ namespace ApplePDF.Test
     [TestFixture]
     public class PdfAnnotationTests
     {
-        private readonly Pdfium _fixture = Pdfium.Instance;
+        private readonly PdfiumLib _fixture = PdfiumLib.Instance;
 
         private void ExecuteForDocument(string filePath, string password, int pageIndex, Action<PdfPage> action)
         {
@@ -200,7 +200,7 @@ namespace ApplePDF.Test
                 annot.Dispose();
                 Assert.AreEqual(1, pageReader.AnnotationCount);
                 var doc = pageReader.Document;
-                Pdfium.Instance.Save(doc, "Result.pdf");
+                PdfiumLib.Instance.Save(doc, "Result.pdf");
             });
             ExecuteForDocument("Result.pdf", null, 0, pageReader =>
             {
@@ -231,7 +231,7 @@ namespace ApplePDF.Test
                 annot.Dispose();
                 Assert.AreEqual(1, pageReader.AnnotationCount, "添加的注释数目为1");
                 var doc = pageReader.Document;
-                Pdfium.Instance.Save(doc, "Result.pdf");
+                PdfiumLib.Instance.Save(doc, "Result.pdf");
             });
             ExecuteForDocument("Result.pdf", null, 0, pageReader =>
             {
@@ -258,7 +258,7 @@ namespace ApplePDF.Test
                 annot.Dispose();
                 Assert.AreEqual(1, pageReader.AnnotationCount, "添加的注释数目为1");
                 var doc = pageReader.Document;
-                Pdfium.Instance.Save(doc, "Result.pdf");
+                PdfiumLib.Instance.Save(doc, "Result.pdf");
             });
             ExecuteForDocument("Result.pdf", null, 0, pageReader =>
             {
@@ -288,7 +288,7 @@ namespace ApplePDF.Test
                 Assert.AreEqual(1, pageReader.AnnotationCount, "添加的注释数目为1");
                 Assert.AreEqual(PdfAnnotationSubtype.Underline, pageReader.GetAnnotation(0).AnnotationType, "添加的注释数目为1");
                 var doc = pageReader.Document;
-                Pdfium.Instance.Save(doc, "Result.pdf");
+                PdfiumLib.Instance.Save(doc, "Result.pdf");
             });
             ExecuteForDocument("Result.pdf", null, 0, pageReader =>
             {
@@ -336,7 +336,7 @@ namespace ApplePDF.Test
                 annot.Dispose();
                 Assert.AreEqual(1, pageReader.AnnotationCount);
                 var doc = pageReader.Document;
-                Pdfium.Instance.Save(doc, "Result.pdf");
+                PdfiumLib.Instance.Save(doc, "Result.pdf");
             });
             ExecuteForDocument("Result.pdf", null, 0, pageReader =>
             {
@@ -387,7 +387,7 @@ namespace ApplePDF.Test
                 newAnnot.PdfPageObjs = null;
                 newAnnot.Dispose();
                 var doc = pageReader.Document;
-                Pdfium.Instance.Save(doc, "Result.pdf", PdfSaveFlag.DefaultInTest);
+                PdfiumLib.Instance.Save(doc, "Result.pdf", PdfSaveFlag.DefaultInTest);
             });
             ExecuteForDocument("Result.pdf", null, 0, pageReader =>
             {
@@ -433,7 +433,7 @@ namespace ApplePDF.Test
                     var ap = pageReader.GetAnnotation(0).GetAppearenceStr();
                     Assert.AreEqual(apStream, ap);
                 }
-                var savesuccess = Pdfium.Instance.Save(doc, "Result.pdf", PdfSaveFlag.DefaultInTest);
+                var savesuccess = PdfiumLib.Instance.Save(doc, "Result.pdf", PdfSaveFlag.DefaultInTest);
             }
 
             ExecuteForDocument("Result.pdf", null, 0, pageReader =>
@@ -461,7 +461,7 @@ namespace ApplePDF.Test
                     var ap = pageReader.GetAnnotation(0).GetAppearenceStr();
                     Assert.AreEqual(apStream, ap);
                 }
-                Pdfium.Instance.Save(doc, "Result.pdf", PdfSaveFlag.DefaultInTest);
+                PdfiumLib.Instance.Save(doc, "Result.pdf", PdfSaveFlag.DefaultInTest);
             }
 
             ExecuteForDocument("Result.pdf", null, 0, pageReader =>
@@ -565,7 +565,7 @@ namespace ApplePDF.Test
                 colors = pageReader.GetAnnotation(0).TryGetColor(PDFiumCore.PdfPageObjectTypeFlag.PATH);
                 Assert.IsTrue(exceptColor.IsEqual(colors.AnnotColor.Value));
                 var doc = pageReader.Document;
-                Pdfium.Instance.Save(doc, "Result.pdf");
+                PdfiumLib.Instance.Save(doc, "Result.pdf");
             });
             ExecuteForDocument("Result.pdf", null, 0, pageReader =>
             {
@@ -658,7 +658,7 @@ namespace ApplePDF.Test
                 }
                 firstAnnot.Dispose();
                 var doc = pageReader.Document;
-                Pdfium.Instance.Save(doc, "Result.pdf", PdfSaveFlag.DefaultInTest);
+                PdfiumLib.Instance.Save(doc, "Result.pdf", PdfSaveFlag.DefaultInTest);
             });
             ExecuteForDocument("Result.pdf", null, 0, pageReader =>
             {

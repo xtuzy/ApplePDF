@@ -60,6 +60,7 @@ namespace ApplePDF.PdfKit
         }
         int pageIndex = -1;
         public int PageIndex => pageIndex;
+        public PdfPage Page => document.GetPage(pageIndex);
 
         PointF point = PointF.Empty;
         public PointF Point { get => point; }

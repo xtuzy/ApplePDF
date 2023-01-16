@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace ApplePDF.PdfKit
 {
-    public interface IPdfPage_Pdfium : IPdfPage
+    public interface IPdfPage_Pdfium
     {
         /// <summary>
         /// 从0开始

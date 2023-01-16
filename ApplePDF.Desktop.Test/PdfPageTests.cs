@@ -15,7 +15,7 @@ namespace ApplePDF.Test
     [TestFixture]
     public sealed class PdfPageTests
     {
-        private readonly Pdfium _fixture = Pdfium.Instance;
+        private readonly PdfiumLib _fixture = PdfiumLib.Instance;
 
         public PdfPageTests()
         {
@@ -289,7 +289,7 @@ namespace ApplePDF.Test
            });
         }
 
-        private static int GetNonZeroByteCount(string filePath, Pdfium fixture)
+        private static int GetNonZeroByteCount(string filePath, PdfiumLib fixture)
         {
             var DimOne = 1000;
             var DimTwo = 1000;
@@ -355,7 +355,7 @@ namespace ApplePDF.Test
                 Assert.IsTrue(text.Contains(newText));
                 if (File.Exists("Result.pdf"))
                     File.Delete("Result.pdf");
-                Pdfium.Instance.Save(doc, "Result.pdf");
+                PdfiumLib.Instance.Save(doc, "Result.pdf");
             });
 
             ExecuteForDocument("Result.pdf", null, 0, pageReader =>
@@ -379,7 +379,7 @@ namespace ApplePDF.Test
                 pageReader.Dispose();
                 if (File.Exists("Result.pdf"))
                     File.Delete("Result.pdf");
-                Pdfium.Instance.Save(doc, "Result.pdf");
+                PdfiumLib.Instance.Save(doc, "Result.pdf");
             });
 
             ExecuteForDocument("Result.pdf", null, 0, pageReader =>
@@ -404,7 +404,7 @@ namespace ApplePDF.Test
                 pageReader.Dispose();
                 if (File.Exists("Result.pdf"))
                     File.Delete("Result.pdf");
-                Pdfium.Instance.Save(doc, "Result.pdf");
+                PdfiumLib.Instance.Save(doc, "Result.pdf");
             });
 
             ExecuteForDocument("Result.pdf", null, 0, pageReader =>
@@ -520,7 +520,7 @@ namespace ApplePDF.Test
                 pageReader.AppendObj(circlPpathObj);
                 pageReader.AppendObj(arcPathObj);
                 pageReader.SaveNewContent();
-                Pdfium.Instance.Save(pageReader.Document, "Result.pdf");
+                PdfiumLib.Instance.Save(pageReader.Document, "Result.pdf");
             });
             ExecuteForDocument("Result.pdf", null, 0, pageReader =>
             {

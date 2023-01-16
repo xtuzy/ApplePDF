@@ -226,7 +226,7 @@ namespace ApplePDF.Demo.Maui
         {
             if (doc != null)
                 doc.Dispose();
-            doc = Pdfium.Instance.LoadPdfDocument(stream, null);
+            doc = PdfiumLib.Instance.LoadPdfDocument(stream, null);
             var rootBookmark = doc.OutlineRoot;
             var viewModel = new DocTreeViewModel();
             var bookmarks = viewModel.Bookmarks;
