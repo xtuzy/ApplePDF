@@ -23,7 +23,18 @@ namespace ApplePDF.PdfKit
 
         public PdfDocument(Stream stream, string password)
         {
-            Document = new iOSPdfKit.PdfDocument(NSData.FromStream(stream));
+            var data = NSData.FromStream(stream);
+            Document = new iOSPdfKit.PdfDocument(data);
+            if (Document.IsLocked)
+            {
+                Document.Unlock(password);
+            }
+        }
+
+        public PdfDocument(byte[] bytes, string password)
+        {
+            var data = NSData.FromArray(bytes);
+            Document = new iOSPdfKit.PdfDocument(data);
             if (Document.IsLocked)
             {
                 Document.Unlock(password);
@@ -76,7 +87,7 @@ namespace ApplePDF.PdfKit
 
         public int GetPageIndex(PdfPage page)
         {
-            return page.PageIndex;
+            return (int)Document.GetPageIndex(page.Page);
         }
 
         public PdfSelection? GetSelection(PdfPage startPage, Point startPoint, PdfPage endPage, Point endPoint)

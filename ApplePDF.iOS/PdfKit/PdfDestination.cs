@@ -9,6 +9,7 @@ namespace ApplePDF.PdfKit
 
         public PdfDestination(PdfDocument document, PdfAction action)
         {
+            this.document = document;
             iOSPdfKit.PdfDestination destination = (action.Action as iOSPdfKit.PdfActionGoTo)?.Destination;
             Destination = destination;
         }
@@ -19,7 +20,7 @@ namespace ApplePDF.PdfKit
         public iOSPdfKit.PdfDestination Destination { get; private set; }
 
         public int PageIndex => (int)document.Document.GetPageIndex(Destination.Page);
-        public PdfPage Page => Destination.Page;
+        public PdfPage Page => PdfPage.Create(document, Destination.Page);
 
         public PointF Point => throw new System.NotImplementedException();
 

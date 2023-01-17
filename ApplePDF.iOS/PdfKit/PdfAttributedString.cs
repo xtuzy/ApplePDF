@@ -2,7 +2,7 @@
 {
     public class PdfAttributedString
     {
-        internal PdfAttributedString(iOSPdfKit.)
+        internal PdfAttributedString()
         {
 
         }

@@ -12,7 +12,7 @@ namespace ApplePDF.Extensions
 
         public static PdfRectangleF ToPdfRectangleF(this CGRect rect)
         {
-            return PdfRectangleF.FromLTRB((float)rect.Left, (float)rect.Top, (float)rect.Right, (float)rect.Bottom)
+            return PdfRectangleF.FromLTRB((float)rect.Left, (float)rect.Top, (float)rect.Right, (float)rect.Bottom);
         }
     }
 }

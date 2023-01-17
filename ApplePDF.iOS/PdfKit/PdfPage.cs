@@ -20,13 +20,34 @@ namespace ApplePDF.PdfKit
             PageIndex = index;
         }
 
+        PdfPage(PdfDocument doc, iOSPdfKit.PdfPage platformPage)
+        {
+            Document = doc;
+            page = platformPage;
+            PageIndex = doc.GetPageIndex(this);
+        }
+
+        public static PdfPage Create(PdfDocument doc, iOSPdfKit.PdfPage platformPage)
+        {
+            return new PdfPage(doc, platformPage);
+        }
+
         public int CharacterCount => (int)Page.CharacterCount;
 
         public bool DisplaysAnnotations { get => Page.DisplaysAnnotations; set => Page.DisplaysAnnotations = value; }
 
         public PdfDocument? Document { get; private set; }
 
-        public PlatformPdfPage? Page => Document.Document.GetPage(PageIndex);
+        PlatformPdfPage page;
+        public PlatformPdfPage? Page
+        {
+            get
+            {
+                if (page == null)
+                    page = Document.Document.GetPage(PageIndex);
+                return page;
+            }
+        }
 
         public PdfRotate Rotation
         {
@@ -185,11 +206,20 @@ namespace ApplePDF.PdfKit
         /// <param name="buffer"></param>
         /// <param name="w">图像宽</param>
         /// <param name="h"></param>
-        public void Draw(IntPtr bufferPointer,int w, int h)
+        public void Draw(IntPtr bufferPointer, int w, int h)
         {
             var context = new CGBitmapContext(bufferPointer, w, h, 8, 4 * w, CGColorSpace.CreateDeviceRGB(), CGBitmapFlags.NoneSkipLast);
             Page.Draw(iOSPdfKit.PdfDisplayBox.Media, context);
             context.Flush();
+        }
+
+        public CGImage Draw(int w, int h)
+        {
+            byte[] bufferPointer = new byte[w * h * 4 * 8];
+            var context = new CGBitmapContext(bufferPointer, w, h, 8, 4 * w, CGColorSpace.CreateDeviceRGB(), CGBitmapFlags.NoneSkipLast);
+            Page.Draw(iOSPdfKit.PdfDisplayBox.Media, context);
+            context.Flush();
+            return context.ToImage();
         }
     }
 }

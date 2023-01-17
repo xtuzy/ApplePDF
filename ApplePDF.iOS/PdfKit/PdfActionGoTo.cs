@@ -14,7 +14,6 @@
             Action = outline.Outline.Action;
         }
 
-        PdfDestination destination;
         /// <summary>
         /// Gets or sets the destination of the go-to PDF action.
         /// </summary>
@@ -22,7 +21,7 @@
         {
             get
             {
-                return new PdfDestination();
+                return new PdfDestination(document, this);
             }
         }
     }

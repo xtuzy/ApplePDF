@@ -7,6 +7,9 @@ namespace ApplePDF.PdfKit
 {
     public class PdfKitLib : ILib
     {
+        public static PdfKitLib Instance = new PdfKitLib();
+        PdfKitLib() { }
+
         public PdfDocument LoadPdfDocument(Stream stream, string password)
         {
             return new PdfDocument(stream, password);
@@ -104,7 +107,7 @@ namespace ApplePDF.PdfKit
                 ctx.RestoreState();
             }
 
-            UIGraphics.EndPDFContext();
+            //UIKit.UIGraphics.EndPDFContext();
             pdfData.AsStream().CopyTo(stream);
         }
 

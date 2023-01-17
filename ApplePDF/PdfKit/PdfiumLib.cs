@@ -1,14 +1,11 @@
 ﻿
 using PDFiumCore;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
 
 namespace ApplePDF.PdfKit
 {
-    public class PdfiumLib: ILib
+    public class PdfiumLib : ILib
     {
         static readonly object @lock = new object();
 
@@ -33,7 +30,7 @@ namespace ApplePDF.PdfKit
             }
         }
 
-        public PdfiumLib()
+        PdfiumLib()
         {
             InitLibrary();
         }

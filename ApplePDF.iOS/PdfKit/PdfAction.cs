@@ -15,7 +15,7 @@
     {
         public string Type { get; set; }
 
-        public FpdfActionT Action;
+        public PlatformPdfAction Action;
         protected PdfDocument document;
 
         public void Dispose()
