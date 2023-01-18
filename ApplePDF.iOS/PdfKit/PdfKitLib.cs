@@ -15,6 +15,11 @@ namespace ApplePDF.PdfKit
             return new PdfDocument(stream, password);
         }
 
+        public PdfDocument LoadPdfDocument(byte[] bytes, string password)
+        {
+            return new PdfDocument(bytes, password);
+        }
+
         public PdfDocument LoadPdfDocument(string filePath, string password)
         {
             return new PdfDocument(filePath, password);

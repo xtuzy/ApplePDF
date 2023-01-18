@@ -1,10 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 
 namespace ApplePDF.PdfKit
 {
-    public interface IPdfPage
+    public interface IPdfPage : IDisposable
     {
         /// <summary>
         /// iOS:Gets an array that contains all the annotations on the PDF page.

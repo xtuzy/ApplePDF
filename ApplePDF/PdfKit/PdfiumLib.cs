@@ -50,6 +50,15 @@ namespace ApplePDF.PdfKit
             }
         }
 
+        public PdfDocument LoadPdfDocument(byte[] bytes, string password)
+        {
+            lock (@lock)
+            {
+                MemoryStream stream = new MemoryStream (bytes);
+                return LoadPdfDocument(stream, password);
+            }
+        }
+
         public PdfDocument LoadPdfDocument(string filePath, string password)
         {
             lock (@lock)

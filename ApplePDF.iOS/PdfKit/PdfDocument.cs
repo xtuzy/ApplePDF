@@ -72,7 +72,8 @@ namespace ApplePDF.PdfKit
 
         public void Dispose()
         {
-            throw new NotImplementedException();
+            Document?.Dispose();
+            Document = null;
         }
 
         public void ExchangePages(int indexA, int indexB)

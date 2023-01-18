@@ -44,7 +44,7 @@ namespace ApplePDF.PdfKit
             get
             {
                 if (page == null)
-                    page = Document.Document.GetPage(PageIndex);
+                    page = Document?.Document.GetPage(PageIndex);
                 return page;
             }
         }
@@ -220,6 +220,13 @@ namespace ApplePDF.PdfKit
             Page.Draw(iOSPdfKit.PdfDisplayBox.Media, context);
             context.Flush();
             return context.ToImage();
+        }
+
+        public void Dispose()
+        {
+            Document = null;
+            Page?.Dispose();
+            page = null;
         }
     }
 }

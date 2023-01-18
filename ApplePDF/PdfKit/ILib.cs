@@ -10,6 +10,7 @@ namespace ApplePDF.PdfKit
     public interface ILib
     {
         PdfDocument LoadPdfDocument(Stream stream, string password);
+        PdfDocument LoadPdfDocument(byte[] bytes, string password);
         PdfDocument LoadPdfDocument(string filePath, string password);
         /// <summary>
         /// 合并两个doc到一个新doc.
