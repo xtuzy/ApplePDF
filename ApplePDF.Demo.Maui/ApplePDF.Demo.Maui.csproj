@@ -52,12 +52,11 @@
     <PackageReference Include="MathNet.Numerics" Version="5.0.0" />
     <PackageReference Include="SharpConstraintLayout.Maui" Version="2.1.1.9" />
     <PackageReference Include="SkiaSharp" Version="2.88.2" />
-    <PackageReference Include="Tesseract" Version="4.1.1" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\ApplePDF.Maui\ApplePDF.Maui.csproj">
-    </ProjectReference>
+	<ItemGroup>
+	  <ProjectReference Include="..\ApplePDF.iOS\ApplePDF.iOS.csproj" Condition="$(TargetFramework.Contains('ios')) == true or $(TargetFramework.Contains('mac')) == true" />
+    <ProjectReference Include="..\ApplePDF.Maui\ApplePDF.Maui.csproj" Condition="$(TargetFramework.Contains('android')) == true or $(TargetFramework.Contains('windows')) ==true" />
   </ItemGroup>
 
 </Project>

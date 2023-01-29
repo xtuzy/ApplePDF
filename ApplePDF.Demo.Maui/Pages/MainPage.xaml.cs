@@ -76,21 +76,6 @@ namespace ApplePDF.Demo.Maui
             MemoryStream stream = null;
             using var pdfImage = PdfPageExtension.RenderPageToSKBitmapFormSKBitmap(doc.GetPage(index), scale, flags);
             stream = pdfImage.SKBitmapToStream();
-#if WINDOWS
-            //Windows自带OCR
-            //var ocrText = await ApplePDF.Demo.Maui.Services.OcrService.RecognizeText(stream as Stream);
-            //var ocrWords = await ApplePDF.Demo.Maui.Services.OcrService.RecognizeWords(stream as Stream);
-            //用Tess来OCR
-            var ocrLines = await new ApplePDF.Demo.Maui.Services.TesseractOcrService(GetTextActivityIndicator).RecognizeWords(stream);
-
-            OcrResultProcess.DrawLineRect(pdfImage, ocrLines);
-            var size = page.GetSize();
-            using var bitmap = new SKBitmap((int)(size.Width * scale), (int)(size.Height * scale));
-            OcrResultProcess.DrawLineRect(bitmap, ocrLines);
-            OcrResultProcess.DrawLineText(bitmap, ocrLines);
-            SaveService.Save(pdfImage, "Pdf.png");
-            SaveService.Save(bitmap, "Result.png");
-#endif
         }
 
         private async void GetWordsButton_Clicked(object sender, EventArgs e)
@@ -108,20 +93,6 @@ namespace ApplePDF.Demo.Maui
             MemoryStream stream = null;
             using var pdfImage = PdfPageExtension.RenderPageToSKBitmapFormSKBitmap(doc.GetPage(index), scale, flags);
             stream = pdfImage.SKBitmapToStream();
-#if WINDOWS
-            var ocrLines = await new ApplePDF.Demo.Maui.Services.TesseractOcrService(GetTextActivityIndicator).RecognizeLines(stream);
-
-            OcrResultProcess.DrawLineRect(pdfImage, ocrLines);
-            
-            var size = page.GetSize();
-            using var bitmap = new SKBitmap((int)(size.Width * scale), (int)(size.Height * scale));
-            OcrResultProcess.DrawLineRect(bitmap, ocrLines);
-            
-            OcrResultProcess.DrawLineTextWithFixPosition(bitmap, ocrLines);
-
-            SaveService.Save(pdfImage, "Pdf.png");
-            SaveService.Save(bitmap, "Result.png");
-#endif
         }
 
         private void MainPage_SizeChanged(object sender, EventArgs e)
