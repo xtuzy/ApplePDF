@@ -14,9 +14,6 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApplePDF.Maui", "ApplePDF.Maui\ApplePDF.Maui.csproj", "{F5027C06-F479-451D-9FEE-AB6773751752}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{4C1D4A06-0143-4769-85B4-F007BAD9BB10}"
-	ProjectSection(SolutionItems) = preProject
-		ApplePDF.Desktop.Test\PdfiumTests.cs = ApplePDF.Desktop.Test\PdfiumTests.cs
-	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Demos", "Demos", "{A79DA3C8-5724-4AAC-BA74-8CD98C9AC9D0}"
 EndProject
@@ -32,7 +29,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApplePDF.iOS", "ApplePDF.iO
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApplePDF.Demo.Mac", "ApplePDF.Demo.Mac\ApplePDF.Demo.Mac.csproj", "{532D676A-0BEF-4DCF-87CD-956D92294E7A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApplePDF.ApplePdfKit.Test", "ApplePDF.ApplePdfKit.Test\ApplePDF.ApplePdfKit.Test.csproj", "{C6BCD66E-3153-4741-9A3B-8A632A95646E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApplePDF.ApplePdfKit.Test", "ApplePDF.ApplePdfKit.Test\ApplePDF.ApplePdfKit.Test.csproj", "{C6BCD66E-3153-4741-9A3B-8A632A95646E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

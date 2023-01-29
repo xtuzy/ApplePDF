@@ -17,7 +17,7 @@ namespace ApplePDF.PdfKit
             Selection = selection;
         }
 
-        public List<PdfAttributedString> AttributedString => throw new System.NotImplementedException();
+        public List<PdfAttributedString> AttributedString => PdfAttributedString.Phrase(Selection.AttributedString);
 
         public Color Color { get => Selection.Color.ToColor(); set => Selection.Color = value.ToUIColor(); }
 

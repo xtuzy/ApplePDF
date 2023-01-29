@@ -9,7 +9,7 @@ using Lib = ApplePDF.PdfKit.PdfKitLib;
 using Lib = ApplePDF.PdfKit.PdfiumLib;
 #endif
 
-namespace ApplePDF.Test
+namespace ApplePDF.ApplePdfKit.Test.Tests
 {
     public class PdfDocumentTests
     {
@@ -29,7 +29,7 @@ namespace ApplePDF.Test
 
         public byte[] ReadEmbedAssetBytes(string resourcePath = "foler.fileName.extention")
         {
-            using (var stream = this.GetType().Assembly.GetManifestResourceStream(resourcePath))
+            using (var stream = GetType().Assembly.GetManifestResourceStream(resourcePath))
             {
                 byte[] bytes = new byte[stream.Length];
                 using (MemoryStream ms = new MemoryStream(bytes))
@@ -43,19 +43,14 @@ namespace ApplePDF.Test
 
         public PdfDocumentTests()
         {
-        
+
         }
 
         [Theory]
         [InlineData("Docs/Docnet/simple_0.pdf", null, 19)]
-        [InlineData("Docs/Docnet/simple_0.pdf", null, 19)]
-        [InlineData("Docs/Docnet/simple_1.pdf", null, 5)]
         [InlineData("Docs/Docnet/simple_1.pdf", null, 5)]
         [InlineData("Docs/Docnet/simple_2.pdf", null, 10)]
-        [InlineData("Docs/Docnet/simple_2.pdf", null, 10)]
         [InlineData("Docs/Docnet/simple_3.pdf", null, 2)]
-        [InlineData("Docs/Docnet/simple_3.pdf", null, 2)]
-        [InlineData("Docs/Docnet/protected_0.pdf", "password", 3)]
         [InlineData("Docs/Docnet/protected_0.pdf", "password", 3)]
         public void PageCount_WhenCalled_ShouldReturnCorrectResults(string filePath, string password, int expectedCount)
         {
@@ -80,14 +75,9 @@ namespace ApplePDF.Test
 
         [Theory]
         [InlineData("Docs/Docnet/simple_0.pdf", null, 17)]
-        [InlineData("Docs/Docnet/simple_0.pdf", null, 17)]
-        [InlineData("Docs/Docnet/simple_1.pdf", null, 13)]
         [InlineData("Docs/Docnet/simple_1.pdf", null, 13)]
         [InlineData("Docs/Docnet/simple_2.pdf", null, 12)]
-        [InlineData("Docs/Docnet/simple_2.pdf", null, 12)]
         [InlineData("Docs/Docnet/simple_3.pdf", null, 13)]
-        [InlineData("Docs/Docnet/simple_3.pdf", null, 13)]
-        [InlineData("Docs/Docnet/protected_0.pdf", "password", 17)]
         [InlineData("Docs/Docnet/protected_0.pdf", "password", 17)]
         public void MajorVersion_WhenCalled_ShouldReturnCorrectResults(string filePath, string password, int expectedVersion)
         {
@@ -114,11 +104,10 @@ namespace ApplePDF.Test
         [Theory]
         [InlineData("Docs/Docnet/protected_0.pdf", null, -3)]
         [InlineData("Docs/Docnet/protected_0.pdf", null, 10)]
-        [InlineData("Docs/Docnet/protected_0.pdf", null, -3)]
-        [InlineData("Docs/Docnet/protected_0.pdf", null, 10)]
         public void GetPage_WhenCalledWithInvalidFile_ShouldThrow(string filePath, string password, int pageIndex)
         {
-            Assert.Throws<Exception>(() =>  {
+            Assert.ThrowsAny<Exception>(() =>
+            {
                 using (var doc = LoadPdfDocument(filePath, password))
                 using (var page = doc.GetPage(pageIndex))
                 {
@@ -129,11 +118,10 @@ namespace ApplePDF.Test
         [Theory]
         [InlineData("Docs/Docnet/simple_0.pdf", null, -1)]
         [InlineData("Docs/Docnet/simple_0.pdf", null, 19)]
-        [InlineData("Docs/Docnet/simple_0.pdf", null, -1)]
-        [InlineData("Docs/Docnet/simple_0.pdf", null, 19)]
         public void GetPage_WhenCalledWithInvalidIndex_ShouldThrow(string filePath, string password, int pageIndex)
         {
-            Assert.Throws<ArgumentOutOfRangeException>(() => {
+            Assert.Throws<ArgumentOutOfRangeException>(() =>
+            {
                 using (var doc = LoadPdfDocument(filePath, password))
                 using (var page = doc.GetPage(pageIndex))
                 {

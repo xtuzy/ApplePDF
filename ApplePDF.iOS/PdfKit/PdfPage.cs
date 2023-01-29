@@ -1,5 +1,6 @@
 ﻿using ApplePDF.Extensions;
 using CoreGraphics;
+using CoreMedia;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -95,6 +96,8 @@ namespace ApplePDF.PdfKit
         }
 
         public string Text => Page.Text;
+
+        public int AnnotationCount => throw new NotImplementedException();
 
         public void AddAnnotation(PdfAnnotation annotation)
         {
@@ -206,15 +209,17 @@ namespace ApplePDF.PdfKit
         /// <param name="buffer"></param>
         /// <param name="w">图像宽</param>
         /// <param name="h"></param>
-        public void Draw(IntPtr bufferPointer, int w, int h)
+        public void Draw(IntPtr bufferPointer, int width, bool renderAnnot)
         {
-            var context = new CGBitmapContext(bufferPointer, w, h, 8, 4 * w, CGColorSpace.CreateDeviceRGB(), CGBitmapFlags.NoneSkipLast);
+            DisplaysAnnotations = renderAnnot;
+            var context = new CGBitmapContext(bufferPointer, width, (nint)(width / GetSize().Width * GetSize().Height), 8, 4 * width, CGColorSpace.CreateDeviceRGB(), CGBitmapFlags.NoneSkipLast);
             Page.Draw(iOSPdfKit.PdfDisplayBox.Media, context);
             context.Flush();
         }
 
-        public CGImage Draw(int w, int h)
+        public CGImage Draw(int w, int h, bool renderAnnot)
         {
+            DisplaysAnnotations = renderAnnot;
             byte[] bufferPointer = new byte[w * h * 4 * 8];
             var context = new CGBitmapContext(bufferPointer, w, h, 8, 4 * w, CGColorSpace.CreateDeviceRGB(), CGBitmapFlags.NoneSkipLast);
             Page.Draw(iOSPdfKit.PdfDisplayBox.Media, context);
@@ -227,6 +232,22 @@ namespace ApplePDF.PdfKit
             Document = null;
             Page?.Dispose();
             page = null;
+        } 
+
+        public SizeF GetSize()
+        {
+            var bounds = GetBoundsForBox(PdfDisplayBox.Media);
+            return new SizeF(bounds.Width, bounds.Height);
+        }
+
+        public bool AddText(PdfFont font, float fontSize, string text, double x, double y, double scale = 1)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool InsteadText(string oldText, string newText)
+        {
+            throw new NotImplementedException();
         }
     }
 }

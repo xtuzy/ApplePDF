@@ -103,8 +103,59 @@ namespace ApplePDF.PdfKit
         /// <param name="point"></param>
         /// <returns></returns>
         PdfSelection? SelectWord(PointF point);
+        /// <summary>
+        /// 获取矩形
+        /// <br/>#iOSApi
+        /// </summary>
+        /// <param name="pdfDisplayBox"></param>
+        /// <returns></returns>
         PdfRectangleF GetBoundsForBox(PdfDisplayBox pdfDisplayBox);
         //void SetBoundsForBox(Rectangle bounds, PdfDisplayBox box);
         //void TransformContext(CGContext context, PdfDisplayBox box);
+        /// <summary>
+        /// 从0开始的页面序号
+        /// <br/>#ApplePDFApi
+        /// </summary>
+        int PageIndex { get; }
+        /// <summary>
+        /// 页面中注释的数量
+        /// <br/>#ApplePDFApi
+        /// </summary>
+        int AnnotationCount { get; }
+        /// <summary>
+        /// 获取页面大小
+        /// <br/>#ApplePDFApi
+        /// </summary>
+        /// <returns></returns>
+        SizeF GetSize();
+        /// <summary>
+        /// 增加文本到页面
+        /// <br/>#ApplePDFApi
+        /// </summary>
+        /// <param name="font"></param>
+        /// <param name="fontSize"></param>
+        /// <param name="text"></param>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <param name="scale"></param>
+        /// <returns></returns>
+        bool AddText(PdfFont font, float fontSize, string text, double x, double y, double scale = 1);
+        /// <summary>
+        /// 替换页面中的首个匹配的文本
+        /// <br/>#ApplePDFApi
+        /// </summary>
+        /// <param name="oldText"></param>
+        /// <param name="newText"></param>
+        /// <returns></returns>
+        bool InsteadText(string oldText, string newText);
+        /// <summary>
+        /// 绘制页面到指定buffer,buffer代表的图像宽为width，其高度遵循宽度的缩放.
+        /// 注意Pdfium绘制的图像是BGRA的.
+        /// <br/>#ApplePDFApi
+        /// </summary>
+        /// <param name="imageBufferPointer"></param>
+        /// <param name="width"></param>
+        /// <param name="renderAnnot"></param>
+        void Draw(IntPtr imageBufferPointer, int width, bool renderAnnot);
     }
 }

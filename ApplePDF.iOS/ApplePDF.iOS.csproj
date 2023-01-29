@@ -7,6 +7,7 @@
   <ItemGroup>
     <Compile Include="..\ApplePDF\PdfKit\ILib.cs" Link="PdfKit\ILib.cs" />
     <Compile Include="..\ApplePDF\PdfKit\IPdfAction.cs" Link="PdfKit\IPdfAction.cs" />
+    <Compile Include="..\ApplePDF\PdfKit\IPdfAttributedString.cs" Link="PdfKit\IPdfAttributedString.cs" />
     <Compile Include="..\ApplePDF\PdfKit\IPdfDestination.cs" Link="PdfKit\IPdfDestination.cs" />
     <Compile Include="..\ApplePDF\PdfKit\IPdfDocument.cs" Link="PdfKit\IPdfDocument.cs" />
     <Compile Include="..\ApplePDF\PdfKit\IPdfOutline.cs" Link="PdfKit\IPdfOutline.cs" />

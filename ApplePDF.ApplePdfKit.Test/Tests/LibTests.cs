@@ -33,7 +33,7 @@ namespace ApplePDF.Test
         [Fact]
         public void LoadPdfDocument_WhenCalledWithNoPassword_ShouldThrow()
         {
-            Assert.Throws<Exception>(() => _fixture.LoadPdfDocument("Docs/Docnet/protected_0.pdf", null));
+            Assert.ThrowsAny<Exception>(() => _fixture.LoadPdfDocument("Docs/Docnet/protected_0.pdf", null));
         }
     }
 }
