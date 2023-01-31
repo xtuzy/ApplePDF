@@ -14,6 +14,12 @@ namespace ApplePDF.PdfKit
             Destination = destination;
         }
 
+        internal PdfDestination(PdfDocument document, iOSPdfKit.PdfDestination destination)
+        {
+            this.document = document;
+            Destination = destination;
+        }
+
         /// <summary>
         /// <br/>#iOS Api
         /// </summary>
@@ -22,13 +28,14 @@ namespace ApplePDF.PdfKit
         public int PageIndex => (int)document.Document.GetPageIndex(Destination.Page);
         public PdfPage Page => PdfPage.Create(document, Destination.Page);
 
-        public PointF Point => throw new System.NotImplementedException();
+        public PointF Point => new PointF((float)Destination.Point.X, (float)Destination.Point.Y);
 
         public float Zoom { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
 
         public void Dispose()
         {
-            throw new System.NotImplementedException();
+            document = null;
+            Destination?.Dispose();
         }
     }
 }

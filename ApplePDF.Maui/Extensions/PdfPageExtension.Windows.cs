@@ -1,5 +1,8 @@
 ﻿#if WINDOWS
 using ApplePDF.PdfKit;
+using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Documents;
+using Microsoft.UI.Xaml.Media.Imaging;
 using PDFiumCore;
 using System;
 using System.ComponentModel;
@@ -7,6 +10,8 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.WindowsRuntime;
+using Windows.Storage.Streams;
 using Math = System.Math;
 
 namespace ApplePDF.Maui.Extensions

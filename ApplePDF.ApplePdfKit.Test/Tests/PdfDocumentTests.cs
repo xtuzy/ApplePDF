@@ -1,7 +1,4 @@
-﻿using System;
-using System.IO;
-using ApplePDF.PdfKit;
-using Microsoft.Maui.Controls.Shapes;
+﻿using ApplePDF.PdfKit;
 using Xunit;
 #if IOS || MACCATALYST
 using Lib = ApplePDF.PdfKit.PdfKitLib;
@@ -139,6 +136,17 @@ namespace ApplePDF.ApplePdfKit.Test.Tests
             {
                 doc.GetPage(0);
             });
+        }
+
+        [Theory]
+        [InlineData("Docs/mytest_VulkanGuideline.pdf")]
+        public void OutlineRoot_WhenCall_GetAllOutlineOfPdf(string filePath)
+        {
+            using (var doc = LoadPdfDocument(filePath, null))
+            {
+                var outline = doc.OutlineRoot;
+                Assert.True(outline.Children[1].Children.Count > 0);
+            }
         }
     }
 }

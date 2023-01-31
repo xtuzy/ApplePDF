@@ -1,12 +1,7 @@
-﻿using ApplePDF.PdfKit;
-using Foundation;
+﻿using Foundation;
 using System;
-using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ApplePDF.PdfKit
 {
@@ -64,7 +59,16 @@ namespace ApplePDF.PdfKit
 
         public int MinorVersion => (int)Document.MinorVersion;
 
-        public PdfOutline? OutlineRoot { get => new PdfOutline(Document.OutlineRoot); set => Document.OutlineRoot = value.Outline; }
+        public PdfOutline? OutlineRoot
+        {
+            get
+            {
+                var root = new PdfOutline(this, Document.OutlineRoot);
+                root.LoadChildrenBookmarks();
+                return root;
+            }
+            set => Document.OutlineRoot = value.Outline;
+        }
 
         public int PageCount => (int)Document.PageCount;
 

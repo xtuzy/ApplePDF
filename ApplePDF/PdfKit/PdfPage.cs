@@ -499,7 +499,7 @@ namespace ApplePDF.PdfKit
         #region 渲染 Render
 
         /// <summary>
-        /// 获取页面图像。原始图像的内存由Pdfium开辟, 返回的数组是从其拷贝的, 因此有内存拷贝损耗.
+        /// 获取页面图像。原始图像的内存由Pdfium开辟, 返回的数组是从其拷贝的, 因此需要开辟两遍内存空间填充数据, 有内存拷贝损耗.
         /// </summary>
         /// <param name="xScale"></param>
         /// <param name="yScale"></param>
@@ -565,6 +565,53 @@ namespace ApplePDF.PdfKit
         }
 
         /// <summary>
+        /// 相比于<see cref="Draw(float, float, int)"/>, 这个方法内部自己创建byte[], 然后Pdfium直接在其中绘制, 因此更高效.
+        /// </summary>
+        /// <param name="xScale"></param>
+        /// <param name="yScale"></param>
+        /// <param name="rotate"></param>
+        /// <param name="renderFlag"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        public byte[] Draw(float xScale, float yScale, PdfRotate rotate, int renderFlag)
+        {
+            // Get Metrics
+            var bounds = GetSize();
+            int width = (int)(bounds.Width * xScale);
+            int height = (int)(bounds.Height * yScale);
+            var imageBuffer = new byte[width * height * 4];
+            FpdfBitmapT bitmap = null;
+            unsafe
+            {
+                fixed (byte* p = imageBuffer)
+                {
+                    IntPtr ptr = (IntPtr)p;
+                    // do you stuff here
+                    bitmap = fpdfview.FPDFBitmapCreateEx(width, height, (int)FPDFBitmapFormat.BGRA, ptr, width * 4);//https://learn.microsoft.com/en-us/windows/windows-app-sdk/api/winrt/microsoft.ui.xaml.media.imaging.writeablebitmap.pixelbuffer?view=windows-app-sdk-1.2#microsoft-ui-xaml-media-imaging-writeablebitmap-pixelbuffer 显示可以使用BGRA
+
+                    if (bitmap == null)
+                    {
+                        throw new Exception("failed to create a bitmap object");
+                    }
+
+                    try
+                    {
+                        fpdfview.FPDF_RenderPageBitmap(bitmap, Page, 0, 0, width, height, (int)rotate, renderFlag);
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new Exception("error rendering page", ex);
+                    }
+                    finally
+                    {
+                        fpdfview.FPDFBitmapDestroy(bitmap);
+                    }
+                }
+            }
+            return imageBuffer;
+        }
+
+        /// <summary>
         /// 该方法使用Pdfium为图像分配内存, 可以使用<see cref="PdfBitmap.Buffer">访问图像数据, 没有内存拷贝的损耗; 注意使用结束需要调用<see cref="PdfBitmap.Dispose"/>释放内存.
         /// </summary>
         /// <param name="xScale"></param>
@@ -572,7 +619,7 @@ namespace ApplePDF.PdfKit
         /// <param name="renderFlag"></param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        public PdfBitmap DrawEx(float xScale, float yScale, int renderFlag)
+        public PdfBitmap DrawToPdfBitmap(float xScale, float yScale, int renderFlag)
         {
             lock (@lock)
             {
@@ -621,7 +668,8 @@ namespace ApplePDF.PdfKit
         }
 
         /// <summary>
-        /// 应用开辟内存给Pdfium存储图像, 其可以是应用从数组创建, 也可以是通过图像处理库创建的, 记得需要应用自己管理该内存,
+        /// 应用开辟内存给Pdfium存储图像, 其可以是应用从数组创建, 也可以是通过图像处理库创建的, 记得需要应用自己管理该内存.
+        /// 其相对于<see cref="DrawToPdfBitmap(float, float, int)"/>优势是可以利用已经开辟得内存空间.
         /// </summary>
         /// <param name="imageBufferPointer"></param>
         /// <param name="xScale"></param>
@@ -629,7 +677,7 @@ namespace ApplePDF.PdfKit
         /// <param name="rotate"></param>
         /// <param name="renderFlag"><see cref="RenderFlags"/>,可以叠加，如`RenderFlags.RenderAnnotations | RenderFlags.RenderForPrinting`</param>
         /// <exception cref="Exception"></exception>
-        public void Draw(IntPtr imageBufferPointer, float xScale, float yScale, int rotate, int renderFlag)
+        public void Draw(IntPtr imageBufferPointer, float xScale, float yScale, int renderFlag)
         {
             lock (@lock)
             {
@@ -682,7 +730,7 @@ namespace ApplePDF.PdfKit
         public void Draw(IntPtr imageBufferPointer, int width, bool renderAnnot)
         {
             var scale = width / GetSize().Width;
-            Draw(imageBufferPointer, scale, scale, 90, (int)(renderAnnot ? RenderFlags.RenderAnnotations : RenderFlags.None));
+            Draw(imageBufferPointer, scale, scale, (int)(renderAnnot ? RenderFlags.RenderAnnotations : RenderFlags.None));
         }
         #endregion
 

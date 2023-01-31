@@ -1,4 +1,5 @@
-﻿
+﻿#if IOS || MACCATALYST
+#else
 using ApplePDF.PdfKit;
 using PDFiumCore;
 using SkiaSharp;
@@ -10,6 +11,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using IPdfPage = ApplePDF.PdfKit.IPdfPage;
 
 namespace ApplePDF.Demo.Maui.Extension
 {
@@ -56,7 +58,7 @@ namespace ApplePDF.Demo.Maui.Extension
             var info = new SKImageInfo(width, height, SKColorType.Bgra8888, SKAlphaType.Premul);
             bmp = new SKBitmap(info);
 
-            page.Draw(bmp.GetPixels(), density, density, 0, renderFlags);
+            page.Draw(bmp.GetPixels(), density, density, renderFlags);
 
             return bmp;
         }
@@ -70,3 +72,4 @@ namespace ApplePDF.Demo.Maui.Extension
         }
     }
 }
+#endif

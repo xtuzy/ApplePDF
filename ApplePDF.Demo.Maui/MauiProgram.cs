@@ -1,4 +1,6 @@
-﻿namespace ApplePDF.Demo.Maui
+﻿using ApplePDF.Demo.Maui.Helper;
+
+namespace ApplePDF.Demo.Maui
 {
     public static class MauiProgram
     {
@@ -7,6 +9,7 @@
             var builder = MauiApp.CreateBuilder();
             builder
                 .UseMauiApp<App>()
+                .UsePlatformImageSource()
                 .ConfigureFonts(fonts =>
                 {
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");

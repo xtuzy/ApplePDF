@@ -24,7 +24,7 @@ namespace ApplePDF.PdfKit
 
         public FpdfBookmarkT Outline => outline;
 
-        public List<PdfOutline> Children;
+        public List<PdfOutline> Children { get; private set; }
 
         public PdfOutline(PdfDocument document, FpdfBookmarkT bookmark)
         {
@@ -106,6 +106,9 @@ namespace ApplePDF.PdfKit
 
         public PdfDocument Document => document;
 
+        /// <summary>
+        /// 在Pdfium中, 获取child是通过加载下一个outline来获取的, 不是用index在数组中获取
+        /// </summary>
         [Obsolete]
         public int Index => throw new NotImplementedException();
 
@@ -126,6 +129,11 @@ namespace ApplePDF.PdfKit
         [Obsolete]
         public PdfOutline Parent => throw new NotImplementedException();
 
+        /// <summary>
+        /// Pdfium中使用index获取outline是没有必要的, 因为其获取是从下一个获取, 不是从数组, 我使用了<see cref="Children"/>进行一次性获取.
+        /// </summary>
+        /// <param name="index"></param>
+        /// <returns></returns>
         public PdfOutline Child(int index)
         {
             return Children[index];

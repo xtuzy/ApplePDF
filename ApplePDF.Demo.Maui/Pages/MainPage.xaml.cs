@@ -1,14 +1,23 @@
 ﻿using ApplePDF.Demo.Maui.Extension;
+using ApplePDF.Demo.Maui.Helper;
 using ApplePDF.Demo.Maui.Services;
 using ApplePDF.PdfKit;
 using CommunityToolkit.Mvvm.ComponentModel;
-using PDFiumCore;
 using SharpConstraintLayout.Maui.Widget;
 using SkiaSharp;
+using System;
+using System.Collections;
 using System.Collections.ObjectModel;
+using System.IO;
+using System.Runtime.InteropServices;
 using System.Text;
 using static SharpConstraintLayout.Maui.Widget.FluentConstraintSet;
-
+#if IOS || MACCATALYST
+using Lib = ApplePDF.PdfKit.PdfKitLib;
+#else
+using Lib = ApplePDF.PdfKit.PdfiumLib;
+using PDFiumCore;
+#endif
 namespace ApplePDF.Demo.Maui
 {
     public partial class MainPage : ContentPage
@@ -41,8 +50,6 @@ namespace ApplePDF.Demo.Maui
             };
 
             SelectFileButton.Clicked += SelectFileButton_ClickedAsync;
-            GetTextButton.Clicked += GetTextButton_Clicked;
-            GetWordsButton.Clicked += GetWordsButton_Clicked;
             int lastPageIndex = 1;
             PageCurrentIndexEntry.Completed += (sender, e) =>
             {
@@ -54,45 +61,10 @@ namespace ApplePDF.Demo.Maui
                 else
                 {
                     lastPageIndex = newPageIndex;
-                    ShowPdf();
+                    ShowPdfAsync();
                 }
             };
-            InitPdfLibrary();
             SelectPdfFormResourcesAsync();
-        }
-
-        private async void GetTextButton_Clicked(object sender, EventArgs e)
-        {
-            var index = int.Parse(PageCurrentIndexEntry.Text) - 1;
-            if (index < 0) index = 0;
-            using var page = doc.GetPage(index);
-            //var text = page.Text;
-
-            var scaleStr = PageScaleTextBox.Text;
-            var scale = float.Parse(scaleStr == String.Empty ? "1" : scaleStr);
-
-            var density = DeviceDisplay.MainDisplayInfo.Density;
-            var flags = (int)(RenderFlags.OptimizeTextForLcd | RenderFlags.RenderAnnotations | RenderFlags.RenderForPrinting);
-            MemoryStream stream = null;
-            using var pdfImage = PdfPageExtension.RenderPageToSKBitmapFormSKBitmap(doc.GetPage(index), scale, flags);
-            stream = pdfImage.SKBitmapToStream();
-        }
-
-        private async void GetWordsButton_Clicked(object sender, EventArgs e)
-        {
-            var index = int.Parse(PageCurrentIndexEntry.Text) - 1;
-            if (index < 0) index = 0;
-            using var page = doc.GetPage(index);
-            //var text = page.Text;
-
-            var scaleStr = PageScaleTextBox.Text;
-            var scale = float.Parse(scaleStr == String.Empty ? "1" : scaleStr);
-
-            var density = DeviceDisplay.MainDisplayInfo.Density;
-            var flags = (int)(RenderFlags.OptimizeTextForLcd | RenderFlags.RenderAnnotations | RenderFlags.RenderForPrinting);
-            MemoryStream stream = null;
-            using var pdfImage = PdfPageExtension.RenderPageToSKBitmapFormSKBitmap(doc.GetPage(index), scale, flags);
-            stream = pdfImage.SKBitmapToStream();
         }
 
         private void MainPage_SizeChanged(object sender, EventArgs e)
@@ -124,20 +96,21 @@ namespace ApplePDF.Demo.Maui
             }
         }
 
-        private void ShowPdf()
+        private async void ShowPdfAsync()
         {
             var index = int.Parse(PageCurrentIndexEntry.Text) - 1;
             if (index < 0) index = 0;
 
             var scaleStr = PageScaleTextBox.Text;
             var scale = float.Parse(scaleStr == String.Empty ? "1" : scaleStr);
-
+#if ANDROID
             var density = DeviceDisplay.MainDisplayInfo.Density;
             var flags = (int)(RenderFlags.OptimizeTextForLcd | RenderFlags.RenderAnnotations | RenderFlags.RenderForPrinting);
             using var page = doc.GetPage(index);
             MemoryStream stream = null;
             var bitmap = PdfPageExtension.RenderPageToSKBitmapFormSKBitmap(page, scale, flags);
             stream = bitmap.SKBitmapToStream();
+
             if (this.Dispatcher.IsDispatchRequired)
                 this.Dispatcher.Dispatch(() =>
                 {
@@ -151,6 +124,45 @@ namespace ApplePDF.Demo.Maui
                 PageImage.Source = ImageSource.FromStream(() => stream);
                 WindowPage.RequestReLayout();
             }
+#elif WINDOWS
+            var density = DeviceDisplay.MainDisplayInfo.Density;
+            var flags = (int)(RenderFlags.OptimizeTextForLcd | RenderFlags.RenderAnnotations | RenderFlags.RenderForPrinting);
+            using var page = doc.GetPage(index);
+            MemoryStream stream = null;
+            var imageBuffer = page.Draw(scale, scale, PdfRotate.Degree0, flags);
+            int width = (int)(page.GetSize().Width * scale);
+            int height = (int)(page.GetSize().Height * scale);
+            Microsoft.UI.Xaml.Media.Imaging.WriteableBitmap myWriteableBitmap = null;
+            this.Dispatcher.Dispatch(async () =>
+            {
+                myWriteableBitmap = new Microsoft.UI.Xaml.Media.Imaging.WriteableBitmap(width, height);
+                using Stream pixelStream = System.Runtime.InteropServices.WindowsRuntime.WindowsRuntimeBufferExtensions.AsStream(myWriteableBitmap.PixelBuffer);
+                await pixelStream.WriteAsync(imageBuffer, 0, imageBuffer.Length);
+                myWriteableBitmap.Invalidate();
+                PageImage.Source = new PlatformImageImageSource() { PlatformImage = myWriteableBitmap };
+                WindowPage.RequestReLayout();
+            });
+            
+#elif IOS || MACCATALYST
+            using var page = doc.GetPage(index);
+            var r = page.Page.Rotation;
+            var size = page.GetSize();
+            var uiimage = page.Draw(1);
+            if (this.Dispatcher.IsDispatchRequired)
+                this.Dispatcher.Dispatch(() =>
+                {
+                    PageImage.Source = null;
+                    PageImage.Source = new PlatformImageImageSource() { PlatformImage = uiimage };
+                    WindowPage.RequestReLayout();
+                });
+            else
+            {
+                PageImage.Source = null;
+                PageImage.Source = new PlatformImageImageSource() { PlatformImage = uiimage};
+                WindowPage.RequestReLayout();
+            }
+
+#endif
         }
 
         private async void SelectFileButton_ClickedAsync(object sender, EventArgs e)
@@ -162,21 +174,9 @@ namespace ApplePDF.Demo.Maui
             {
                 return;
             }
-            Stream stream = File.OpenRead(result.FullPath);
-            ReadPdfAsync(stream);
-            ShowPdf();
-        }
-
-        void InitPdfLibrary()
-        {
-            try
-            {
-                fpdfview.FPDF_InitLibrary();
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
+            ReadPdfAsync(result.FullPath);
+            ReadBookmark(doc);
+            ShowPdfAsync();
         }
 
         async Task SelectPdfFormResourcesAsync(string filePath = null)
@@ -187,17 +187,40 @@ namespace ApplePDF.Demo.Maui
                 {
                     MemoryStream memoryStream = new MemoryStream();
                     t.Result.CopyTo(memoryStream);
+#if IOS || MACCATALYST
+                    ReadPdfAsync(memoryStream.ToArray());
+#else
                     ReadPdfAsync(memoryStream);
-                    ShowPdf();
+#endif
+                    ReadBookmark(doc);
+                    ShowPdfAsync();
                 });
             }
+        }
+
+        void ReadPdfAsync(string path)
+        {
+            if (doc != null)
+                doc.Dispose();
+            doc = Lib.Instance.LoadPdfDocument(path, null);
+        }
+
+        void ReadPdfAsync(byte[] data)
+        {
+            if (doc != null)
+                doc.Dispose();
+            doc = Lib.Instance.LoadPdfDocument(data, null);
         }
 
         void ReadPdfAsync(Stream stream)
         {
             if (doc != null)
                 doc.Dispose();
-            doc = PdfiumLib.Instance.LoadPdfDocument(stream, null);
+            doc = Lib.Instance.LoadPdfDocument(stream, null);
+        }
+
+        void ReadBookmark(PdfDocument doc) 
+        { 
             var rootBookmark = doc.OutlineRoot;
             var viewModel = new DocTreeViewModel();
             var bookmarks = viewModel.Bookmarks;

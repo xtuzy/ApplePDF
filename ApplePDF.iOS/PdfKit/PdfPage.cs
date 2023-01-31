@@ -217,10 +217,17 @@ namespace ApplePDF.PdfKit
             context.Flush();
         }
 
+        /// <summary>
+        /// 绘制到宽高为多少的图片上. 该方法内部创建字节数组提供给CGBitmapContext绘制图像, 但不知道<see cref="CGBitmapContext.ToImage"/>是否另占用内存.
+        /// </summary>
+        /// <param name="w"></param>
+        /// <param name="h"></param>
+        /// <param name="renderAnnot"></param>
+        /// <returns></returns>
         public CGImage Draw(int w, int h, bool renderAnnot)
         {
             DisplaysAnnotations = renderAnnot;
-            byte[] bufferPointer = new byte[w * h * 4 * 8];
+            byte[] bufferPointer = new byte[w * h * 4];
             var context = new CGBitmapContext(bufferPointer, w, h, 8, 4 * w, CGColorSpace.CreateDeviceRGB(), CGBitmapFlags.NoneSkipLast);
             Page.Draw(iOSPdfKit.PdfDisplayBox.Media, context);
             context.Flush();

@@ -25,7 +25,7 @@ namespace ApplePDF.Demo.Mac
             var page = doc.GetPage(0);
             var rect = page.GetBoundsForBox(PdfDisplayBox.Media);
             var size = new SizeF(rect.Width, rect.Height);
-            view.Image = new NSImage(page.Draw((int)size.Width, (int)size.Height), new CGSize(size.Width, size.Height));
+            view.Image = new NSImage(page.Draw((int)size.Width, (int)size.Height, false), new CGSize(size.Width, size.Height));
             this.View = view;
         }
 
