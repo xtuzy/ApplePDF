@@ -5,6 +5,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:layout="clr-namespace:SharpConstraintLayout.Maui.Widget;assembly=SharpConstraintLayout.Maui"
     xmlns:local="clr-namespace:ApplePDF.Demo.Maui"
+    xmlns:t="clr-namespace:TreeView.Maui.Controls;assembly=TreeView.Maui"
     Shell.TabBarIsVisible="False">
     <ContentPage.BindingContext>
         <local:DocTreeViewModel />
@@ -159,47 +160,23 @@
         <ScrollView x:Name="PageScrollViewer">
             <Image x:Name="PageImage" />
         </ScrollView>
-        <ScrollView x:Name="DocTreeView" HorizontalScrollBarVisibility="Always">
-            <ListView
+        <ScrollView x:Name="DocTreeView" HorizontalScrollBarVisibility="Never">
+            <t:TreeView
                 x:Name="bookmarksView"
                 BackgroundColor="#333333"
-                HasUnevenRows="True"
-                ItemsSource="{Binding Bookmarks}"
-                SeparatorColor="Pink">
-                <ListView.ItemTemplate>
+                ItemsSource="{Binding Bookmarks}">
+                <t:TreeView.ItemTemplate>
                     <DataTemplate>
-                        <ViewCell>
-                            <Grid>
-                                <HorizontalStackLayout Margin="5,10,10,10" Spacing="5">
-                                    <Image
-                                        HeightRequest="16"
-                                        VerticalOptions="Center"
-                                        WidthRequest="16">
-                                        <Image.Source>
-                                            <FontImageSource
-                                                FontFamily="FontAwesomeSolid"
-                                                Glyph=""
-                                                Size="16" />
-                                        </Image.Source>
-                                    </Image>
-                                    <Label
-                                        LineBreakMode="CharacterWrap"
-                                        MaxLines="2"
-                                        Text="{Binding Name}"
-                                        TextColor="White"
-                                        VerticalOptions="CenterAndExpand"
-                                        WidthRequest="150" />
-                                    <Label
-                                        Text="{Binding Children.Count, StringFormat='({0})'}"
-                                        TextColor="White"
-                                        VerticalOptions="Center" />
-                                </HorizontalStackLayout>
-
-                            </Grid>
-                        </ViewCell>
+                        <Grid>
+                            <Label
+                                LineBreakMode="CharacterWrap"
+                                MaxLines="2"
+                                Text="{Binding Name}"
+                                WidthRequest="200" />
+                        </Grid>
                     </DataTemplate>
-                </ListView.ItemTemplate>
-            </ListView>
+                </t:TreeView.ItemTemplate>
+            </t:TreeView>
         </ScrollView>
         <ActivityIndicator x:Name="GetTextActivityIndicator" Color="AliceBlue" />
     </layout:ConstraintLayout>

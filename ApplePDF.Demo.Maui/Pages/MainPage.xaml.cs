@@ -1,17 +1,11 @@
 ﻿using ApplePDF.Demo.Maui.Extension;
 using ApplePDF.Demo.Maui.Helper;
-using ApplePDF.Demo.Maui.Services;
 using ApplePDF.PdfKit;
 using CommunityToolkit.Mvvm.ComponentModel;
 using SharpConstraintLayout.Maui.Widget;
-using SkiaSharp;
-using System;
-using System.Collections;
 using System.Collections.ObjectModel;
-using System.IO;
-using System.Runtime.InteropServices;
-using System.Text;
 using static SharpConstraintLayout.Maui.Widget.FluentConstraintSet;
+using TreeView.Maui.Core;
 #if IOS || MACCATALYST
 using Lib = ApplePDF.PdfKit.PdfKitLib;
 #else
@@ -65,6 +59,7 @@ namespace ApplePDF.Demo.Maui
                 }
             };
             SelectPdfFormResourcesAsync();
+            
         }
 
         private void MainPage_SizeChanged(object sender, EventArgs e)
@@ -219,8 +214,8 @@ namespace ApplePDF.Demo.Maui
             doc = Lib.Instance.LoadPdfDocument(stream, null);
         }
 
-        void ReadBookmark(PdfDocument doc) 
-        { 
+        void ReadBookmark(PdfDocument doc)
+        {
             var rootBookmark = doc.OutlineRoot;
             var viewModel = new DocTreeViewModel();
             var bookmarks = viewModel.Bookmarks;
@@ -232,13 +227,13 @@ namespace ApplePDF.Demo.Maui
                 foreach (var child in rootBookmark.Children)
                 {
                     // Debug.WriteLine(child.Label);
-                    var firstLevelBookmark = new DocTreeModel() { Name = child.Label };
+                    var firstLevelBookmark = new TreeViewNode() { Name = child.Label };
                     bookmarks.Add(firstLevelBookmark);
                     //添加二级书签
                     foreach (var child2 in child.Children)
                     {
                         //  Debug.WriteLine(child2.Label);
-                        firstLevelBookmark.Children.Add(new DocTreeModel() { Name = child2.Label });
+                        firstLevelBookmark.Children.Add(new TreeViewNode() { Name = child2.Label });
                     }
                 }
             }
@@ -277,11 +272,11 @@ namespace ApplePDF.Demo.Maui
     public partial class DocTreeViewModel : ObservableObject
     {
         [ObservableProperty]
-        ObservableCollection<DocTreeModel> bookmarks;
+        ObservableCollection<TreeViewNode> bookmarks;
 
         public DocTreeViewModel()
         {
-            bookmarks = new ObservableCollection<DocTreeModel>();
+            bookmarks = new ObservableCollection<TreeViewNode>();
         }
     }
 }
