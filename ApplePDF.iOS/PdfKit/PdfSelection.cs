@@ -11,7 +11,7 @@ namespace ApplePDF.PdfKit
             Selection = page.Page.GetSelection(rectangle.ToCGRect());
         }
 
-        PlatformPdfSelection Selection;
+        public PlatformPdfSelection Selection { get; private set; }
         internal PdfSelection(PlatformPdfSelection selection)
         {
             Selection = selection;

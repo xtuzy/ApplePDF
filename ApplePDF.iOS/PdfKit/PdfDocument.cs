@@ -1,4 +1,5 @@
-﻿using Foundation;
+﻿using ApplePDF.Extensions;
+using Foundation;
 using System;
 using System.Drawing;
 using System.IO;
@@ -9,7 +10,7 @@ namespace ApplePDF.PdfKit
     {
         public PdfDocument(string? filePath, string? password)
         {
-            Document = new iOSPdfKit.PdfDocument(new NSUrl(filePath, false));
+            document = new iOSPdfKit.PdfDocument(new NSUrl(filePath, false));
             if (Document.IsLocked)
             {
                 Document.Unlock(password);
@@ -19,7 +20,7 @@ namespace ApplePDF.PdfKit
         public PdfDocument(Stream stream, string password)
         {
             var data = NSData.FromStream(stream);
-            Document = new iOSPdfKit.PdfDocument(data);
+            document = new iOSPdfKit.PdfDocument(data);
             if (Document.IsLocked)
             {
                 Document.Unlock(password);
@@ -29,27 +30,28 @@ namespace ApplePDF.PdfKit
         public PdfDocument(byte[] bytes, string password)
         {
             var data = NSData.FromArray(bytes);
-            Document = new iOSPdfKit.PdfDocument(data);
+            document = new iOSPdfKit.PdfDocument(data);
             if (Document.IsLocked)
             {
                 Document.Unlock(password);
             }
         }
 
-        private PdfDocument()
+        internal PdfDocument(PlatformPdfDocument pdfDocument)
         {
-            Document = new iOSPdfKit.PdfDocument();
+            document = pdfDocument;
         }
 
-        /// <summary>
-        /// For create a new doc, not from stream or file.
-        /// </summary>
-        public static PdfDocument Create()
-        {
-            return new PdfDocument();
+        PlatformPdfDocument document;
+        public PlatformPdfDocument? Document 
+        { 
+            get
+            {
+                if (document == null)
+                    throw new ObjectDisposedException(nameof(Document));
+                return document;
+            }
         }
-
-        public PlatformPdfDocument? Document { get; private set; }
 
         public bool IsEncrypted => Document.IsEncrypted;
 
@@ -76,17 +78,19 @@ namespace ApplePDF.PdfKit
 
         public void Dispose()
         {
-            Document?.Dispose();
-            Document = null;
+            document?.Dispose();
+            document = null;
         }
 
         public void ExchangePages(int indexA, int indexB)
         {
-            throw new NotImplementedException();
+            Document.ExchangePages(indexA, indexB);
         }
 
         public PdfPage? GetPage(int index)
         {
+            if (index < 0 || index >= PageCount)
+                throw new ArgumentOutOfRangeException($"Page Index should > 0 and < {PageCount}");
             return new PdfPage(this, index);
         }
 
@@ -97,12 +101,12 @@ namespace ApplePDF.PdfKit
 
         public PdfSelection? GetSelection(PdfPage startPage, Point startPoint, PdfPage endPage, Point endPoint)
         {
-            throw new NotImplementedException();
+            return new PdfSelection(Document.GetSelection(startPage.Page, startPoint.ToCGPoint(), endPage.Page, endPoint.ToCGPoint()));
         }
 
         public PdfSelection? GetSelection(PdfPage startPage, int startCharIndex, PdfPage endPage, int endCharIndex)
         {
-            throw new NotImplementedException();
+            return new PdfSelection(Document.GetSelection(startPage.Page, startCharIndex, endPage.Page, endCharIndex));
         }
 
         public void InsertPage(PdfPage page, int index)
@@ -112,17 +116,24 @@ namespace ApplePDF.PdfKit
 
         public PdfOutline? OutlineItem(PdfSelection selection)
         {
-            throw new NotImplementedException();
+            return new PdfOutline(this, Document.OutlineItem(selection.Selection));
         }
 
         public void RemovePage(int index)
         {
-            throw new NotImplementedException();
+            Document.RemovePage(index);
         }
 
         public bool Unlock(string password)
         {
-            throw new NotImplementedException();
+            return Document.Unlock(password);
+        }
+
+        public PdfPage CreatePage(int index, int w, int h)
+        {
+            var platformPage = new PlatformPdfPage();
+            Document.InsertPage(platformPage, index);
+            return new PdfPage(this, platformPage);
         }
     }
 }

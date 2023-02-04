@@ -1,6 +1,5 @@
 ﻿using ApplePDF.Extensions;
 using CoreGraphics;
-using CoreMedia;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -15,22 +14,18 @@ namespace ApplePDF.PdfKit
         /// </summary>
         public int PageIndex { get; private set; }
 
-        public PdfPage(PdfDocument doc, int index)
+        internal PdfPage(PdfDocument doc, int index)
         {
             Document = doc;
             PageIndex = index;
+            page = Document?.Document.GetPage(PageIndex);
         }
 
-        PdfPage(PdfDocument doc, iOSPdfKit.PdfPage platformPage)
+        internal PdfPage(PdfDocument doc, iOSPdfKit.PdfPage platformPage)
         {
             Document = doc;
             page = platformPage;
             PageIndex = doc.GetPageIndex(this);
-        }
-
-        public static PdfPage Create(PdfDocument doc, iOSPdfKit.PdfPage platformPage)
-        {
-            return new PdfPage(doc, platformPage);
         }
 
         public int CharacterCount => (int)Page.CharacterCount;
@@ -45,7 +40,7 @@ namespace ApplePDF.PdfKit
             get
             {
                 if (page == null)
-                    page = Document?.Document.GetPage(PageIndex);
+                    throw new ObjectDisposedException(nameof(Page));
                 return page;
             }
         }
@@ -237,9 +232,9 @@ namespace ApplePDF.PdfKit
         public void Dispose()
         {
             Document = null;
-            Page?.Dispose();
+            page?.Dispose();
             page = null;
-        } 
+        }
 
         public SizeF GetSize()
         {

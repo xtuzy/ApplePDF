@@ -7,6 +7,7 @@ namespace ApplePDF.PdfKit
     using System.Collections.Generic;
     using System.Drawing;
     using System.Linq;
+    using System.Reflection.Metadata;
     using System.Runtime.InteropServices;
     using System.Text;
     /// <summary>
@@ -44,7 +45,7 @@ namespace ApplePDF.PdfKit
         /// </summary>
         /// <param name="doc">doc instance</param>
         /// <param name="index">page index in doc</param>
-        public PdfPage(PdfDocument doc, int index)
+        internal PdfPage(PdfDocument doc, int index)
         {
             this.Document = doc;
             this.PageIndex = index;
@@ -52,6 +53,13 @@ namespace ApplePDF.PdfKit
             {
                 this.page = fpdfview.FPDF_LoadPage(doc.Document, index);
             }
+        }
+
+        internal PdfPage(PdfDocument doc, int index, FpdfPageT platformPage)
+        {
+            this.Document = doc;
+            this.PageIndex = index;
+            page = platformPage;
         }
 
         public int CharacterCount
@@ -67,7 +75,15 @@ namespace ApplePDF.PdfKit
 
         public bool DisplaysAnnotations { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
-        public FpdfPageT Page => page;
+        public FpdfPageT Page
+        {
+            get
+            {
+                if (page == null)
+                    throw new ObjectDisposedException(nameof(Page));
+                return page;
+            }
+        }
 
         public PdfRotate Rotation { get => (PdfRotate)fpdf_edit.FPDFPageGetRotation(Page); set => fpdf_edit.FPDFPageSetRotation(Page, (int)value); }
 

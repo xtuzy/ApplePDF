@@ -60,12 +60,12 @@ namespace ApplePDF.PdfKit
 
         public void InsertChild(PdfOutline child, int index)
         {
-            throw new System.NotImplementedException();
+            Outline.InsertChild(child.Outline, index);
         }
 
         public void RemoveFromParent()
         {
-            throw new System.NotImplementedException();
+            Outline.RemoveFromParent();
         }
     }
 }

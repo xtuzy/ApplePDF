@@ -1,9 +1,7 @@
 ﻿using PDFiumCore;
 using System;
-using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
-using System.Text;
 
 namespace ApplePDF.PdfKit
 {
@@ -57,18 +55,9 @@ namespace ApplePDF.PdfKit
         /// <summary>
         /// For create a new doc, not from stream or file.
         /// </summary>
-        private PdfDocument()
+        internal PdfDocument(PlatformPdfDocument pdfDocument)
         {
-            document = fpdf_edit.FPDF_CreateNewDocument();
-        }
-
-        /// <summary>
-        /// For create a new doc, not from stream or file.
-        /// </summary>
-        /// <returns></returns>
-        public static PdfDocument Create()
-        {
-            return new PdfDocument();
+            document = pdfDocument;
         }
 
         /// <inheritdoc/>
@@ -86,7 +75,7 @@ namespace ApplePDF.PdfKit
 
         public bool IsLocked => throw new NotImplementedException();
 
-        int majorVersion = 0;
+        int version = 0;
 
         public int MajorVersion
         {
@@ -94,18 +83,31 @@ namespace ApplePDF.PdfKit
             {
                 lock (@lock)
                 {
-                    if (majorVersion == 0)
+                    if (version == 0)
                     {
-                        var success = fpdfview.FPDF_GetFileVersion(Document, ref majorVersion) == 1;
+                        var success = fpdfview.FPDF_GetFileVersion(Document, ref version) == 1;
                         if (!success)
-                            majorVersion = 17;
+                            version = 17;
                     }
-                    return majorVersion;
+                    return version / 10;
                 }
             }
         }
 
-        public int MinorVersion => throw new NotImplementedException();
+        public int MinorVersion
+        {
+            get
+            {
+                lock (@lock)
+                {
+                    if (version == 0)
+                    {
+                        var mVersion = MajorVersion;
+                    }
+                    return version % 10;
+                }
+            }
+        }
 
         /// <summary>
         /// get page size by not open page.
@@ -135,10 +137,10 @@ namespace ApplePDF.PdfKit
                 {
                     if (outlineRoot == null)
                     {
-                       var bookmark = fpdf_doc.FPDFBookmarkGetFirstChild(this.Document, null);
+                        var bookmark = fpdf_doc.FPDFBookmarkGetFirstChild(this.Document, null);
                         if (bookmark != null)
                         {
-                            outlineRoot = new PdfOutline(this,bookmark);
+                            outlineRoot = new PdfOutline(this, bookmark);
                             outlineRoot.LoadChildren();
                         }
                     }
@@ -189,11 +191,6 @@ namespace ApplePDF.PdfKit
             throw new NotImplementedException();
         }
 
-        public void InsertPage(PdfPage page, int index)
-        {
-            throw new NotImplementedException();
-        }
-
         public PdfOutline OutlineItem(PdfSelection selection)
         {
             throw new NotImplementedException();
@@ -201,12 +198,25 @@ namespace ApplePDF.PdfKit
 
         public void RemovePage(int index)
         {
-            throw new NotImplementedException();
+            fpdf_edit.FPDFPageDelete(Document, index);
         }
 
         public bool Unlock(string password)
         {
             throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// 创建新的Page到文档
+        /// </summary>
+        /// <param name="index"></param>
+        /// <param name="w"></param>
+        /// <param name="h"></param>
+        /// <returns></returns>
+        public PdfPage CreatePage(int index, int w, int h)
+        {
+            var platformPage = fpdf_edit.FPDFPageNew(Document, index, w, h);
+            return new PdfPage(this, index, platformPage);
         }
 
         /// <summary>

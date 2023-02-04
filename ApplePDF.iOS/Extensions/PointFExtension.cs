@@ -15,4 +15,12 @@ namespace ApplePDF.Extensions
             return new CGPoint(point.X, point.Y);
         }
     }
+
+    internal static class PointExtension
+    {
+        public static CGPoint ToCGPoint(this Point point)
+        {
+            return new CGPoint(point.X, point.Y);
+        }
+    }
 }

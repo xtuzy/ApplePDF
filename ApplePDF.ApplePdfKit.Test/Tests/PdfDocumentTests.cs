@@ -71,31 +71,18 @@ namespace ApplePDF.ApplePdfKit.Test.Tests
         }
 
         [Theory]
-        [InlineData("Docs/Docnet/simple_0.pdf", null, 17)]
-        [InlineData("Docs/Docnet/simple_1.pdf", null, 13)]
-        [InlineData("Docs/Docnet/simple_2.pdf", null, 12)]
-        [InlineData("Docs/Docnet/simple_3.pdf", null, 13)]
-        [InlineData("Docs/Docnet/protected_0.pdf", "password", 17)]
-        public void MajorVersion_WhenCalled_ShouldReturnCorrectResults(string filePath, string password, int expectedVersion)
+        [InlineData("Docs/Docnet/simple_0.pdf", null, 1, 7)]
+        [InlineData("Docs/Docnet/simple_1.pdf", null, 1, 3)]
+        [InlineData("Docs/Docnet/simple_2.pdf", null, 1, 2)]
+        [InlineData("Docs/Docnet/simple_3.pdf", null, 1, 3)]
+        [InlineData("Docs/Docnet/protected_0.pdf", "password", 1, 7)]
+        public void MajorAndMinorVersionTest(string filePath, string password, int expectedMajorVersion, int expectedMinorVersion)
         {
             using (var doc = LoadPdfDocument(filePath, password))
             {
-                var version = doc.MajorVersion;
-
-                Assert.Equal(expectedVersion, version);
+                Assert.Equal(expectedMajorVersion, doc.MajorVersion);
+                Assert.Equal(expectedMinorVersion, doc.MinorVersion);
             }
-        }
-
-        [Fact]
-        public void MajorVersion_WhenCalledWhenDisposed_ShouldThrow()
-        {
-            var doc = LoadPdfDocument("Docs/Docnet/simple_0.pdf", null);
-            doc.Dispose();
-
-            Assert.Throws<ObjectDisposedException>(() =>
-            {
-                var v = doc.MajorVersion;
-            });
         }
 
         [Theory]
@@ -146,6 +133,77 @@ namespace ApplePDF.ApplePdfKit.Test.Tests
             {
                 var outline = doc.OutlineRoot;
                 Assert.True(outline.Children[1].Children.Count > 0);
+            }
+        }
+
+        [Theory]
+        [InlineData("Docs/mytest_VulkanGuideline.pdf")]
+        public void CreatePage_AsLastPage_Test(string filePath)
+        {
+            byte[] data;
+            int prePageCount = 0;
+            //测试新页面是否增加
+            using (var doc = LoadPdfDocument(filePath, null) as IPdfDocument)
+            {
+                prePageCount = doc.PageCount;
+                var size = doc.GetPage(0).GetSize();
+                doc.CreatePage(prePageCount, (int)size.Width, (int)size.Height);
+                var nowPageCount = doc.PageCount;
+                Assert.Equal(prePageCount + 1, nowPageCount);
+                data = _fixture.Save(doc as PdfDocument);
+            }
+            //测试新页面是否保存
+            using (var doc = _fixture.LoadPdfDocument(data, null) as IPdfDocument)
+            {
+                var nowPageCount = doc.PageCount;
+                Assert.Equal(prePageCount + 1, nowPageCount);
+            }
+        }
+
+        [Theory]
+        [InlineData("Docs/mytest_VulkanGuideline.pdf")]
+        public void CreatePage_Insert_Test(string filePath)
+        {
+            byte[] data;
+            int prePageCount = 0;
+            //测试新页面是否增加
+            using (var doc = LoadPdfDocument(filePath, null) as IPdfDocument)
+            {
+                prePageCount = doc.PageCount;
+                var size = doc.GetPage(0).GetSize();
+                doc.CreatePage(10, (int)size.Width, (int)size.Height);
+                var nowPageCount = doc.PageCount;
+                Assert.Equal(prePageCount + 1, nowPageCount);
+                data = _fixture.Save(doc as PdfDocument);
+            }
+            //测试新页面是否保存
+            using (var doc = _fixture.LoadPdfDocument(data, null) as IPdfDocument)
+            {
+                var nowPageCount = doc.PageCount;
+                Assert.Equal(prePageCount + 1, nowPageCount);
+            }
+        }
+        
+        [Theory]
+        [InlineData("Docs/mytest_VulkanGuideline.pdf")]
+        public void RemovePageTest(string filePath)
+        {
+            byte[] data;
+            int prePageCount = 0;
+            //测试新页面是否增加
+            using (var doc = LoadPdfDocument(filePath, null) as IPdfDocument)
+            {
+                prePageCount = doc.PageCount;
+                doc.RemovePage(1);
+                var nowPageCount = doc.PageCount;
+                Assert.Equal(prePageCount -1, nowPageCount);
+                data = _fixture.Save(doc as PdfDocument);
+            }
+            //测试新页面是否保存
+            using (var doc = _fixture.LoadPdfDocument(data, null) as IPdfDocument)
+            {
+                var nowPageCount = doc.PageCount;
+                Assert.Equal(prePageCount - 1, nowPageCount);
             }
         }
     }

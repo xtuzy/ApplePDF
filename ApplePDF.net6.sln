@@ -17,8 +17,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{4C1D4A06
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Demos", "Demos", "{A79DA3C8-5724-4AAC-BA74-8CD98C9AC9D0}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApplePDF.Desktop.Test", "ApplePDF.Desktop.Test\ApplePDF.Desktop.Test.csproj", "{1EFDD09F-2B2D-46E3-B816-55246BFE5704}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApplePDF.Demo.Maui", "ApplePDF.Demo.Maui\ApplePDF.Demo.Maui.csproj", "{70D31F6A-3DE6-491A-B491-029B4B5EE5B6}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ApiGenerater", "ApiGenerater", "{B821C8C6-BB50-4566-BEC3-43147C69D6CA}"
@@ -31,7 +29,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApplePDF.Demo.Mac", "AppleP
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApplePDF.ApplePdfKit.Test", "ApplePDF.ApplePdfKit.Test\ApplePDF.ApplePdfKit.Test.csproj", "{C6BCD66E-3153-4741-9A3B-8A632A95646E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApplePDF.Demo.Maui.Helper", "ApplePDF.Demo.Maui.Helper\ApplePDF.Demo.Maui.Helper.csproj", "{90C3B05B-7371-486E-B002-A562556136BB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApplePDF.Demo.Maui.Helper", "ApplePDF.Demo.Maui.Helper\ApplePDF.Demo.Maui.Helper.csproj", "{90C3B05B-7371-486E-B002-A562556136BB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -97,30 +95,6 @@ Global
 		{F5027C06-F479-451D-9FEE-AB6773751752}.Release|iPhone.Build.0 = Release|Any CPU
 		{F5027C06-F479-451D-9FEE-AB6773751752}.Release|iPhoneSimulator.ActiveCfg = Release|Any CPU
 		{F5027C06-F479-451D-9FEE-AB6773751752}.Release|iPhoneSimulator.Build.0 = Release|Any CPU
-		{1EFDD09F-2B2D-46E3-B816-55246BFE5704}.Ad-Hoc|Any CPU.ActiveCfg = Debug|Any CPU
-		{1EFDD09F-2B2D-46E3-B816-55246BFE5704}.Ad-Hoc|Any CPU.Build.0 = Debug|Any CPU
-		{1EFDD09F-2B2D-46E3-B816-55246BFE5704}.Ad-Hoc|iPhone.ActiveCfg = Debug|Any CPU
-		{1EFDD09F-2B2D-46E3-B816-55246BFE5704}.Ad-Hoc|iPhone.Build.0 = Debug|Any CPU
-		{1EFDD09F-2B2D-46E3-B816-55246BFE5704}.Ad-Hoc|iPhoneSimulator.ActiveCfg = Debug|Any CPU
-		{1EFDD09F-2B2D-46E3-B816-55246BFE5704}.Ad-Hoc|iPhoneSimulator.Build.0 = Debug|Any CPU
-		{1EFDD09F-2B2D-46E3-B816-55246BFE5704}.AppStore|Any CPU.ActiveCfg = Debug|Any CPU
-		{1EFDD09F-2B2D-46E3-B816-55246BFE5704}.AppStore|Any CPU.Build.0 = Debug|Any CPU
-		{1EFDD09F-2B2D-46E3-B816-55246BFE5704}.AppStore|iPhone.ActiveCfg = Debug|Any CPU
-		{1EFDD09F-2B2D-46E3-B816-55246BFE5704}.AppStore|iPhone.Build.0 = Debug|Any CPU
-		{1EFDD09F-2B2D-46E3-B816-55246BFE5704}.AppStore|iPhoneSimulator.ActiveCfg = Debug|Any CPU
-		{1EFDD09F-2B2D-46E3-B816-55246BFE5704}.AppStore|iPhoneSimulator.Build.0 = Debug|Any CPU
-		{1EFDD09F-2B2D-46E3-B816-55246BFE5704}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1EFDD09F-2B2D-46E3-B816-55246BFE5704}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1EFDD09F-2B2D-46E3-B816-55246BFE5704}.Debug|iPhone.ActiveCfg = Debug|Any CPU
-		{1EFDD09F-2B2D-46E3-B816-55246BFE5704}.Debug|iPhone.Build.0 = Debug|Any CPU
-		{1EFDD09F-2B2D-46E3-B816-55246BFE5704}.Debug|iPhoneSimulator.ActiveCfg = Debug|Any CPU
-		{1EFDD09F-2B2D-46E3-B816-55246BFE5704}.Debug|iPhoneSimulator.Build.0 = Debug|Any CPU
-		{1EFDD09F-2B2D-46E3-B816-55246BFE5704}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1EFDD09F-2B2D-46E3-B816-55246BFE5704}.Release|Any CPU.Build.0 = Release|Any CPU
-		{1EFDD09F-2B2D-46E3-B816-55246BFE5704}.Release|iPhone.ActiveCfg = Release|Any CPU
-		{1EFDD09F-2B2D-46E3-B816-55246BFE5704}.Release|iPhone.Build.0 = Release|Any CPU
-		{1EFDD09F-2B2D-46E3-B816-55246BFE5704}.Release|iPhoneSimulator.ActiveCfg = Release|Any CPU
-		{1EFDD09F-2B2D-46E3-B816-55246BFE5704}.Release|iPhoneSimulator.Build.0 = Release|Any CPU
 		{70D31F6A-3DE6-491A-B491-029B4B5EE5B6}.Ad-Hoc|Any CPU.ActiveCfg = Debug|Any CPU
 		{70D31F6A-3DE6-491A-B491-029B4B5EE5B6}.Ad-Hoc|Any CPU.Build.0 = Debug|Any CPU
 		{70D31F6A-3DE6-491A-B491-029B4B5EE5B6}.Ad-Hoc|Any CPU.Deploy.0 = Debug|Any CPU
@@ -294,7 +268,6 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{1EFDD09F-2B2D-46E3-B816-55246BFE5704} = {4C1D4A06-0143-4769-85B4-F007BAD9BB10}
 		{70D31F6A-3DE6-491A-B491-029B4B5EE5B6} = {A79DA3C8-5724-4AAC-BA74-8CD98C9AC9D0}
 		{C5A2D15E-9458-4C7A-93FC-A3C4BED3945B} = {B821C8C6-BB50-4566-BEC3-43147C69D6CA}
 		{532D676A-0BEF-4DCF-87CD-956D92294E7A} = {A79DA3C8-5724-4AAC-BA74-8CD98C9AC9D0}

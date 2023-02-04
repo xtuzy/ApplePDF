@@ -26,7 +26,7 @@ namespace ApplePDF.PdfKit
         public iOSPdfKit.PdfDestination Destination { get; private set; }
 
         public int PageIndex => (int)document.Document.GetPageIndex(Destination.Page);
-        public PdfPage Page => PdfPage.Create(document, Destination.Page);
+        public PdfPage Page => new PdfPage(document, Destination.Page);
 
         public PointF Point => new PointF((float)Destination.Point.X, (float)Destination.Point.Y);
 

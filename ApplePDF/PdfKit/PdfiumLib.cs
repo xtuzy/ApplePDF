@@ -1,5 +1,4 @@
-﻿
-using PDFiumCore;
+﻿using PDFiumCore;
 using System;
 using System.IO;
 
@@ -34,6 +33,7 @@ namespace ApplePDF.PdfKit
         {
             InitLibrary();
         }
+
         /// <summary>
         /// 初始化库,在使用Pdfium前必须执行该初始化.
         /// </summary>
@@ -54,7 +54,7 @@ namespace ApplePDF.PdfKit
         {
             lock (@lock)
             {
-                MemoryStream stream = new MemoryStream (bytes);
+                MemoryStream stream = new MemoryStream(bytes);
                 return LoadPdfDocument(stream, password);
             }
         }
@@ -67,48 +67,75 @@ namespace ApplePDF.PdfKit
             }
         }
 
+        /// <summary>
+        /// For create a new doc, not from stream or file.
+        /// </summary>
+        public PdfDocument CreatePdfDocument()
+        {
+            return new PdfDocument(fpdf_edit.FPDF_CreateNewDocument());
+        }
+
         public void Merge(PdfDocument firstDoc, PdfDocument secondDoc, Stream stream)
         {
+            Save(Merge(firstDoc, secondDoc), stream);
+        }
 
-            var pageCountOne = firstDoc.PageCount;
+        public PdfDocument Merge(PdfDocument firstDoc, PdfDocument secondDoc)
+        {
+            var destPdf = CreatePdfDocument();
 
+            // 插入第一个文档
             var success = fpdf_ppo.FPDF_ImportPages(
+                              destPdf.Document,
                               firstDoc.Document,
-                              secondDoc.Document,
                               null,
-                              pageCountOne) == 1;
-
+                              0) == 1;
             if (!success)
             {
                 throw new Exception("failed to merge files");
             }
 
-            Save(firstDoc, stream);
+            // 插入第二个文档
+            var pageCount = firstDoc.PageCount;
+            success = fpdf_ppo.FPDF_ImportPages(
+                              destPdf.Document,
+                              secondDoc.Document,
+                              null,
+                              pageCount) == 1;
+            if (!success)
+            {
+                throw new Exception("failed to merge files");
+            }
+
+            return destPdf;
+        }
+
+        public PdfDocument Split(PdfDocument doc, int fromePageIndex, int toPageIndex)
+        {
+            var pageRange = $"{fromePageIndex + 1} - {toPageIndex + 1}";
+            var childDoc = CreatePdfDocument();
+
+            var success = fpdf_ppo.FPDF_ImportPages(
+                              childDoc.Document,
+                              doc.Document,
+                              pageRange,
+                              0) == 1;
+
+            if (!success)
+            {
+                throw new Exception("failed to split file");
+            }
+
+            return childDoc;
         }
 
         public void Split(PdfDocument doc, int fromePageIndex, int toPageIndex, Stream stream)
         {
-            var pageRange = $"{fromePageIndex + 1} - {toPageIndex + 1}";
-            using (var childDoc = PdfDocument.Create())
-            {
-
-                var success = fpdf_ppo.FPDF_ImportPages(
-                                  childDoc.Document,
-                                  doc.Document,
-                                  pageRange,
-                                  0) == 1;
-
-                if (!success)
-                {
-                    throw new Exception("failed to split file");
-                }
-
-                Save(childDoc, stream);
-            }
+            Save(Split(doc, fromePageIndex, toPageIndex), stream);
         }
 
         //TODO:find a way save big file by use small memory.
-        public bool Save(PdfDocument doc, Stream stream, PdfSaveFlag saveFlag = PdfSaveFlag.NoIncremental)
+        public bool Save(PdfDocument doc, Stream stream, PdfSaveFlag saveFlag)
         {
             lock (@lock)
             {
@@ -122,7 +149,9 @@ namespace ApplePDF.PdfKit
             }
         }
 
-        public bool Save(PdfDocument doc, string filePath, PdfSaveFlag saveFlag = PdfSaveFlag.NoIncremental)
+        public bool Save(PdfDocument doc, Stream stream) => Save(doc, stream, PdfSaveFlag.NoIncremental);
+
+        public bool Save(PdfDocument doc, string filePath, PdfSaveFlag saveFlag)
         {
             bool success;
             using (var stream = new FileStream(filePath, FileMode.Create))
@@ -132,12 +161,33 @@ namespace ApplePDF.PdfKit
             return success;
         }
 
+        public bool Save(PdfDocument doc, string filePath) => Save(doc, filePath, PdfSaveFlag.NoIncremental);
+
+        public byte[] Save(PdfDocument doc, PdfSaveFlag saveFlag)
+        {
+            using (var stream = new MemoryStream())
+            {
+                var success = Save(doc, stream, saveFlag);
+                if (success)
+                    return stream.ToArray();
+                else
+                    return null;
+            }
+        }
+
+        public byte[] Save(PdfDocument doc) => Save(doc, PdfSaveFlag.NoIncremental);
+
         public void DestoryLibrary()
         {
             lock (@lock)
             {
                 fpdfview.FPDF_DestroyLibrary();
             }
+        }
+
+        public void Dispose()
+        {
+            DestoryLibrary();
         }
     }
 }
