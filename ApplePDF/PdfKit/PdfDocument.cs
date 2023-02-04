@@ -166,7 +166,24 @@ namespace ApplePDF.PdfKit
 
         public void ExchangePages(int indexA, int indexB)
         {
-            throw new NotImplementedException();
+            var pageADoc = PdfiumLib.Instance.Split(this, indexA, indexA);
+            var pageBDoc = PdfiumLib.Instance.Split(this, indexB, indexB);
+            this.RemovePage(indexA);
+            var success = fpdf_ppo.FPDF_ImportPages(
+                  this.Document,
+                  pageBDoc.Document,
+                  "1",
+                  indexA) == 1;
+            if (!success)
+                throw new Exception($"Exchange {indexA} and {indexB} fail");
+            this.RemovePage(indexB);
+            success = fpdf_ppo.FPDF_ImportPages(
+                    this.Document,
+                    pageADoc.Document,
+                    "1",
+                    indexB) == 1;
+            if (!success)
+                throw new Exception($"Exchange {indexA} and {indexB} fail");
         }
 
         public PdfPage GetPage(int index)

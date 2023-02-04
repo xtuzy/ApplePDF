@@ -183,7 +183,7 @@ namespace ApplePDF.ApplePdfKit.Test.Tests
                 Assert.Equal(prePageCount + 1, nowPageCount);
             }
         }
-        
+
         [Theory]
         [InlineData("Docs/mytest_VulkanGuideline.pdf")]
         public void RemovePageTest(string filePath)
@@ -196,7 +196,7 @@ namespace ApplePDF.ApplePdfKit.Test.Tests
                 prePageCount = doc.PageCount;
                 doc.RemovePage(1);
                 var nowPageCount = doc.PageCount;
-                Assert.Equal(prePageCount -1, nowPageCount);
+                Assert.Equal(prePageCount - 1, nowPageCount);
                 data = _fixture.Save(doc as PdfDocument);
             }
             //测试新页面是否保存
@@ -204,6 +204,33 @@ namespace ApplePDF.ApplePdfKit.Test.Tests
             {
                 var nowPageCount = doc.PageCount;
                 Assert.Equal(prePageCount - 1, nowPageCount);
+            }
+        }
+
+        [Theory]
+        [InlineData("Docs/mytest_VulkanGuideline.pdf", 9, 19)]
+        public void ExchangePagesTest(string filePath, int pageIndexA, int pageIndexB)
+        {
+            byte[] data;
+            int prePageCount = 0;
+            //测试新页面是否交换
+            using (var doc = LoadPdfDocument(filePath, null) as IPdfDocument)
+            {
+                prePageCount = doc.PageCount;
+                doc.ExchangePages(pageIndexA, pageIndexB);
+                var nowPageCount = doc.PageCount;
+                Assert.Equal(prePageCount, nowPageCount);
+                data = _fixture.Save(doc as PdfDocument);
+            }
+            //测试新页面是否保存
+            using (var doc = _fixture.LoadPdfDocument(data, null) as IPdfDocument)
+            {
+                var nowPageCount = doc.PageCount;
+                Assert.Equal(prePageCount, nowPageCount);
+                var pageA = doc.GetPage(pageIndexA);
+                var pageB = doc.GetPage(pageIndexB);
+                Assert.True(pageA.Text.Contains("20"));
+                Assert.True(pageB.Text.Contains("10"));
             }
         }
     }
