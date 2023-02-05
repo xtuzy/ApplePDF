@@ -79,7 +79,7 @@ namespace ApplePDF.PdfKit
         PdfSelection? GetSelection(PdfRectangleF rect);
         //PdfSelection? GetSelection(NSRange range);
         /// <summary>
-        /// 获取缩略图，iOS默认返回UIImage
+        /// 获取缩略图，iOS默认返回UIImage, macos返回NSImage，Pdfium返回PdfBitmap
         /// </summary>
         /// <param name="size"></param>
         /// <param name="box"></param>

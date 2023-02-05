@@ -13,6 +13,7 @@
     <Compile Include="..\ApplePDF\PdfKit\IPdfOutline.cs" Link="PdfKit\IPdfOutline.cs" />
     <Compile Include="..\ApplePDF\PdfKit\IPdfPage.cs" Link="PdfKit\IPdfPage.cs" />
     <Compile Include="..\ApplePDF\PdfKit\IPdfSelection.cs" Link="PdfKit\IPdfSelection.cs" />
+    <Compile Include="..\ApplePDF\PdfKit\IPdfFont.cs" Link="PdfKit\IPdfFont.cs" />
     <Compile Include="..\ApplePDF\PdfKit\PdfDisplayBox.cs" Link="PdfKit\PdfDisplayBox.cs" />
     <Compile Include="..\ApplePDF\PdfKit\PdfRectangleF.cs" Link="PdfKit\PdfRectangleF.cs" />
   </ItemGroup>

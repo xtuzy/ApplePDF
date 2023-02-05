@@ -5,25 +5,14 @@ namespace ApplePDF.PdfKit
 {
     public class PdfBitmap : IDisposable
     {
-        private PdfBitmap()
+        public PdfBitmap(int w, int h, bool alpha)
         {
-
+            Bitmap = fpdfview.FPDFBitmapCreate(w, h, alpha == true ? 1 : 0);     
         }
 
-        public static PdfBitmap Create(int w, int h, bool alpha)
+        internal PdfBitmap(FpdfBitmapT bitmapT)
         {
-            return new PdfBitmap()
-            {
-                Bitmap = fpdfview.FPDFBitmapCreate(w, h, alpha == true ? 1 : 0),
-            };
-        }
-
-        public static PdfBitmap Create(FpdfBitmapT bitmapT)
-        {
-            return new PdfBitmap()
-            {
-                Bitmap = bitmapT,
-            };
+            Bitmap = bitmapT;
         }
 
         public FpdfBitmapT Bitmap { get; private set; }

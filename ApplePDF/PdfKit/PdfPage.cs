@@ -530,7 +530,7 @@ namespace ApplePDF.PdfKit
                 var bounds = GetSize();
                 int width = (int)(bounds.Width * xScale);
                 int height = (int)(bounds.Height * yScale);
-                var bitmap = PdfBitmap.Create(width, height, true);
+                var bitmap = new PdfBitmap(width, height, true);
                 if (bitmap.Bitmap == null)
                 {
                     throw new Exception("failed to create a bitmap object");
@@ -643,7 +643,7 @@ namespace ApplePDF.PdfKit
                 var bounds = GetSize();
                 int width = (int)(bounds.Width * xScale);
                 int height = (int)(bounds.Height * yScale);
-                PdfBitmap bitmap = PdfBitmap.Create(width, height, true);
+                PdfBitmap bitmap = new PdfBitmap(width, height, true);
                 if (bitmap.Bitmap == null)
                 {
                     throw new Exception("failed to create a bitmap object");
@@ -832,32 +832,11 @@ namespace ApplePDF.PdfKit
         public object GetThumbnail(Size size, PdfDisplayBox box)
         {
             var bitmap = fpdf_thumbnail.FPDFPageGetThumbnailAsBitmap(this.page);
-            int height = 0;
-            int width = 0;
             if (bitmap != null)
-            {
-                var buffer = fpdfview.FPDFBitmapGetBuffer(bitmap);
-                height = fpdfview.FPDFBitmapGetHeight(bitmap);
-                width = fpdfview.FPDFBitmapGetWidth(bitmap);
-                var stride = fpdfview.FPDFBitmapGetStride(bitmap);
-                var result = new byte[stride * height];
-                try
-                {
-                    Marshal.Copy(buffer, result, 0, result.Length);
-                }
-                catch (Exception) { result = new byte[1]; }
-                finally
-                {
-                    fpdfview.FPDFBitmapDestroy(bitmap);
-                }
-                if (result.Length > 1)
-                {
-                    return result;//TODO:缩放到Size
-                }
-            }
+                return new PdfBitmap(bitmap);
             //没有生成Pdf自带的缩略图时,我们自己生成页面图像
             var pageSize = GetSize();
-            return Draw(size.Width / pageSize.Width, size.Height / pageSize.Height, (int)RenderFlags.None);
+            return DrawToPdfBitmap(size.Width / pageSize.Width, size.Height / pageSize.Height, (int)RenderFlags.None);
         }
     }
 }

@@ -38,7 +38,7 @@ namespace ApplePDF.PdfKit
 
         public FpdfFontT Font { get; private set; }
 
-        public unsafe PdfFont(PdfDocument doc, byte[] fontData, PdfFontType type)
+        public unsafe PdfFont(PdfDocument doc, byte[] fontData, PdfFontType type = PdfFontType.FPDF_FONT_TRUETYPE)
         {
             //byte[] to byte*参考:https://stackoverflow.com/a/6369446/13254773
             fixed (byte* converted = fontData)
