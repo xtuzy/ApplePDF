@@ -5,6 +5,8 @@ using IPdfPage = ApplePDF.PdfKit.IPdfPage;
 using PointF = System.Drawing.PointF;
 using Size = System.Drawing.Size;
 using Color = System.Drawing.Color;
+using ApplePDF.ApplePdfKit.Test.Tests;
+using ApplePDF.PdfKit.Annotation;
 
 #if IOS || MACCATALYST
 using Lib = ApplePDF.PdfKit.PdfKitLib;
@@ -16,6 +18,7 @@ namespace ApplePDF.Test
     public sealed class PdfPageTests
     {
         private readonly ILib _fixture = Lib.Instance;
+        string[] AllAssets = typeof(PdfPageTests).Assembly.GetManifestResourceNames();
         PdfDocument LoadPdfDocument(string path, string password)
         {
             //原资源名 Docs/Docnet/simple_0.pdf
@@ -25,8 +28,20 @@ namespace ApplePDF.Test
                 path = path.Replace("Docs/", "");
             }
             path = path.Replace('/', '.');
-            var fileName = "ApplePDF.ApplePdfKit.Test." + path;
+            var fileName = AllAssets.First((s) => s.Contains(path));
             return _fixture.LoadPdfDocument(ReadEmbedAssetBytes(fileName), password);
+        }
+
+        /// <summary>
+        /// 从EmbeddedResource加载字体数据
+        /// </summary>
+        /// <param name="path">如Fonts/name.ttf</param>
+        /// <returns></returns>
+        byte[] LoadFont(string path)
+        {
+            path = path.Replace('/', '.');
+            var fileName = AllAssets.First((s) => s.Contains(path));
+            return ReadEmbedAssetBytes(fileName);
         }
 
         public byte[] ReadEmbedAssetBytes(string resourcePath = "foler.fileName.extention")
@@ -143,7 +158,7 @@ namespace ApplePDF.Test
         }
 
         [Theory]
-        [InlineData("Docs/mytest_chinese.pdf", null, 0, "另一端")]
+        [InlineData("Docs/mytest/mytest_chinese.pdf", null, 0, "另一端")]
         public void GetText_Chinese_WhenCalled_ShouldContainCorrectText(string filePath, string password, int pageIndex, string expectedText)
         {
             ExecuteForDocument(filePath, password, pageIndex, pageReader =>
@@ -190,7 +205,8 @@ namespace ApplePDF.Test
             });
         }
 
-        [InlineData("Docs/mytest_chinese.pdf", "thumbnail.png")]
+        [Theory]
+        [InlineData("Docs/mytest/mytest_chinese.pdf", "thumbnail.png")]
         public void GetThumbilTest(string filePath, string thumbnailFilePath)
         {
             ExecuteForDocument(filePath, null, 0, pageReader =>
@@ -218,28 +234,16 @@ namespace ApplePDF.Test
         }
 
         [Theory]
-        [InlineData("Docs/mytest_4_highlightannotation.pdf", 4)]
-        [InlineData("Docs/mytest_5_inkannotation.pdf", 5)]
-        [InlineData("Docs/mytest_4_freetextannotation.pdf", 4)]
-        [InlineData("Docs/mytest_4_rectangleannotation.pdf", 4)]
-        [InlineData("Docs/mytest_4_linkannotation.pdf", 4)]
+        [InlineData("Docs/mytest/mytest_4_highlightannotation.pdf", 4)]
+        [InlineData("Docs/mytest/mytest_5_inkannotation.pdf", 5)]
+        [InlineData("Docs/mytest/mytest_4_freetextannotation.pdf", 4)]
+        [InlineData("Docs/mytest/mytest_4_rectangleannotation.pdf", 4)]
+        [InlineData("Docs/mytest/mytest_4_linkannotation.pdf", 4)]
         public void Annotations_WhenCalled_ShouldGetCurrectAnnotationsCount(string filePath, int annotationsCount)
         {
             ExecuteForDocument(filePath, null, 0, pageReader =>
             {
                 Assert.Equal(annotationsCount, pageReader.AnnotationCount);
-            });
-        }
-
-        [InlineData("Docs/mytest_chinese.pdf", "这是一个中文注释")]
-        public void Annotations_Chinese_WhenCalled_ShouldGetCurrectTextOfPopup(string filePath, string text)
-        {
-            ExecuteForDocument(filePath, null, 0, pageReader =>
-            {
-#if ANDROID || WINDOWS
-                var isContain = (pageReader.GetAnnotations()[0] as PdfKit.Annotation.PdfHighlightAnnotation).PopupAnnotation.Text.Contains(text);
-                Assert.Equal(true, isContain);
-#endif
             });
         }
 
@@ -250,7 +254,8 @@ namespace ApplePDF.Test
         /// <param name="filePath"></param>
         /// <param name="oldText"></param>
         /// <param name="newText"></param>
-        [InlineData("Docs/mytest_edit_annotation.pdf", "little", "123456")]
+        [Theory]
+        [InlineData("Docs/mytest/mytest_edit_annotation.pdf", "little", "123456")]
         public void InsteadText_WhenCalled_ShouldResultPdfHaveNewText(string filePath, string oldText, string newText)
         {
             byte[] data = null;
@@ -272,36 +277,39 @@ namespace ApplePDF.Test
         }
 #endif
 
-        [InlineData("Docs/mytest_edit_annotation.pdf", "Helvetica", 12, "0123456789abcdABCD-+/.<>?@!#%*", 200, 200, 2)]
-        public void AddText_UseStandardFont_WhenCalled_ShouldResultPdfHaveNewText(string filePath, string fontName, float fontSize, string addText, double x, double y, double scale)
+        [Theory]
+        [InlineData("Docs/mytest/mytest_edit_annotation.pdf", "Helvetica", 12, "0123456789abcdABCD-+/.<>?@!#%*", 200, 200, 2)]
+        public void AddText_UseStandardFont_Test(string filePath, string fontName, float fontSize, string addText, double x, double y, double scale)
         {
             byte[] data = null;
             var originalDoc = LoadPdfDocument(filePath, null);
             var pageReader = originalDoc.GetPage(0);
             PdfFont font = new PdfFont(pageReader.Document, fontName);
-            pageReader.AddText(font, fontSize, addText, x, y, scale);
+            pageReader.AddText(font, fontSize, Color.Red, addText, x, y, scale);
 #if ANDROID || WINDOWS
             var success = (pageReader as PdfPage).SaveNewContent();
 #endif
             var text = pageReader.Text;
-            Assert.True(text.Contains(addText));
+            Assert.True(text?.Contains(addText));
             pageReader.Dispose();
             data = _fixture.Save(originalDoc);
+            PdfSaveExtension.Save(_fixture, originalDoc, $"{nameof(PdfPageTests)}_{nameof(AddText_UseStandardFont_Test)}_Result.pdf");
             //看是否保存
             var resultDoc = _fixture.LoadPdfDocument(data, null);
             var resultText = resultDoc.GetPage(0).Text;
-            Assert.True(resultText.Contains(addText));
+            Assert.True(resultText?.Contains(addText));
         }
 
-        [InlineData("Docs/mytest_edit_annotation.pdf", "Fonts/YouYuan.ttf", 12, "0123456789你好abcdABCD-+/.<>?@!#%*你好", 200, 200, 2)]
-        public void AddText_UseCustomFont_WhenCalled_ShouldResultPdfHaveNewText(string filePath, string customFontPath, float fontSize, string addText, double x, double y, double scale)
+        [Theory]
+        [InlineData("Docs/mytest/mytest_edit_annotation.pdf", "Fonts/YouYuan.ttf", 12, "0123456789你好abcdABCD-+/.<>?@!#%*你好", 200, 200, 2)]
+        public void AddText_UseCustomFont_Test(string filePath, string customFontPath, float fontSize, string addText, double x, double y, double scale)
         {
             byte[] data = null;
             var originalDoc = LoadPdfDocument(filePath, null);
             var pageReader = originalDoc.GetPage(0);
-            var fontData = ReadEmbedAssetBytes(customFontPath);
+            var fontData = LoadFont(customFontPath);
             PdfFont font = new PdfFont(originalDoc, fontData);
-            pageReader.AddText(font, fontSize, addText, x, y, scale);
+            pageReader.AddText(font, fontSize, Color.Red, addText, x, y, scale);
 #if ANDROID || WINDOWS
             var success = pageReader.SaveNewContent();
 #endif
@@ -309,13 +317,16 @@ namespace ApplePDF.Test
             var doc = pageReader.Document;
             pageReader.Dispose();
             data = _fixture.Save(doc);
+#if WINDOWS || MACCATALYST
+            _fixture.Save(doc, Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), $"{nameof(PdfPageTests)}_{nameof(AddText_UseCustomFont_Test)}_Result.pdf"));
+#endif
             var resultDoc = _fixture.LoadPdfDocument(data, null);
             var resultText = resultDoc.GetPage(0).Text;
             Assert.True(resultText.Contains(addText));
         }
 
         [Theory]
-        [InlineData("Docs/mytest_edit_annotation.pdf", 40, 805, 126, 787, "First paragraph")]
+        [InlineData("Docs/mytest/mytest_edit_annotation.pdf", 40, 805, 126, 787, "First paragraph")]
         public void GetSelection_InTwoPoint_ShouldReturnTextInPoints(string filePath, int x1, int y1, int x2, int y2, string text)
         {
             ExecuteForDocument(filePath, null, 0, pageReader =>
@@ -326,7 +337,7 @@ namespace ApplePDF.Test
         }
 
         [Theory]
-        [InlineData("Docs/mytest_edit_annotation.pdf", 40, 805, 126, 787, "First paragraph")]
+        [InlineData("Docs/mytest/mytest_edit_annotation.pdf", 40, 805, 126, 787, "First paragraph")]
         public void GetSelection_InRect_ShouldReturnTextInRect(string filePath, int x1, int y1, int x2, int y2, string text)
         {
             ExecuteForDocument(filePath, null, 0, pageReader =>
@@ -337,8 +348,8 @@ namespace ApplePDF.Test
         }
 
         [Theory]
-        [InlineData("Docs/mytest_edit_annotation.pdf", 62, 795, "First paragraph")]
-        [InlineData("Docs/mytest_edit_annotation.pdf", 143, 782, "Another paragraph, this time a little bit longer to make sure, this line will be divided into at least")]
+        [InlineData("Docs/mytest/mytest_edit_annotation.pdf", 62, 795, "First paragraph")]
+        [InlineData("Docs/mytest/mytest_edit_annotation.pdf", 143, 782, "Another paragraph, this time a little bit longer to make sure, this line will be divided into at least")]
         public void SelectLine_ShouldReturnTextInLine(string filePath, int x1, int y1, string text)
         {
             ExecuteForDocument(filePath, null, 0, pageReader =>
@@ -350,7 +361,7 @@ namespace ApplePDF.Test
         }
 
         [Theory]
-        [InlineData("Docs/mytest_edit_annotation.pdf", 73, 795, "p")]
+        [InlineData("Docs/mytest/mytest_edit_annotation.pdf", 73, 795, "p")]
         public void SelectWord_ShouldReturnWordAtPosition(string filePath, int x1, int y1, string text)
         {
             ExecuteForDocument(filePath, null, 0, pageReader =>
@@ -362,14 +373,15 @@ namespace ApplePDF.Test
         }
 
 #if ANDROID || WINDOWS
-        [InlineData("Docs/mytest_edit_annotation.pdf", 62, 795, "First paragraph")]
+        [Theory]
+        [InlineData("Docs/mytest/mytest_edit_annotation.pdf", 62, 795, "First paragraph")]
         public void GetCharactersBounds_ShouldReturnBoundsOfText(string filePath, int x1, int y1, string text)
         {
             ExecuteForDocument(filePath, null, 0, pageReader =>
             {
                 //获得文字的矩形区域
                 var actual = (pageReader as PdfPage).GetCharactersBounds(0, text.Length);
-                Assert.True(actual.Count > 0);
+                Assert.True(actual.Length > 0);
                 Assert.True(actual[0].IsContainPoint(new PointF(x1, y1)));
                 //选择矩形区域
                 var selection0 = pageReader.GetSelection(actual[0]);
@@ -397,87 +409,150 @@ namespace ApplePDF.Test
             });
         }
 #endif
-        /*        [InlineData("Docs/mytest_edit_annotation.pdf", 73, 795, "p")]
-                public void DrawPath_ShouldReturnWordAtPosition(string filePath, int x1, int y1, string text)
+
+#if ANDROID || WINDOWS
+        [SkippableTheory]
+        [InlineData("Docs/mytest/mytest_edit_annotation.pdf", 73, 795)]
+        public void AppendObj_Path_Test(string filePath, int x1, int y1)
+        {
+            var originalDoc = LoadPdfDocument(filePath, null);
+            var pageReader = originalDoc.GetPage(0);
+            var selection = pageReader.SelectWord(new PointF(x1, y1));
+            var rectPathObj = PdfPagePathObj.Create(new PointF(100, 100));
+            rectPathObj.AddPath(PdfSegmentPath.GenerateRectSegments(300, 300, 100, 200));
+            rectPathObj.AddPath(PdfSegmentPath.GenerateRoundRectSegments(250, 350, 100, 200, 20));
+            rectPathObj.SetStrokeColor(Color.HotPink);
+            rectPathObj.SetFillColor(Color.Gray);
+            rectPathObj.SetDrawMode(true);
+            var circlPpathObj = PdfPagePathObj.Create(new PointF(100, 100));
+            circlPpathObj.SetDrawMode(true);
+            circlPpathObj.AddPath(PdfSegmentPath.GenerateTriangleSegments(new PointF(100, 100), new PointF(100, 400), new PointF(200, 400)));
+            circlPpathObj.AddPath(PdfSegmentPath.GenerateCircleSegments(100, 300, 300));
+            circlPpathObj.SetFillColor(Color.Red);
+            circlPpathObj.SetStrokeColor(Color.Blue);
+            var arcPathObj = PdfPagePathObj.Create(new PointF(100, 100));
+            arcPathObj.SetDrawMode(true);
+            arcPathObj.AddPath(PdfSegmentPath.GenerateArcSegments(300, 300, 100, 300 + -360, 180));
+            arcPathObj.SetStrokeColor(Color.Green);
+            arcPathObj.SetStrokeWidth(5);
+            pageReader.AppendObj(rectPathObj);
+            pageReader.AppendObj(circlPpathObj);
+            pageReader.AppendObj(arcPathObj);
+            pageReader.SaveNewContent();
+            byte[] data = _fixture.Save(pageReader.Document);
+#if WINDOWS
+            _fixture.Save(pageReader.Document, Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), $"{nameof(PdfPageTests)}_{nameof(AppendObj_Path_Test)}_Result.pdf"));
+#endif
+            var resultDoc = _fixture.LoadPdfDocument(data, null);
+            var resultPage = resultDoc.GetPage(0);
+            var objectCount = resultPage.GetObjCount();
+            if (objectCount > 0)
+            {
+                var pdfPageObjs = resultPage.GetAllObj();
+                foreach (var obj in pdfPageObjs)
                 {
-                    ExecuteForDocument(filePath, null, 0, pageReader =>
+                    switch (obj.Type)
                     {
-                        var selection = pageReader.SelectWord(new PointF(x1, y1));
-                        var rectPathObj = PdfPagePathObj.Create(new PointF(100, 100));
-                        rectPathObj.AddPath(PdfSegmentPath.GenerateRectSegments(300, 300, 100, 200));
-                        rectPathObj.AddPath(PdfSegmentPath.GenerateRoundRectSegments(250, 350, 100, 200, 20));
-                        rectPathObj.SetStrokeColor(Color.HotPink);
-                        rectPathObj.SetFillColor(Color.Gray);
-                        rectPathObj.SetDrawMode(true);
-                        var circlPpathObj = PdfPagePathObj.Create(new PointF(100, 100));
-                        circlPpathObj.SetDrawMode(true);
-                        circlPpathObj.AddPath(PdfSegmentPath.GenerateTriangleSegments(new PointF(100,100), new PointF(100,400),new PointF(200,400)));
-                        circlPpathObj.AddPath(PdfSegmentPath.GenerateCircleSegments(100, 300, 300));
-                        circlPpathObj.SetFillColor(Color.Red);
-                        circlPpathObj.SetStrokeColor(Color.Blue);
-                        var arcPathObj = PdfPagePathObj.Create(new PointF(100, 100));
-                        arcPathObj.SetDrawMode(true);
-                        arcPathObj.AddPath(PdfSegmentPath.GenerateArcSegments(300, 300, 100, 300 + -360, 180 ));
-                        arcPathObj.SetStrokeColor(Color.Green);
-                        arcPathObj.SetStrokeWidth(5);
-                        pageReader.AppendObj(rectPathObj);
-                        pageReader.AppendObj(circlPpathObj);
-                        pageReader.AppendObj(arcPathObj);
-                        pageReader.SaveNewContent();
-                        PdfiumLib.Instance.Save(pageReader.Document, "Result.pdf");
-                    });
-                    ExecuteForDocument("Result.pdf", null, 0, pageReader =>
-                    {
-                        var objectCount = fpdf_edit.FPDFPageCountObjects(pageReader.Page);
-                        if (objectCount > 0)
-                        {
-                            var pdfPageObjs = new List<PdfPageObj>();
-                            //此处分析注释数据时只当注释只有一个文本和图像对象
-                            for (int objIndex = 0; objIndex < objectCount; objIndex++)
-                            {
-                                var obj = fpdf_edit.FPDFPageGetObject(pageReader.Page, objIndex);
-                                if (obj != null)
-                                {
-                                    var objectType = fpdf_edit.FPDFPageObjGetType(obj);
-                                    if (objectType == (int)PdfPageObjectTypeFlag.TEXT)
-                                    {
-                                        pdfPageObjs.Add(new PdfPageTextObj(obj));
-                                    }
-                                    else if (objectType == (int)PdfPageObjectTypeFlag.IMAGE)
-                                    {
-                                        pdfPageObjs.Add(new PdfPageImageObj(obj));
-                                    }
-                                    else if (objectType == (int)PdfPageObjectTypeFlag.PATH)
-                                    {
-                                        pdfPageObjs.Add(new PdfPagePathObj(obj));
-                                    }
-                                }
-                            }
-                            foreach (var obj in pdfPageObjs)
-                            {
-                                switch (obj.Type)
-                                {
-                                    case PdfPageObjectTypeFlag.UNKNOWN:
-                                        break;
-                                    case PdfPageObjectTypeFlag.TEXT:
-                                        break;
-                                    case PdfPageObjectTypeFlag.PATH:
-                                        var pathObj = obj as PdfPagePathObj;
-                                        var fillColor = pathObj.GetFillColor();
-                                        var strokeColor = pathObj.GetStrokeColor();
-                                        var path = pathObj.GetPath();
-                                        break;
-                                    case PdfPageObjectTypeFlag.IMAGE:
-                                        break;
-                                    case PdfPageObjectTypeFlag.SHADING:
-                                        break;
-                                    case PdfPageObjectTypeFlag.FORM:
-                                        break;
-                                }
-                            }
-                        }
-                    });
+                        case PdfPageObj.TypeFlag.Unknow:
+                            break;
+                        case PdfPageObj.TypeFlag.Text:
+                            break;
+                        case PdfPageObj.TypeFlag.Path:
+                            var pathObj = obj as PdfPagePathObj;
+                            var fillColor = pathObj.GetFillColor();
+                            var strokeColor = pathObj.GetStrokeColor();
+                            var path = pathObj.GetPath();
+                            break;
+                        case PdfPageObj.TypeFlag.Image:
+                            break;
+                        case PdfPageObj.TypeFlag.Shading:
+                            break;
+                        case PdfPageObj.TypeFlag.Form:
+                            break;
+                    }
                 }
-        */
+            }
+
+            Skip.If(true, "请Debug和查看结果检查是否绘制正确");
+        }
+#endif
+
+        [Theory]
+        [InlineData("Docs/mytest/mytest_edit_annotation.pdf", PdfAnnotationSubtype.Circle)]
+        [InlineData("Docs/mytest/mytest_edit_annotation.pdf", PdfAnnotationSubtype.FreeText)]
+        [InlineData("Docs/mytest/mytest_edit_annotation.pdf", PdfAnnotationSubtype.Highlight)]
+        [InlineData("Docs/mytest/mytest_edit_annotation.pdf", PdfAnnotationSubtype.Ink)]
+        [InlineData("Docs/mytest/mytest_edit_annotation.pdf", PdfAnnotationSubtype.Link)]
+        [InlineData("Docs/mytest/mytest_edit_annotation.pdf", PdfAnnotationSubtype.Square)]
+        [InlineData("Docs/mytest/mytest_edit_annotation.pdf", PdfAnnotationSubtype.Squiggly)]
+        [InlineData("Docs/mytest/mytest_edit_annotation.pdf", PdfAnnotationSubtype.Stamp)]
+        [InlineData("Docs/mytest/mytest_edit_annotation.pdf", PdfAnnotationSubtype.StrikeOut)]
+        [InlineData("Docs/mytest/mytest_edit_annotation.pdf", PdfAnnotationSubtype.Text)]
+        [InlineData("Docs/mytest/mytest_edit_annotation.pdf", PdfAnnotationSubtype.Underline)]
+        public void AddAnnotation_Support_Test(string filePath, PdfAnnotationSubtype subtype)
+        {
+            var doc = LoadPdfDocument(filePath, null);
+            var page = doc.GetPage(0);
+            var newAnnot = page.AddAnnotation(subtype);
+            Assert.Equal(subtype, newAnnot.AnnotationType);
+#if ANDROID || WINDOWS
+            page.SaveNewContent();
+#endif
+            var data = _fixture.Save(doc);
+
+            var resultDoc = _fixture.LoadPdfDocument(data, null);
+            var resultPage = resultDoc.GetPage(0);
+            var resultAnnot = resultPage.GetAnnotations()[0];
+            Assert.Equal(subtype, resultAnnot.AnnotationType);
+        }
+        
+        [Theory]
+        [InlineData("Docs/mytest/mytest_edit_annotation.pdf", PdfAnnotationSubtype.Highlight, PdfAnnotationSubtype.Popup)]
+        public void AddAnnotation_Support_Popup_Test(string filePath, PdfAnnotationSubtype parentSubtype, PdfAnnotationSubtype subtype)
+        {
+            var doc = LoadPdfDocument(filePath, null);
+            var page = doc.GetPage(0);
+            var newAnnot = page.AddAnnotation(parentSubtype);
+            Assert.Equal(parentSubtype, newAnnot.AnnotationType);
+            var parentAnnot = newAnnot as PdfHighlightAnnotation;
+            var popupAnnot = parentAnnot.AddPopupAnnotation();
+            popupAnnot.Text = "有Popup";
+#if ANDROID || WINDOWS
+            page.SaveNewContent();
+#endif
+            var data = _fixture.Save(doc);
+            var resultDoc = _fixture.LoadPdfDocument(data, null);
+            var resultPage = resultDoc.GetPage(0);
+            var resultAnnot = resultPage.GetAnnotations()[0];
+            Assert.Equal(parentSubtype, resultAnnot.AnnotationType);
+            Assert.Equal(subtype, (resultAnnot as PdfHighlightAnnotation).PopupAnnotation.AnnotationType);
+        }
+
+        [Theory]
+        [InlineData("Docs/mytest/mytest_edit_annotation.pdf", PdfAnnotationSubtype.Line)]
+        [InlineData("Docs/mytest/mytest_edit_annotation.pdf", PdfAnnotationSubtype.Widget)]
+        [InlineData("Docs/mytest/mytest_edit_annotation.pdf", PdfAnnotationSubtype.Unknow)]
+        public void AddAnnotation_iOSSupport_PdfiumNotSupport_Test(string filePath, PdfAnnotationSubtype subtype)
+        {
+            var doc = LoadPdfDocument(filePath, null);
+            var page = doc.GetPage(0);
+#if ANDROID || WINDOWS
+            Assert.Throws<NotSupportedException>(() =>
+            {
+                var newAnnot = page.AddAnnotation(subtype);
+            });
+#else
+            var newAnnot = page.AddAnnotation(subtype);
+            Assert.Equal(subtype, newAnnot.AnnotationType);
+
+            var data = _fixture.Save(doc);
+
+            var resultDoc = _fixture.LoadPdfDocument(data, null);
+            var resultPage = resultDoc.GetPage(0);
+            var resultAnnots = resultPage.GetAnnotations();
+            var resultAnnot = resultAnnots[0];
+            Assert.Equal(subtype, resultAnnot.AnnotationType);
+#endif
+        }
     }
 }

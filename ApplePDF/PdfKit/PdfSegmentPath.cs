@@ -7,7 +7,15 @@ namespace ApplePDF.PdfKit
 {
     public class PdfSegmentPath
     {
-        public PdfSegmentFlag Type;
+        public enum SegmentFlag
+        {
+            Unknow = PdfSegmentFlag.FPDF_SEGMENT_UNKNOWN,
+            LineTo = PdfSegmentFlag.FPDF_SEGMENT_LINETO,
+            BezierTo = PdfSegmentFlag.FPDF_SEGMENT_BEZIERTO,
+            MoveTo = PdfSegmentFlag.FPDF_SEGMENT_MOVETO
+        }
+
+        public SegmentFlag Type;
         /// <summary>
         /// If is <see cref="PdfBezierSegmentPath"/>, this is End point of Bezier.
         /// </summary>
@@ -25,11 +33,11 @@ namespace ApplePDF.PdfKit
         public static List<PdfSegmentPath> GenerateRectSegments(float x, float y, float w, float h)
         {
             var path = new List<PdfSegmentPath>();
-            path.Add(new PdfSegmentPath() { Type = PdfSegmentFlag.FPDF_SEGMENT_MOVETO, Position = new PointF(x, y) });
-            path.Add(new PdfSegmentPath() { Type = PdfSegmentFlag.FPDF_SEGMENT_LINETO, Position = new PointF(x + w, y) });
-            path.Add(new PdfSegmentPath() { Type = PdfSegmentFlag.FPDF_SEGMENT_LINETO, Position = new PointF(x + w, y - h) });
-            path.Add(new PdfSegmentPath() { Type = PdfSegmentFlag.FPDF_SEGMENT_LINETO, Position = new PointF(x, y - h) });
-            path.Add(new PdfSegmentPath() { Type = PdfSegmentFlag.FPDF_SEGMENT_LINETO, Position = new PointF(x, y) });
+            path.Add(new PdfSegmentPath() { Type = SegmentFlag.MoveTo, Position = new PointF(x, y) });
+            path.Add(new PdfSegmentPath() { Type = SegmentFlag.LineTo, Position = new PointF(x + w, y) });
+            path.Add(new PdfSegmentPath() { Type = SegmentFlag.LineTo, Position = new PointF(x + w, y - h) });
+            path.Add(new PdfSegmentPath() { Type = SegmentFlag.LineTo, Position = new PointF(x, y - h) });
+            path.Add(new PdfSegmentPath() { Type = SegmentFlag.LineTo, Position = new PointF(x, y) });
             return path;
         }
 
@@ -46,13 +54,13 @@ namespace ApplePDF.PdfKit
         {
             var path = new List<PdfSegmentPath>();
             path.AddRange(GenerateArcSegments(x + radius, y - radius, radius, 90, 180));//左上角圆弧
-            path.Add(new PdfSegmentPath() { Type = PdfSegmentFlag.FPDF_SEGMENT_LINETO, Position = new PointF(x, y - h + radius) });
+            path.Add(new PdfSegmentPath() { Type = SegmentFlag.LineTo, Position = new PointF(x, y - h + radius) });
             path.AddRange(GenerateArcSegments(x + radius, y - h + radius, radius, 180, 270));//左下角圆弧
-            path.Add(new PdfSegmentPath() { Type = PdfSegmentFlag.FPDF_SEGMENT_LINETO, Position = new PointF(x + w - radius, y - h) });
+            path.Add(new PdfSegmentPath() { Type = SegmentFlag.LineTo, Position = new PointF(x + w - radius, y - h) });
             path.AddRange(GenerateArcSegments(x + w - radius, y - h + radius, radius, 270, 360));//右下角圆弧
-            path.Add(new PdfSegmentPath() { Type = PdfSegmentFlag.FPDF_SEGMENT_LINETO, Position = new PointF(x + w, y - radius) });
+            path.Add(new PdfSegmentPath() { Type = SegmentFlag.LineTo, Position = new PointF(x + w, y - radius) });
             path.AddRange(GenerateArcSegments(x + w - radius, y - radius, radius, 0, 90));//右上角圆弧
-            path.Add(new PdfSegmentPath() { Type = PdfSegmentFlag.FPDF_SEGMENT_LINETO, Position = new PointF(x + radius, y) });
+            path.Add(new PdfSegmentPath() { Type = SegmentFlag.LineTo, Position = new PointF(x + radius, y) });
             return path;
         }
 
@@ -66,10 +74,10 @@ namespace ApplePDF.PdfKit
         public static List<PdfSegmentPath> GenerateTriangleSegments(PointF pointA, PointF pointB, PointF pointC)
         {
             var path = new List<PdfSegmentPath>();
-            path.Add(new PdfSegmentPath() { Type = PdfSegmentFlag.FPDF_SEGMENT_MOVETO, Position = pointA });
-            path.Add(new PdfSegmentPath() { Type = PdfSegmentFlag.FPDF_SEGMENT_LINETO, Position = pointB });
-            path.Add(new PdfSegmentPath() { Type = PdfSegmentFlag.FPDF_SEGMENT_LINETO, Position = pointC });
-            path.Add(new PdfSegmentPath() { Type = PdfSegmentFlag.FPDF_SEGMENT_LINETO, Position = pointA });
+            path.Add(new PdfSegmentPath() { Type = SegmentFlag.MoveTo, Position = pointA });
+            path.Add(new PdfSegmentPath() { Type = SegmentFlag.LineTo, Position = pointB });
+            path.Add(new PdfSegmentPath() { Type = SegmentFlag.LineTo, Position = pointC });
+            path.Add(new PdfSegmentPath() { Type = SegmentFlag.LineTo, Position = pointA });
             return path;
         }
 
@@ -134,7 +142,7 @@ namespace ApplePDF.PdfKit
             void onDraw(List<PdfSegmentPath> path)
             {
                 // 绘制贝塞尔曲线
-                path.Add(new PdfSegmentPath() { Type = PdfSegmentFlag.FPDF_SEGMENT_MOVETO, Position = new PointF(mData[0], mData[1]) });
+                path.Add(new PdfSegmentPath() { Type = SegmentFlag.MoveTo, Position = new PointF(mData[0], mData[1]) });
 
                 path.Add(new PdfBezierSegmentPath() { ControlPoint1 = new PointF(mCtrl[0], mCtrl[1]), ControlPoint2 = new PointF(mCtrl[2], mCtrl[3]), Position = new PointF(mData[2], mData[3]) });
                 path.Add(new PdfBezierSegmentPath() { ControlPoint1 = new PointF(mCtrl[4], mCtrl[5]), ControlPoint2 = new PointF(mCtrl[6], mCtrl[7]), Position = new PointF(mData[4], mData[5]) });
@@ -245,7 +253,7 @@ namespace ApplePDF.PdfKit
                 var controlPoint2Y = (-2 * A * B * controlPoint1X + (A * A - B * B) * controlPoint1Y - 2 * B * C) / (A * A + B * B);
 
                 var paths = new List<PdfSegmentPath>();
-                paths.Add(new PdfSegmentPath() { Type = PdfSegmentFlag.FPDF_SEGMENT_MOVETO, Position = new PointF(x1, y1) });
+                paths.Add(new PdfSegmentPath() { Type = SegmentFlag.MoveTo, Position = new PointF(x1, y1) });
                 paths.Add(new PdfBezierSegmentPath()
                 {
                     ControlPoint1 = new PointF(controlPoint1X, controlPoint1Y),
@@ -275,7 +283,7 @@ namespace ApplePDF.PdfKit
 
         public PdfBezierSegmentPath()
         {
-            Type = PdfSegmentFlag.FPDF_SEGMENT_BEZIERTO;
+            Type = SegmentFlag.BezierTo;
         }
     }
 }

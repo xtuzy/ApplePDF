@@ -106,7 +106,7 @@ namespace ApplePDF.Test
         }
 
         [Theory]
-        [InlineData("Docs/mytest_VulkanGuideline.pdf")]
+        [InlineData("Docs/mytest/mytest_VulkanGuideline.pdf")]
         public void SplitTest(string firstPath)
         {
             var doc1 = LoadPdfDocument(firstPath, null);

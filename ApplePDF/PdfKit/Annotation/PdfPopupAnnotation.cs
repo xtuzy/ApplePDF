@@ -12,20 +12,32 @@ namespace ApplePDF.PdfKit.Annotation
     /// </summary>
     public class PdfPopupAnnotation : PdfAnnotation
     {
-        internal const string kPopupKey = "Popup";
+        public class Constant
+        {
+            public class CommonKey
+            {
+                internal const string kPopupKey = "Popup";
+            }
+        }
 
         internal PdfAnnotation Parent;
 
-        public string Text;
-
-        public PdfPopupAnnotation(PdfAnnotation parent) : base(PdfAnnotationSubtype.Popup)
+        public PdfPopupAnnotation(PdfPage page, PdfAnnotation parentAnnotation, PlatformPdfAnnotation annotation, PdfAnnotationSubtype type, int index) : base(page, annotation, type, index)
         {
-            parent = Parent;
+            Parent = parentAnnotation;
         }
 
-        internal override void AddToPage(PdfPage page)
+        public string Text 
         {
-           base.AddToPage(page);
+            get
+            {
+                return Parent.GetStringValueFromKey(PdfAnnotation.Constant.CommonKey.kContents);
+            }
+
+            set
+            {
+                Parent.SetStringValueForKey(value, PdfAnnotation.Constant.CommonKey.kContents);
+            }
         }
     }
 }

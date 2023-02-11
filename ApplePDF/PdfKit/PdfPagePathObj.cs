@@ -11,7 +11,7 @@ namespace ApplePDF.PdfKit
     {
         const string TAG = nameof(PdfPagePathObj);
 
-        public PdfPagePathObj(FpdfPageobjectT pageObj) : base(pageObj, PdfPageObjectTypeFlag.PATH)
+        public PdfPagePathObj(FpdfPageobjectT pageObj) : base(pageObj, TypeFlag.Path)
         {
         }
 
@@ -27,19 +27,19 @@ namespace ApplePDF.PdfKit
             {
                 switch (path.Type)
                 {
-                    case PdfSegmentFlag.FPDF_SEGMENT_UNKNOWN:
+                    case PdfSegmentPath.SegmentFlag.Unknow:
                         break;
-                    case PdfSegmentFlag.FPDF_SEGMENT_LINETO:
+                    case PdfSegmentPath.SegmentFlag.LineTo:
                         if (fpdf_edit.FPDFPathLineTo(PageObj, path.Position.X, path.Position.Y) == 0)
                             Debug.WriteLine($"{TAG}:Fail set LineTo to path obj of annot");
                         break;
-                    case PdfSegmentFlag.FPDF_SEGMENT_BEZIERTO:
+                    case PdfSegmentPath.SegmentFlag.BezierTo:
                         var tempPath = path as PdfBezierSegmentPath;
                         if (tempPath != null)
                             if (fpdf_edit.FPDFPathBezierTo(PageObj, tempPath.ControlPoint1.X, tempPath.ControlPoint1.Y, tempPath.ControlPoint2.X, tempPath.ControlPoint2.Y, tempPath.Position.X, tempPath.Position.Y) == 0)
                                 Debug.WriteLine($"{TAG}:Fail set BezierTo to path obj of annot");
                         break;
-                    case PdfSegmentFlag.FPDF_SEGMENT_MOVETO:
+                    case PdfSegmentPath.SegmentFlag.MoveTo:
                         if (fpdf_edit.FPDFPathMoveTo(PageObj, path.Position.X, path.Position.Y) == 0)
                             Debug.WriteLine($"{TAG}:Fail set MoveTo to path obj of annot");
                         break;
@@ -67,7 +67,7 @@ namespace ApplePDF.PdfKit
                     {
                         //如果是BEZIERTO,那么连续三个点都是BEZIERTO,匹配BEZIER的两个控制点和一个结束点
                         var path = new PdfBezierSegmentPath();
-                        path.Type = PdfSegmentFlag.FPDF_SEGMENT_BEZIERTO;
+                        path.Type = PdfSegmentPath.SegmentFlag.BezierTo;
                         var segment1 = fpdf_edit.FPDFPathGetPathSegment(PageObj, segmentIndex + 1);
                         var segment2 = fpdf_edit.FPDFPathGetPathSegment(PageObj, segmentIndex + 2);
                         if (segment1 == null || segment2 == null)
@@ -105,11 +105,11 @@ namespace ApplePDF.PdfKit
                     {
                         var path = new PdfSegmentPath();
                         if (fpdf_edit.FPDFPathSegmentGetType(segment) == (int)PdfSegmentFlag.FPDF_SEGMENT_MOVETO)
-                            path.Type = PdfSegmentFlag.FPDF_SEGMENT_MOVETO;
+                            path.Type = PdfSegmentPath.SegmentFlag.MoveTo;
                         if (fpdf_edit.FPDFPathSegmentGetType(segment) == (int)PdfSegmentFlag.FPDF_SEGMENT_LINETO)
-                            path.Type = PdfSegmentFlag.FPDF_SEGMENT_LINETO;
+                            path.Type = PdfSegmentPath.SegmentFlag.LineTo;
                         if (fpdf_edit.FPDFPathSegmentGetType(segment) == (int)PdfSegmentFlag.FPDF_SEGMENT_UNKNOWN)
-                            path.Type = PdfSegmentFlag.FPDF_SEGMENT_UNKNOWN;
+                            path.Type = PdfSegmentPath.SegmentFlag.Unknow;
                         if (fpdf_edit.FPDFPathSegmentGetPoint(segment, ref x, ref y) == 1)
                         {
                             if (fpdf_edit.FPDFPathSegmentGetClose(segment) != 0)
@@ -180,7 +180,7 @@ namespace ApplePDF.PdfKit
     public class PdfPageImageObj : PdfPageObj
     {
         const string TAG = nameof(PdfPageImageObj);
-        public PdfPageImageObj(FpdfPageobjectT pageObj) : base(pageObj, PdfPageObjectTypeFlag.IMAGE)
+        public PdfPageImageObj(FpdfPageobjectT pageObj) : base(pageObj, TypeFlag.Image)
         {
         }
 
@@ -212,7 +212,7 @@ namespace ApplePDF.PdfKit
     public class PdfPageTextObj : PdfPageObj
     {
         const string TAG = nameof(PdfPageTextObj);
-        public PdfPageTextObj(FpdfPageobjectT pageObj) : base(pageObj, PdfPageObjectTypeFlag.TEXT)
+        public PdfPageTextObj(FpdfPageobjectT pageObj) : base(pageObj, TypeFlag.Text)
         {
         }
 

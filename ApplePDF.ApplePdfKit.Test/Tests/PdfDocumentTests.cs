@@ -126,7 +126,7 @@ namespace ApplePDF.ApplePdfKit.Test.Tests
         }
 
         [Theory]
-        [InlineData("Docs/mytest_VulkanGuideline.pdf")]
+        [InlineData("Docs/mytest/mytest_VulkanGuideline.pdf")]
         public void OutlineRoot_WhenCall_GetAllOutlineOfPdf(string filePath)
         {
             using (var doc = LoadPdfDocument(filePath, null))
@@ -137,7 +137,7 @@ namespace ApplePDF.ApplePdfKit.Test.Tests
         }
 
         [Theory]
-        [InlineData("Docs/mytest_VulkanGuideline.pdf")]
+        [InlineData("Docs/mytest/mytest_chinese.pdf")]
         public void CreatePage_AsLastPage_Test(string filePath)
         {
             byte[] data;
@@ -151,6 +151,7 @@ namespace ApplePDF.ApplePdfKit.Test.Tests
                 var nowPageCount = doc.PageCount;
                 Assert.Equal(prePageCount + 1, nowPageCount);
                 data = _fixture.Save(doc as PdfDocument);
+                PdfSaveExtension.Save(_fixture, doc as PdfDocument, $"{nameof(PdfDocumentTests)}_{nameof(CreatePage_AsLastPage_Test)}_Result.pdf");
             }
             //测试新页面是否保存
             using (var doc = _fixture.LoadPdfDocument(data, null) as IPdfDocument)
@@ -161,7 +162,7 @@ namespace ApplePDF.ApplePdfKit.Test.Tests
         }
 
         [Theory]
-        [InlineData("Docs/mytest_VulkanGuideline.pdf")]
+        [InlineData("Docs/mytest/mytest_VulkanGuideline.pdf")]
         public void CreatePage_Insert_Test(string filePath)
         {
             byte[] data;
@@ -185,7 +186,7 @@ namespace ApplePDF.ApplePdfKit.Test.Tests
         }
 
         [Theory]
-        [InlineData("Docs/mytest_VulkanGuideline.pdf")]
+        [InlineData("Docs/mytest/mytest_VulkanGuideline.pdf")]
         public void RemovePageTest(string filePath)
         {
             byte[] data;
@@ -208,7 +209,7 @@ namespace ApplePDF.ApplePdfKit.Test.Tests
         }
 
         [Theory]
-        [InlineData("Docs/mytest_VulkanGuideline.pdf", 9, 19)]
+        [InlineData("Docs/mytest/mytest_VulkanGuideline.pdf", 9, 19)]
         public void ExchangePagesTest(string filePath, int pageIndexA, int pageIndexB)
         {
             byte[] data;

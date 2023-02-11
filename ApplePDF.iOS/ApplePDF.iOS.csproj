@@ -1,12 +1,17 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>net6.0-ios;net6.0-maccatalyst;net6.0-macos</TargetFrameworks>
+    <TargetFrameworks>net6.0-ios11.0;net6.0-maccatalyst13.1;net6.0-macos10.15</TargetFrameworks>
     <Nullable>enable</Nullable>
     <RootNamespace>ApplePDF</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="..\ApplePDF\PdfKit\Annotation\IMarkupAnnotation.cs" Link="PdfKit\Annotation\IMarkupAnnotation.cs" />
+    <Compile Include="..\ApplePDF\PdfKit\Annotation\IPdfFreeTextAnnotation.cs" Link="PdfKit\Annotation\IPdfFreeTextAnnotation.cs" />
+    <Compile Include="..\ApplePDF\PdfKit\Annotation\IPdfHighlightAnnotation.cs" Link="PdfKit\Annotation\IPdfHighlightAnnotation.cs" />
+    <Compile Include="..\ApplePDF\PdfKit\Annotation\IPdfLinkAnnotation.cs" Link="PdfKit\Annotation\IPdfLinkAnnotation.cs" />
     <Compile Include="..\ApplePDF\PdfKit\ILib.cs" Link="PdfKit\ILib.cs" />
     <Compile Include="..\ApplePDF\PdfKit\IPdfAction.cs" Link="PdfKit\IPdfAction.cs" />
+    <Compile Include="..\ApplePDF\PdfKit\IPdfAnnotation.cs" Link="PdfKit\IPdfAnnotation.cs" />
     <Compile Include="..\ApplePDF\PdfKit\IPdfAttributedString.cs" Link="PdfKit\IPdfAttributedString.cs" />
     <Compile Include="..\ApplePDF\PdfKit\IPdfDestination.cs" Link="PdfKit\IPdfDestination.cs" />
     <Compile Include="..\ApplePDF\PdfKit\IPdfDocument.cs" Link="PdfKit\IPdfDocument.cs" />
@@ -16,5 +21,8 @@
     <Compile Include="..\ApplePDF\PdfKit\IPdfFont.cs" Link="PdfKit\IPdfFont.cs" />
     <Compile Include="..\ApplePDF\PdfKit\PdfDisplayBox.cs" Link="PdfKit\PdfDisplayBox.cs" />
     <Compile Include="..\ApplePDF\PdfKit\PdfRectangleF.cs" Link="PdfKit\PdfRectangleF.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Maui.Graphics" Version="6.0.7" />
   </ItemGroup>
 </Project>

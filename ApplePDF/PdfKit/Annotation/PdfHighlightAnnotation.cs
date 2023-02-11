@@ -1,105 +1,62 @@
 ﻿using PDFiumCore;
-using System;
-using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 
 namespace ApplePDF.PdfKit.Annotation
 {
-    public class PdfHighlightAnnotation : PdfAnnotation_ReadonlyPdfPageObj, IColorAnnotation
+    public class PdfHighlightAnnotation : PdfMarkupAnnotation, IPdfHighlightAnnotation
     {
-        public List<PdfRectangleF> HighlightLocation = new List<PdfRectangleF>();
-
-        public PdfPopupAnnotation PopupAnnotation;
-
-        public PdfHighlightAnnotation()
-            : base(PdfAnnotationSubtype.Highlight)
+        /// <summary>
+        /// 获取附着在其上的Popup注释
+        /// </summary>
+        public PdfPopupAnnotation PopupAnnotation
         {
+            get
+            {
+                var havePopup = fpdf_annot.FPDFAnnotHasKey(Annotation, PdfPopupAnnotation.Constant.CommonKey.kPopupKey);
+                if (havePopup == 1)
+                {
+                    return new PdfPopupAnnotation(this.Page, this, null, PdfAnnotationSubtype.Popup, -1);
+                }
+                else
+                {
+                    if (GetStringValueFromKey() != string.Empty)
+                        return new PdfPopupAnnotation(this.Page, this, null, PdfAnnotationSubtype.Popup, -1);
+                    return null;
+                }
+            }
         }
 
         internal PdfHighlightAnnotation(PdfPage page, FpdfAnnotationT annotation, PdfAnnotationSubtype type, int index) : base(page, annotation, type, index)
         {
-            var count = (int)fpdf_annot.FPDFAnnotCountAttachmentPoints(Annotation);
-            var success = count != 0;
-            if (!success) throw new NotImplementedException("No highlight points");
-            var point = new FS_QUADPOINTSF();
-            for (var i = 0; i < count; i++)
-            {
-                success = fpdf_annot.FPDFAnnotGetAttachmentPoints(Annotation, (ulong)i, point) == 1;
-                if (!success) throw new NotImplementedException("Get highlight point fail");
-                var rect = PdfRectangleF.FromLTRB(point.X1, point.Y1, point.X4, point.Y4);
-                HighlightLocation.Add(rect);
-            }
-
-            // 获取附着在其上的Popup注释
-            var havePopup = fpdf_annot.FPDFAnnotHasKey(annotation, PdfPopupAnnotation.kPopupKey);
-            if (havePopup == 1)
-            {
-                PopupAnnotation = new PdfPopupAnnotation(this);
-                // Get Text
-                var buffer = new ushort[100];
-                var result = fpdf_annot.FPDFAnnotGetStringValue(annotation, PdfAnnotation.Constant.CommonKey.kContents, ref buffer[0], (uint)buffer.Length);
-                if (result == 0)
-                {
-                    throw new NotImplementedException();
-                }
-                else if (result == 2)
-                {
-                    throw new NotImplementedException();
-                }
-                else
-                {
-                    unsafe
-                    {
-                        fixed (ushort* dataPtr = &buffer[0])
-                        {
-                            PopupAnnotation.Text = new string((char*)dataPtr, 0, (int)result);
-                        }
-                    }
-                }
-            }
-
-            // 先尝试最简单的方式获取颜色
-            AnnotColor = GetAnnotColor();
         }
 
         /// <summary>
         /// Default color is yellow. Edge注释的黄色是#fff066
         /// </summary>
-        public Color? AnnotColor { get; set; }
+        public Color? HighlightColor { get => GetAnnotColor(); set => SetAnnotColor(value); }
 
-        public void AppendAnnotationPoint(PdfRectangleF rect)
+        /// <summary>
+        /// 当前Pdfium未提供连接Popup和Marktype的方式, 此创建不会连接彼此, Popup是空内容, 请给Popup设置text(实际设置了Parent内容), 来假定拥有Popup
+        /// </summary>
+        /// <returns></returns>
+        public PdfPopupAnnotation AddPopupAnnotation()
         {
-            var success = fpdf_annot.FPDFAnnotAppendAttachmentPoints(Annotation, new FS_QUADPOINTSF()
+            var annotationType = PdfAnnotationSubtype.Popup;
+            // 创建注释到Pdfium
+            var annotation = fpdf_annot.FPDFPageCreateAnnot(Page.Page, (int)annotationType);
+            if (annotation == null)
             {
-                X1 = rect.Left,
-                Y1 = rect.Top,
-                X2 = rect.Right,
-                Y2 = rect.Top,
-                X3 = rect.Left,
-                Y3 = rect.Bottom,
-                X4 = rect.Right,
-                Y4 = rect.Bottom
-            }) == 1;
-            if (success)
-            {
-                if (!HighlightLocation.Contains(rect))
-                    HighlightLocation.Add(rect);
+                Debug.WriteLine($"Cant't create new {annotationType} annotation");
+                return null;
             }
-        }
-
-        internal override void AddToPage(PdfPage page)
-        {
-            base.AddToPage(page);
-
-            // 设置颜色,我们不管其它软件是否使用对象来设置颜色,我们用最简单的方式
-            if (AnnotColor != null)
+            var index = fpdf_annot.FPDFPageGetAnnotIndex(Page.Page, annotation);
+            if (index == -1)
             {
-                var success = fpdf_annot.FPDFAnnotSetColor(Annotation, FPDFANNOT_COLORTYPE.FPDFANNOT_COLORTYPE_Color, AnnotColor.Value.R, AnnotColor.Value.G, AnnotColor.Value.B, AnnotColor.Value.A) == 1;
-                if (!success)
-                    throw new NotImplementedException($"{this.GetType()}:Set AnnotColor fail, Fails when called on annotations with appearance streams already defined; instead use FPDFPath_Set(Stroke|Fill)Color().");
+                Debug.WriteLine($"Cant't create new {annotationType} annotation");
+                return null;
             }
-            foreach (var rect in HighlightLocation)
-                AppendAnnotationPoint(rect);
+            return new PdfPopupAnnotation(this.Page, this, annotation, annotationType, index);
         }
     }
 }

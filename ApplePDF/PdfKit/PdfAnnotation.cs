@@ -8,7 +8,7 @@ using System.Text;
 
 namespace ApplePDF.PdfKit
 {
-    public abstract class PdfAnnotation : IDisposable
+    public abstract class PdfAnnotation : IPdfAnnotation, IDisposable
     {
         const string TAG = nameof(PdfAnnotation);
 
@@ -22,11 +22,20 @@ namespace ApplePDF.PdfKit
             public class CommonKey
             {
                 public const string kType = "Type";
+                /// <summary>
+                /// 注释的类型, 可是自定义字符串
+                /// </summary>
                 public const string kSubtype = "Subtype";
                 public const string kRect = "Rect";
                 public const string kContents = "Contents";
+                /// <summary>
+                /// 所属页面
+                /// </summary>
                 public const string kP = "P";
                 public const string kNM = "NM";
+                /// <summary>
+                /// 修改时间
+                /// </summary>
                 public const string kM = "M";
                 public const string kF = "F";
                 public const string kAP = "AP";
@@ -64,80 +73,48 @@ namespace ApplePDF.PdfKit
             this.Annotation = annotation;
             this.AnnotationType = type;
             this.Index = index;
-            // 位置
-            var position = new FS_RECTF_();
-            var success = fpdf_annot.FPDFAnnotGetRect(Annotation, position) == 1;
-            if (success)
-                AnnotBox = PdfRectangleF.FromLTRB(position.Left, position.Top, position.Right, position.Bottom);
-            else
-                Debug.WriteLine($"{this.GetType()}:Get AnnotBox fail.");
-        }
-
-        /// <summary>
-        /// 为创建新注释
-        /// </summary>
-        /// <param name="type"></param>
-        public PdfAnnotation(PdfAnnotationSubtype type)
-        {
-            AnnotationType = type;
         }
 
         public FpdfAnnotationT Annotation { get; protected set; }
         public int Index { get; protected set; }
         public PdfPage Page { get; protected set; }
         public PdfAnnotationSubtype AnnotationType { get; protected set; }
-        #region 用户设置
 
         /// <summary>
         /// The annot 's edge box?
         /// I don't know the different of AnnotBox and Annot Points,maybe add point will auto update box?
         /// </summary>
-        public PdfRectangleF AnnotBox { get; set; } = PdfRectangleF.Empty;
-
-        #endregion 用户设置
-        internal virtual void AddToPage(PdfPage page)
+        public PdfRectangleF AnnotBox
         {
-            this.Page = page;
-
-            // 创建注释
-            var annot = fpdf_annot.FPDFPageCreateAnnot(page.Page, (int)this.AnnotationType);
-            if (annot == null)
+            get
             {
-                throw new NotImplementedException($"Cant't create new {AnnotationType} annotation");
-            }
-            this.Annotation = annot;
-            var index = fpdf_annot.FPDFPageGetAnnotIndex(page.Page, this.Annotation);
-            this.Index = index;
-            bool success = false;
-
-            // 位置
-            if (AnnotBox != PdfRectangleF.Empty)
-            {
-                success = fpdf_annot.FPDFAnnotSetRect(Annotation, new FS_RECTF_()
+                var position = new FS_RECTF_();
+                var success = fpdf_annot.FPDFAnnotGetRect(Annotation, position) == 1;
+                if (success)
+                    return PdfRectangleF.FromLTRB(position.Left, position.Top, position.Right, position.Bottom);
+                else
                 {
-                    Left = AnnotBox.Left,
-                    Top = AnnotBox.Top,
-                    Right = AnnotBox.Right,
-                    Bottom = AnnotBox.Bottom
-                }) == 1;
-                if (!success) new NotImplementedException($"{this.GetType()}:Set AnnotBox fail");
-
+                    Debug.WriteLine($"{this.GetType()}:Get AnnotBox fail.");
+                    return PdfRectangleF.Empty;
+                }
             }
 
-            // Flag?
-            //success = fpdf_annot.FPDFAnnotSetFlags(Annotation, 4) == 1;
-            //if (!success) new NotImplementedException($"{this.GetType()}:Set flag fail");
+            set
+            {
+                var position = new FS_RECTF_();
+                position.Left = value.Left;
+                position.Top = value.Top;
+                position.Right = value.Right;
+                position.Bottom = value.Bottom;
+                var success = fpdf_annot.FPDFAnnotSetRect(Annotation, position) == 1;
+                if (!success)
+                {
+                    throw new Exception("Set AnnotBox fail.");
+                }
+            }
         }
 
-        /// <summary>
-        /// 请勿使用,仅为测试
-        /// </summary>
-        /// <returns></returns>
-        public (Color? AnnotColor, Color? FillColor, Color? StrokeColor) TryGetColor(PdfPageObjectTypeFlag objType)
-        {
-            var colors = GetFillAndStrokeColor(objType);
-            return (GetAnnotColor(), colors.FillColor, colors.StrokeColor);
-        }
+        #region Color
 
         /// <summary>
         /// If return null, you need use <see cref="PdfPageObj.GetFillColor"/> or <see cref="PdfPageObj.GetStrokeColor"/> to get color.
@@ -172,58 +149,9 @@ namespace ApplePDF.PdfKit
             return false;
         }
 
-        /// <summary>
-        /// For FPDFPageObjGetFillColor() and FPDFPageObjGetStrokeColor(). 仅取第一个obj的颜色
-        /// </summary>
-        /// <returns></returns>
-        private (Color? FillColor, Color? StrokeColor) GetFillAndStrokeColor(PdfPageObjectTypeFlag objType)
-        {
-            Color? FillColor = null; Color? StrokeColor = null;
+        #endregion
 
-            var objectCount = fpdf_annot.FPDFAnnotGetObjectCount(Annotation);
-
-            //此处分析注释数据时只当注释只有一个文本和图像对象
-            for (int objIndex = 0; objIndex < objectCount; objIndex++)
-            {
-                var obj = fpdf_annot.FPDFAnnotGetObject(Annotation, objIndex);
-                if (obj != null)
-                {
-                    var objectType = fpdf_edit.FPDFPageObjGetType(obj);
-                    if (objectType == (int)objType)
-                    {
-                        // 颜色
-                        uint R = 0;
-                        uint G = 0;
-                        uint B = 0;
-                        uint A = 0;
-                        var success = fpdf_edit.FPDFPageObjGetFillColor(obj, ref R, ref G, ref B, ref A) == 1;
-                        if (success)
-                        {
-                            FillColor = System.Drawing.Color.FromArgb((int)A, (int)R, (int)G, (int)B);
-                        }
-                        else
-                        {
-                            Debug.WriteLine($"{nameof(PdfFreeTextAnnotation)}:No fill color");
-                        }
-
-                        success = fpdf_edit.FPDFPageObjGetStrokeColor(obj, ref R, ref G, ref B, ref A) == 1;
-
-                        if (success)
-                        {
-                            StrokeColor = System.Drawing.Color.FromArgb((int)A, (int)R, (int)G, (int)B);
-                        }
-                        else
-                        {
-                            Debug.WriteLine($"{nameof(PdfFreeTextAnnotation)}:No stroke color");
-                        }
-
-                        break;//识别第一个
-                    }
-                }
-            }
-            return (FillColor, StrokeColor);
-        }
-
+        #region Obj
         /// <summary>
         /// Append a new <see cref="PdfPageObj"/> to <see cref="PdfAnnotation"/>.
         /// Support <see cref="PdfInkAnnotation"/> and <see cref="PdfStampAnnotation"/>. Because <see cref="fpdf_annot.FPDFAnnotAppendObject"/> only support them.
@@ -247,6 +175,62 @@ namespace ApplePDF.PdfKit
             // 文本对象添加到注释
             return fpdf_annot.FPDFAnnotUpdateObject(Annotation, obj.PageObj) == 1;
         }
+
+        protected bool RemoveObjOfAnnot(PdfPageObj obj)
+        {
+            // 文本对象添加到注释
+            return fpdf_annot.FPDFAnnotRemoveObject(Annotation, obj.Index) == 1;
+        }
+
+        /// <summary>
+        /// 注释实际Obj数量,不是<see cref="PdfPageObjs"/>的数量, 主要用于在添加新的Obj时获取Index.
+        /// </summary>
+        /// <returns></returns>
+        public int GetObjCount()
+        {
+            return fpdf_edit.FPDFPageCountObjects(Page.Page);
+        }
+
+        protected PdfPageObj[] GetAllObj()
+        {
+            var objectCount = fpdf_annot.FPDFAnnotGetObjectCount(Annotation);
+            if (objectCount > 0)
+            {
+                var pdfPageObjs = new PdfPageObj[objectCount];
+                //此处分析注释数据时只当注释只有一个文本和图像对象
+                for (int objIndex = 0; objIndex < objectCount; objIndex++)
+                {
+                    var obj = fpdf_annot.FPDFAnnotGetObject(Annotation, objIndex);
+                    if (obj != null)
+                    {
+                        var objectType = fpdf_edit.FPDFPageObjGetType(obj);
+                        if (objectType == (int)PdfPageObjectTypeFlag.TEXT)
+                        {
+                            pdfPageObjs[objIndex] = new PdfPageTextObj(obj) { Index = objIndex };
+                        }
+                        else if (objectType == (int)PdfPageObjectTypeFlag.IMAGE)
+                        {
+                            pdfPageObjs[objIndex] = new PdfPageImageObj(obj) { Index = objIndex };
+                        }
+                        else if (objectType == (int)PdfPageObjectTypeFlag.PATH)
+                        {
+                            pdfPageObjs[objIndex] = new PdfPagePathObj(obj) { Index = objIndex };
+                        }
+                    }
+                }
+                return pdfPageObjs;
+            }
+
+            if (objectCount == 0)
+            {
+                // 测试mytest_4_freetextannotation.pdf时,为0时貌似也可能正确,这个注释好像是不显示的
+                return null;
+            }
+
+            return null;
+        }
+
+        #endregion
 
         public string GetAppearenceStr(Constant.AppearenceMode appearenceMode = Constant.AppearenceMode.FPDF_ANNOT_APPEARANCEMODE_NORMAL)
         {
@@ -289,11 +273,13 @@ namespace ApplePDF.PdfKit
             return true;
         }
 
-        protected string GetStringValue()
+        #region Key
+
+        public string GetStringValueFromKey(string key = PdfAnnotation.Constant.CommonKey.kContents)
         {
             // 先尝试使用StringValue获取文本，当返回2时就是没有
             ushort[] buffer = new ushort[1];
-            var resultBytesLength = fpdf_annot.FPDFAnnotGetStringValue(Annotation, PdfAnnotation.Constant.CommonKey.kContents, ref buffer[0], (uint)0);
+            var resultBytesLength = fpdf_annot.FPDFAnnotGetStringValue(Annotation, key, ref buffer[0], (uint)0);
             if (resultBytesLength == 0)
             {
                 throw new NotImplementedException($"{TAG}:Create PdfFreeTextAnnotation fail, no reason return.");
@@ -306,7 +292,7 @@ namespace ApplePDF.PdfKit
             else
             {
                 buffer = new ushort[resultBytesLength];
-                resultBytesLength = fpdf_annot.FPDFAnnotGetStringValue(Annotation, PdfAnnotation.Constant.CommonKey.kContents, ref buffer[0], (uint)buffer.Length);
+                resultBytesLength = fpdf_annot.FPDFAnnotGetStringValue(Annotation, key, ref buffer[0], (uint)buffer.Length);
                 unsafe
                 {
                     fixed (ushort* dataPtr = &buffer[0])
@@ -315,7 +301,7 @@ namespace ApplePDF.PdfKit
             }
         }
 
-        protected bool SetStringValue(string text)
+        public bool SetStringValueForKey(string text, string key = PdfAnnotation.Constant.CommonKey.kContents)
         {
             //Set Text
             //string to ushort 参考:https://stackoverflow.com/a/274207/13254773
@@ -324,7 +310,7 @@ namespace ApplePDF.PdfKit
             Buffer.BlockCopy(bytes, 0, value, 0, bytes.Length);
 
             //设置注释本身的StringValue
-            var success = fpdf_annot.FPDFAnnotSetStringValue(Annotation, PdfAnnotation.Constant.CommonKey.kContents, ref value[0]) == 1;
+            var success = fpdf_annot.FPDFAnnotSetStringValue(Annotation, key, ref value[0]) == 1;
             if (!success)
             {
                 Debug.WriteLine($"{TAG}:Set string value fail");
@@ -332,6 +318,55 @@ namespace ApplePDF.PdfKit
             }
             return true;
         }
+
+        #endregion
+
+        #region AttachmentPoint
+
+        public void SetQuadPoint(PdfRectangleF rect)
+        {
+            var success = fpdf_annot.FPDFAnnotAppendAttachmentPoints(Annotation, new FS_QUADPOINTSF()
+            {
+                X1 = rect.Left,
+                Y1 = rect.Top,
+                X2 = rect.Right,
+                Y2 = rect.Top,
+                X3 = rect.Left,
+                Y3 = rect.Bottom,
+                X4 = rect.Right,
+                Y4 = rect.Bottom
+            }) == 1;
+        }
+
+        public PdfRectangleF? GetQuadPoints()
+        {
+            var count = (int)fpdf_annot.FPDFAnnotCountAttachmentPoints(Annotation);
+            var success = count != 0;
+            if (!success) Debug.WriteLine("No AttachmentPoints");
+            else
+            {
+                if (count > 1)
+                {
+                    return null;
+                    throw new NotImplementedException("获取到的QuadPoints不止一个, 因为设置时只能设置一个, 因此此处只允许获取一个的情况.");
+                }
+                else
+                {
+                    var point = new FS_QUADPOINTSF();
+
+                    success = fpdf_annot.FPDFAnnotGetAttachmentPoints(Annotation, (ulong)0, point) == 1;
+                    if (!success)
+                    {
+                        Debug.WriteLine("Get AttachmentPoints fail");
+                        return null;
+                    }
+                    return PdfRectangleF.FromLTRB(point.X1, point.Y1, point.X4, point.Y4);
+                }
+            }
+            return null;
+        }
+
+        #endregion
 
         /// <summary>
         /// Close this annot and release resource.

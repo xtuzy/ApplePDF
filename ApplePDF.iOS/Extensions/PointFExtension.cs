@@ -14,6 +14,11 @@ namespace ApplePDF.Extensions
         {
             return new CGPoint(point.X, point.Y);
         }
+
+        public static PointF ToPointF(this CGPoint point)
+        {
+            return new PointF((float)point.X, (float)point.Y);
+        }
     }
 
     internal static class PointExtension
@@ -21,6 +26,11 @@ namespace ApplePDF.Extensions
         public static CGPoint ToCGPoint(this Point point)
         {
             return new CGPoint(point.X, point.Y);
+        }
+
+        public static Point ToPoint(this CGPoint point)
+        {
+            return new Point((int)point.X, (int)point.Y);
         }
     }
 }

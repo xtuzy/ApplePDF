@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ApplePDF.PdfKit.Annotation;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
@@ -10,7 +11,7 @@ namespace ApplePDF.PdfKit
         /// <summary>
         /// iOS:Gets an array that contains all the annotations on the PDF page.
         /// </summary>
-        List<PdfAnnotation> GetAnnotations();
+        PdfAnnotation[] GetAnnotations();
         //NSAttributedString? AttributedString { get; }
         /// <summary>
         /// iOS:Gets the number of characters in the text content of the PDF page.
@@ -42,8 +43,7 @@ namespace ApplePDF.PdfKit
         /// <summary>
         /// iOS:Adds the specified annotation to the PDF page.
         /// </summary>
-        /// <param name="annotation"></param>
-        void AddAnnotation(PdfAnnotation annotation);
+        public PdfAnnotation AddAnnotation(PdfAnnotationSubtype subtype);
         //NSObject Copy(NSZone? zone);
         //void Draw(PdfDisplayBox box, CGContext context);
         /// <summary>
@@ -129,7 +129,7 @@ namespace ApplePDF.PdfKit
         /// <returns></returns>
         SizeF GetSize();
         /// <summary>
-        /// 增加文本到页面
+        /// 增加文本到页面. 注意在iOS平台不要频繁使用, 因为其实现是通过创建新文档再插入实现的, 效率很低.
         /// <br/>#ApplePDFApi
         /// </summary>
         /// <param name="font"></param>
@@ -139,7 +139,7 @@ namespace ApplePDF.PdfKit
         /// <param name="y"></param>
         /// <param name="scale"></param>
         /// <returns></returns>
-        bool AddText(PdfFont font, float fontSize, string text, double x, double y, double scale = 1);
+        bool AddText(PdfFont font, float fontSize, Color color, string text, double x, double y, double scale = 1);
         /// <summary>
         /// 替换页面中的首个匹配的文本
         /// <br/>#ApplePDFApi

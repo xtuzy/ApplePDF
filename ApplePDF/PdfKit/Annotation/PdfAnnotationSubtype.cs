@@ -17,7 +17,14 @@ namespace ApplePDF.PdfKit.Annotation
         Circle= PDFiumCore.FPDFAnnotationSubtype.CIRCLE,
         Highlight= PDFiumCore.FPDFAnnotationSubtype.HIGHLIGHT,
         Underline= PDFiumCore.FPDFAnnotationSubtype.UNDERLINE,
-        StrikeOut= PDFiumCore.FPDFAnnotationSubtype.STRIKEOUT,
+        /// <summary>
+        /// 波浪线
+        /// </summary>
+        Squiggly = PDFiumCore.FPDFAnnotationSubtype.SQUIGGLY,
+        /// <summary>
+        /// 删除线
+        /// </summary>
+        StrikeOut = PDFiumCore.FPDFAnnotationSubtype.STRIKEOUT,
         Ink= PDFiumCore.FPDFAnnotationSubtype.INK,
         /// <summary>
         /// 图章
@@ -32,6 +39,7 @@ namespace ApplePDF.PdfKit.Annotation
         /// <summary>
         /// 折线
         /// </summary>
-        Polyline = PDFiumCore.FPDFAnnotationSubtype.PDPOLYLINE
+        Polyline = PDFiumCore.FPDFAnnotationSubtype.PDPOLYLINE,
+        Unknow = PDFiumCore.FPDFAnnotationSubtype.UNKNOWN
     }
 }

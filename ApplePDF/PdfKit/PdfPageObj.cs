@@ -12,6 +12,16 @@ namespace ApplePDF.PdfKit
     {
         const string TAG = nameof(PdfPageObj);
 
+        public enum TypeFlag
+        {
+            Unknow = PdfPageObjectTypeFlag.UNKNOWN,
+            Text = PdfPageObjectTypeFlag.TEXT,
+            Path = PdfPageObjectTypeFlag.PATH,
+            Image = PdfPageObjectTypeFlag.IMAGE,
+            Shading = PdfPageObjectTypeFlag.SHADING,
+            Form = PdfPageObjectTypeFlag.FORM,
+        }
+
         /// <summary>
         /// 默认为0, 新建的PageObj设置为1, 添加到Pdf后设置为2.用于<see cref="Dispose"/>内部.
         /// 原因:自己新建的<see cref="FpdfPageobjectT"/>如果没有添加到Pdf,需要调用<see cref="fpdf_edit.FPDFPageObjDestroy"/>释放内存,
@@ -24,9 +34,9 @@ namespace ApplePDF.PdfKit
         internal int Index = -1;
         public FpdfPageobjectT PageObj { get; private set; }
 
-        public PdfPageObjectTypeFlag Type { get; private set; }
+        public TypeFlag Type { get; private set; }
 
-        public PdfPageObj(FpdfPageobjectT pageObj, PdfPageObjectTypeFlag type)
+        public PdfPageObj(FpdfPageobjectT pageObj, TypeFlag type)
         {
             PageObj = pageObj;
             Type = type;
@@ -101,6 +111,37 @@ namespace ApplePDF.PdfKit
                 Debug.WriteLine($"{TAG}:No stroke color");
                 return null;
             }
+        }
+
+        public void SetTranform(double a, double b, double c, double d, double e, double f)
+        {
+            fpdf_edit.FPDFPageObjTransform(PageObj, a, b, c, d, e, f);
+        }
+
+        public FS_MATRIX_? GetMatrix()
+        {
+            // |          | a b 0 |
+            // | matrix = | c d 0 |
+            // |          | e f 1 |
+            var matrix = new FS_MATRIX_();
+
+            if (fpdf_edit.FPDFPageObjGetMatrix(PageObj, matrix) == 1)
+                return matrix;
+            else
+                return default;
+        }
+
+        public bool SetMatrix(float a, float b, float c, float d, float e, float f)
+        {
+            var matrix = new FS_MATRIX_();
+            matrix.A = a;
+            matrix.B = b;
+            matrix.C = c;
+
+            matrix.D = d;
+            matrix.E = e;
+            matrix.F = f;
+            return fpdf_edit.FPDFPageObjSetMatrix(PageObj, matrix) == 1;
         }
 
         /// <summary>

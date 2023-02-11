@@ -1,4 +1,5 @@
 ﻿using ApplePDF.Extensions;
+using ApplePDF.PdfKit.Annotation;
 using CoreGraphics;
 using Foundation;
 using System;
@@ -93,26 +94,150 @@ namespace ApplePDF.PdfKit
 
         public string Text => Page.Text;
 
-        public int AnnotationCount => throw new NotImplementedException();
+        public int AnnotationCount => Page.Annotations.Length;
 
-        public void AddAnnotation(PdfAnnotation annotation)
+        public PdfAnnotation AddAnnotation(PdfAnnotationSubtype subtype)
         {
-            Page.AddAnnotation(annotation.Annotation);
+            PdfAnnotation pdfAnnotation = null;
+            var annotation = new PlatformPdfAnnotation();
+            switch (subtype)
+            {
+                case PdfAnnotationSubtype.Text:
+                    annotation.SetValue<NSString>(new NSString("/" + nameof(PdfAnnotationSubtype.Text)), iOSPdfKit.PdfAnnotationKey.Subtype);
+                    pdfAnnotation = new PdfTextAnnotation(this, annotation, PdfAnnotationSubtype.Text);
+                    break;
+                case PdfAnnotationSubtype.Link:
+                    annotation.SetValue<NSString>(new NSString("/" + nameof(PdfAnnotationSubtype.Link)), iOSPdfKit.PdfAnnotationKey.Subtype);
+                    pdfAnnotation = new PdfLinkAnnotation(this, annotation, PdfAnnotationSubtype.Link);
+                    break;
+                case PdfAnnotationSubtype.FreeText:
+                    annotation.SetValue<NSString>(new NSString("/" + nameof(PdfAnnotationSubtype.FreeText)), iOSPdfKit.PdfAnnotationKey.Subtype);
+                    pdfAnnotation = new PdfFreeTextAnnotation(this, annotation, PdfAnnotationSubtype.FreeText);
+                    break;
+                case PdfAnnotationSubtype.Line:
+                    annotation.SetValue<NSString>(new NSString("/" + nameof(PdfAnnotationSubtype.Line)), iOSPdfKit.PdfAnnotationKey.Subtype);
+                    pdfAnnotation = new PdfLineAnnotation(this, annotation, PdfAnnotationSubtype.Line);
+                    break;
+                case PdfAnnotationSubtype.Square:
+                    annotation.SetValue<NSString>(new NSString("/" + nameof(PdfAnnotationSubtype.Square)), iOSPdfKit.PdfAnnotationKey.Subtype);
+                    pdfAnnotation = new PdfSquareAnnotation(this, annotation, PdfAnnotationSubtype.Square);
+                    break;
+                case PdfAnnotationSubtype.Circle:
+                    annotation.SetValue<NSString>(new NSString("/" + nameof(PdfAnnotationSubtype.Circle)), iOSPdfKit.PdfAnnotationKey.Subtype);
+                    pdfAnnotation = new PdfCircleAnnotation(this, annotation, PdfAnnotationSubtype.Circle);
+                    break;
+                case PdfAnnotationSubtype.Highlight:
+                    annotation.SetValue<NSString>(new NSString("/" + nameof(PdfAnnotationSubtype.Highlight)), iOSPdfKit.PdfAnnotationKey.Subtype);
+                    pdfAnnotation = new PdfHighlightAnnotation(this, annotation, PdfAnnotationSubtype.Highlight);
+                    break;
+                case PdfAnnotationSubtype.Underline:
+                    annotation.SetValue<NSString>(new NSString("/" + nameof(PdfAnnotationSubtype.Underline)), iOSPdfKit.PdfAnnotationKey.Subtype);
+                    pdfAnnotation = new PdfUnderlineAnnotation(this, annotation, PdfAnnotationSubtype.Underline);
+                    break;
+                case PdfAnnotationSubtype.Squiggly:
+                    annotation.SetValue<NSString>(new NSString("/" + nameof(PdfAnnotationSubtype.Squiggly)), iOSPdfKit.PdfAnnotationKey.Subtype);
+                    pdfAnnotation = new PdfSquigglyAnnotation(this, annotation, PdfAnnotationSubtype.Squiggly);
+                    break;
+                case PdfAnnotationSubtype.StrikeOut:
+                    annotation.SetValue<NSString>(new NSString("/" + nameof(PdfAnnotationSubtype.StrikeOut)), iOSPdfKit.PdfAnnotationKey.Subtype);
+                    pdfAnnotation = new PdfStrikeoutAnnotation(this, annotation, PdfAnnotationSubtype.StrikeOut);
+                    break;
+                case PdfAnnotationSubtype.Ink:
+                    annotation.SetValue<NSString>(new NSString("/" + nameof(PdfAnnotationSubtype.Ink)), iOSPdfKit.PdfAnnotationKey.Subtype);
+                    pdfAnnotation = new PdfInkAnnotation(this, annotation, PdfAnnotationSubtype.Ink);
+                    break;
+                case PdfAnnotationSubtype.Stamp:
+                    annotation.SetValue<NSString>(new NSString("/" + nameof(PdfAnnotationSubtype.Stamp)), iOSPdfKit.PdfAnnotationKey.Subtype);
+                    pdfAnnotation = new PdfStampAnnotation(this, annotation, PdfAnnotationSubtype.Stamp);
+                    break;
+                case PdfAnnotationSubtype.Popup://Popup附着在其它注释上
+                    throw new InvalidOperationException("Popup associated with other type annotation, it should be created form other annotation.");
+                    break;
+                case PdfAnnotationSubtype.Widget:
+                    annotation.SetValue<NSString>(new NSString("/" + nameof(PdfAnnotationSubtype.Widget)), iOSPdfKit.PdfAnnotationKey.Subtype);
+                    pdfAnnotation = new PdfWidgetAnnotation(this, annotation, PdfAnnotationSubtype.Widget);
+                    break;
+                case PdfAnnotationSubtype.Unknow:
+                    pdfAnnotation = new PdfUnknowAnnotation(this, annotation, PdfAnnotationSubtype.Unknow);
+                    break;
+            }
+            Page.AddAnnotation(annotation);
+            return pdfAnnotation;
         }
 
-        public System.Collections.Generic.List<PdfAnnotation> GetAnnotations()
+        public PdfAnnotation[] GetAnnotations()
         {
-            List<PdfAnnotation> annotations = new List<PdfAnnotation>();
-            foreach (var annotation in Page.Annotations)
+            var platformAnnots = Page.Annotations;
+            if (platformAnnots == null || platformAnnots.Length == 0)
+                return null;
+            var annotations = new List<PdfAnnotation>() { Capacity = platformAnnots.Length };
+            for (int index = 0; index < platformAnnots.Length; index++)
             {
-                annotations.Add(new PdfAnnotation(annotation));
+                var annotation = platformAnnots[index];
+                var pdfAnnotation = GetAnnot(annotation);
+                if (pdfAnnotation != null)
+                    annotations.Add(pdfAnnotation);
             }
-            return annotations;
+            return annotations.ToArray();
         }
 
         public PdfAnnotation? GetAnnotations(PointF point)
         {
-            return new PdfAnnotation(Page.GetAnnotation(point.ToCGPoint()));
+            return GetAnnot(Page.GetAnnotation(point.ToCGPoint()));
+        }
+
+        private PdfAnnotation GetAnnot(PlatformPdfAnnotation annotation)
+        {
+            PdfAnnotation pdfAnnotation = null;
+            var type = annotation.GetValue<NSString>(iOSPdfKit.PdfAnnotationKey.Subtype).ToString();
+            switch (type)
+            {
+                case "/"+ nameof(PdfAnnotationSubtype.Text):
+                    pdfAnnotation = new PdfTextAnnotation(this, annotation, PdfAnnotationSubtype.Text);
+                    break;
+                case "/" + nameof(PdfAnnotationSubtype.Link):
+                    pdfAnnotation = new PdfLinkAnnotation(this, annotation, PdfAnnotationSubtype.Link);
+                    break;
+                case "/" + nameof(PdfAnnotationSubtype.FreeText):
+                    pdfAnnotation = new PdfFreeTextAnnotation(this, annotation, PdfAnnotationSubtype.FreeText);
+                    break;
+                case "/" + nameof(PdfAnnotationSubtype.Line):
+                    pdfAnnotation = new PdfLineAnnotation(this, annotation, PdfAnnotationSubtype.Line);
+                    break;
+                case "/" + nameof(PdfAnnotationSubtype.Square):
+                    pdfAnnotation = new PdfSquareAnnotation(this, annotation, PdfAnnotationSubtype.Square);
+                    break;
+                case "/" + nameof(PdfAnnotationSubtype.Circle):
+                    pdfAnnotation = new PdfCircleAnnotation(this, annotation, PdfAnnotationSubtype.Circle);
+                    break;
+                case "/" + nameof(PdfAnnotationSubtype.Highlight):
+                    pdfAnnotation = new PdfHighlightAnnotation(this, annotation, PdfAnnotationSubtype.Highlight);
+                    break;
+                case "/" + nameof(PdfAnnotationSubtype.Underline):
+                    pdfAnnotation = new PdfUnderlineAnnotation(this, annotation, PdfAnnotationSubtype.Underline);
+                    break;
+                case "/" + nameof(PdfAnnotationSubtype.Squiggly):
+                    pdfAnnotation = new PdfSquigglyAnnotation(this, annotation, PdfAnnotationSubtype.Squiggly);
+                    break;
+                case "/" + nameof(PdfAnnotationSubtype.StrikeOut):
+                    pdfAnnotation = new PdfStrikeoutAnnotation(this, annotation, PdfAnnotationSubtype.StrikeOut);
+                    break;
+                case "/" + nameof(PdfAnnotationSubtype.Ink):
+                    pdfAnnotation = new PdfInkAnnotation(this, annotation, PdfAnnotationSubtype.Ink);
+                    break;
+                case "/" + nameof(PdfAnnotationSubtype.Stamp):
+                    pdfAnnotation = new PdfStampAnnotation(this, annotation, PdfAnnotationSubtype.Stamp);
+                    break;
+                case "/" + nameof(PdfAnnotationSubtype.Popup)://Popup附着在其它注释上
+                    break;               
+                case "/" + nameof(PdfAnnotationSubtype.Widget):
+                    pdfAnnotation = new PdfWidgetAnnotation(this, annotation, PdfAnnotationSubtype.Widget);
+                    break;
+                default:
+                    pdfAnnotation = new PdfUnknowAnnotation(this, annotation, PdfAnnotationSubtype.Unknow);
+                    break;
+            }
+            return pdfAnnotation;
         }
 
         public PdfRectangleF GetBoundsForBox(PdfDisplayBox pdfDisplayBox)
@@ -126,6 +251,21 @@ namespace ApplePDF.PdfKit
         {
             var rect = Page.GetCharacterBounds(index);
             return PdfRectangleFExtension.ToPdfRectangleF(rect);
+        }
+
+        public PdfRectangleF[] GetCharactersBounds(int index, int count)
+        {
+            if (index < CharacterCount && (index + count) < CharacterCount)
+            {
+                if (count > 0)
+                {
+                    var result = new PdfRectangleF[count];
+                    for (int rectIndex = 0; rectIndex < count; rectIndex++)
+                        result[rectIndex] = Page.GetCharacterBounds(index + rectIndex).ToPdfRectangleF();
+                    return result;    
+                }
+            }
+            return null;
         }
 
         public int GetCharacterIndex(PointF point)
@@ -243,7 +383,7 @@ namespace ApplePDF.PdfKit
             return new SizeF(bounds.Width, bounds.Height);
         }
 
-        public bool AddText(PdfFont font, float fontSize, string text, double x, double y, double scale = 1)
+        public bool AddText(PdfFont font, float fontSize, Microsoft.Maui.Graphics.Text.IAttributedText text, double x, double y, double scale = 1)
         {
             int index = PageIndex;
             // 先绘制到一个新的文档
@@ -262,13 +402,12 @@ namespace ApplePDF.PdfKit
             //ctx.ScaleBy(x: 1, y: -1);
             //ctx.TranslateBy(x: 0, y: -(pageRect?.size.height)!);
             context.DrawPDFPage(page.Page);
+            var platformFont = new Microsoft.Maui.Graphics.Font(font.Font, Microsoft.Maui.Graphics.FontStyleType.Normal);
+            var nsstring = Microsoft.Maui.Graphics.Platform.AttributedTextExtensions.AsNSAttributedString(text, platformFont);
+
             context.RestoreState();
             context.EndPage();
-            var textSet = new NSAttributedString(text, new CoreText.CTStringAttributes()
-            {
-                Font = new CoreText.CTFont(font.Font, fontSize, new CGAffineTransform()),
-            });
-            textSet.DrawString(new CGPoint(x, y));
+
             context.Close();
             context.Dispose();
             using var newdoc = PdfKitLib.Instance.LoadPdfDocument(pdfData);
@@ -276,10 +415,58 @@ namespace ApplePDF.PdfKit
             using var newdocpage = newdoc.GetPage(0);
             this.Document.Document.InsertPage(newdocpage.Page, this.PageIndex);
             var currentdocnewpage = this.Document.Document.GetPage(index);
-            using var currentdocoldpage = this.Document.Document.GetPage(index+1);
+            using var currentdocoldpage = this.Document.Document.GetPage(index + 1);
             this.page = currentdocnewpage;
             //将旧页面注释转移到新页面
-            foreach(var annot in currentdocoldpage.Annotations)
+            foreach (var annot in currentdocoldpage.Annotations)
+            {
+                currentdocnewpage.AddAnnotation(annot);
+            }
+            //移除旧页面
+            this.Document.Document.RemovePage(index + 1);
+            return true;
+        }
+
+        public bool AddText(PdfFont font, float fontSize, Color color, string text, double x, double y, double scale = 1)
+        {
+            int index = PageIndex;
+            // 先绘制到一个新的文档
+            var pdfData = new Foundation.NSMutableData();//动态数组
+            var context = new CoreGraphics.CGContextPDF(new CGDataConsumer(pdfData));
+            var page = this.Page;
+            CoreGraphics.CGPDFPageInfo info = new CoreGraphics.CGPDFPageInfo();
+            info.ArtBox = page.GetBoundsForBox(iOSPdfKit.PdfDisplayBox.Art);
+            info.CropBox = page.GetBoundsForBox(iOSPdfKit.PdfDisplayBox.Crop);
+            info.MediaBox = page.GetBoundsForBox(iOSPdfKit.PdfDisplayBox.Media);
+            info.TrimBox = page.GetBoundsForBox(iOSPdfKit.PdfDisplayBox.Trim);
+            context.BeginPage(info);//新页面
+            context.InterpolationQuality = CGInterpolationQuality.High;
+            // Draw existing page
+            context.SaveState();
+            //ctx.ScaleBy(x: 1, y: -1);
+            //ctx.TranslateBy(x: 0, y: -(pageRect?.size.height)!);
+            context.DrawPDFPage(page.Page);
+
+            context.SetFillColor(color.ToCGColor());
+            context.SetFont(font.Font);
+            context.SetFontSize(fontSize);
+            context.SetTextDrawingMode(CGTextDrawingMode.Fill);
+            context.ShowTextAtPoint((nfloat)x, (nfloat)y, text);
+
+            context.RestoreState();
+            context.EndPage();
+
+            context.Close();
+            context.Dispose();
+            using var newdoc = PdfKitLib.Instance.LoadPdfDocument(pdfData);
+            //将新文档的新页面插入当前文档
+            using var newdocpage = newdoc.GetPage(0);
+            this.Document.Document.InsertPage(newdocpage.Page, this.PageIndex);
+            var currentdocnewpage = this.Document.Document.GetPage(index);
+            using var currentdocoldpage = this.Document.Document.GetPage(index + 1);
+            this.page = currentdocnewpage;
+            //将旧页面注释转移到新页面
+            foreach (var annot in currentdocoldpage.Annotations)
             {
                 currentdocnewpage.AddAnnotation(annot);
             }

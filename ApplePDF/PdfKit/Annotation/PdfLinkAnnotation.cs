@@ -6,24 +6,20 @@ using System.Text;
 
 namespace ApplePDF.PdfKit.Annotation
 {
-    public class PdfLinkAnnotation : PdfAnnotation, IColorAnnotation
+    public class PdfLinkAnnotation : PdfAnnotation, IPdfLinkAnnotation
     {
-        public PdfLinkAnnotation() : base(PdfAnnotationSubtype.Link)
+        internal PdfLinkAnnotation(PdfPage page, FpdfAnnotationT annotation, PdfAnnotationSubtype type, int index) : base(page, annotation, type, index)
         {
-        }
-
-        internal PdfLinkAnnotation(PdfPage page,FpdfAnnotationT annotation, PdfAnnotationSubtype type, int index) : base(page,annotation,type, index)
-        {
-            AnnotColor = GetAnnotColor();
         }
 
         public Color? AnnotColor { get; set; }
 
         public int Link { get; set; }
 
-        internal override void AddToPage(PdfPage page)
+        public PdfRectangleF? Location
         {
-           base.AddToPage(page);
+            get => GetQuadPoints();
+            set => SetQuadPoint(value.Value);
         }
     }
 }
