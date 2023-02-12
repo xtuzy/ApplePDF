@@ -12,7 +12,7 @@ namespace ApplePDF.PdfKit.Annotation
         {
         }
 
-        public PdfPageObj[] PdfPageObjs
+        public List<PdfPageObj> PdfPageObjs
         {
             get
             {
@@ -20,9 +20,9 @@ namespace ApplePDF.PdfKit.Annotation
             }
         }
 
-        public bool RemoveObj(PdfPageObj obj)
+        public bool RemoveObj(PdfPageObj obj, List<PdfPageObj> objs)
         {
-            return RemoveObjOfAnnot(obj);
+            return RemoveObjOfAnnot(obj, objs);
         }
     }
 }

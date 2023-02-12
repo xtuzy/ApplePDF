@@ -11,6 +11,6 @@ namespace ApplePDF.PdfKit.Annotation
         /// <summary>
         /// If is array, that mean these <see cref="PdfPageObj"> can't change, this annot can't add <see cref="PdfPageObjs"/>.
         /// </summary>
-        public PdfPageObj[] PdfPageObjs { get; }
+        public List<PdfPageObj> PdfPageObjs { get; }
     }
 }

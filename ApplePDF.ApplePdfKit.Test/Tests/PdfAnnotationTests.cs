@@ -3,7 +3,6 @@ using ApplePDF.PdfKit.Annotation;
 using Xunit;
 using PointF = System.Drawing.PointF;
 using Color = System.Drawing.Color;
-using Microsoft.Maui.Graphics;
 #if IOS || MACCATALYST
 using Lib = ApplePDF.PdfKit.PdfKitLib;
 #else
@@ -126,7 +125,7 @@ namespace ApplePDF.ApplePdfKit.Test.Tests
             var resultColor = (resultAnnot as IPdfFreeTextAnnotation).TextColor.Value;
             Assert.True(color.R == resultColor.R && color.G == resultColor.G && color.B == resultColor.B, $"Excepted {color}, Actual {resultColor}");
         }
-        
+
         [Theory]
         [InlineData("Docs/mytest/mytest_edit_annotation.pdf", PdfAnnotationSubtype.Highlight)]
         [InlineData("Docs/mytest/mytest_edit_annotation.pdf", PdfAnnotationSubtype.Underline)]
@@ -152,7 +151,7 @@ namespace ApplePDF.ApplePdfKit.Test.Tests
             var resultPage = resultDoc.GetPage(0);
             var resultAnnot = resultPage.GetAnnotations()[0];
             Assert.Equal(subtype, resultAnnot.AnnotationType);
-            if(subtype == resultAnnot.AnnotationType)
+            if (subtype == resultAnnot.AnnotationType)
             {
                 Assert.NotNull((resultAnnot as PdfMarkupAnnotation)?.Location);
             }
@@ -174,11 +173,93 @@ namespace ApplePDF.ApplePdfKit.Test.Tests
 #endif
             var data = _fixture.Save(doc);
             PdfSaveExtension.Save(_fixture, doc, $"{this.GetType().Name}_{nameof(AddAnnotation_Circle_Test)}_Result.pdf");
-            
+
             var resultDoc = _fixture.LoadPdfDocument(data, null);
             var resultPage = resultDoc.GetPage(0);
             var resultAnnot = resultPage.GetAnnotations()[0];
             Assert.Equal(subtype, resultAnnot.AnnotationType);
+        }
+
+        [Theory]
+        [InlineData("Docs/mytest/mytest_edit_annotation.pdf", PdfAnnotationSubtype.Ink)]
+        public void AddAnnotation_Ink_Path_Test(string filePath, PdfAnnotationSubtype subtype)
+        {
+            var color = Color.Pink;
+            var doc = LoadPdfDocument(filePath, null);
+            var page = doc.GetPage(0);
+            var rect = PdfRectangleF.FromLTRB(50, 300, 300, 50);
+            var newAnnot = page.AddAnnotation(subtype) as PdfInkAnnotation;
+            newAnnot.AnnotBox = rect;
+#if ANDROID || WINDOWS
+            var path = PdfPagePathObj.Create(new PointF(rect.Left, rect.Top));
+            path.AddPath(new List<PdfSegmentPath>()
+            {
+                //new PdfSegmentPath(){Type = PdfSegmentPath.SegmentFlag.MoveTo, Position = new PointF(rect.Left, rect.Top)},
+                new PdfSegmentPath(){Type = PdfSegmentPath.SegmentFlag.LineTo, Position = new PointF(rect.Right, rect.Top)},
+                new PdfSegmentPath(){Type = PdfSegmentPath.SegmentFlag.LineTo, Position = new PointF(rect.Right, rect.Bottom)},
+                //new PdfSegmentPath(){Type = PdfSegmentPath.SegmentFlag.LineTo, Position = new PointF(rect.Left, rect.Bottom), IsCloseToStart = true }
+            });
+            newAnnot.AppendObj(path);
+            path.SetStrokeColor(color);
+            path.SetFillColor(color);
+            path.SetStrokeWidth(5);
+            path.SetDrawMode();
+#endif
+#if ANDROID || WINDOWS
+            page.SaveNewContent();
+#endif
+            var data = _fixture.Save(doc);
+            PdfSaveExtension.Save(_fixture, doc, $"{this.GetType().Name}_{nameof(AddAnnotation_Ink_Path_Test)}_Result.pdf");
+
+            var resultDoc = _fixture.LoadPdfDocument(data, null);
+            var resultPage = resultDoc.GetPage(0);
+            var resultAnnot = resultPage.GetAnnotations()[0];
+            Assert.Equal(subtype, resultAnnot.AnnotationType);
+#if ANDROID || WINDOWS
+            var objs = (resultAnnot as PdfInkAnnotation).PdfPageObjs;
+            Assert.NotNull(objs);
+#endif
+        }
+
+        [Theory]
+        [InlineData("Docs/mytest/mytest_edit_annotation.pdf", PdfAnnotationSubtype.Ink, true)]
+        [InlineData("Docs/mytest/mytest_edit_annotation.pdf", PdfAnnotationSubtype.Ink, false)]
+        public void AddAnnotation_Ink_Points_Test(string filePath, PdfAnnotationSubtype subtype, bool defaultWay)
+        {
+            var color = Color.Pink;
+            var doc = LoadPdfDocument(filePath, null);
+            var page = doc.GetPage(0);
+            var rectBorder = PdfRectangleF.FromLTRB(50-5, 300+5, 300+5, 50-5);
+            var rect = PdfRectangleF.FromLTRB(50, 300, 300, 50);
+            var newAnnot = page.AddAnnotation(subtype) as PdfInkAnnotation;
+            newAnnot.AnnotBox = rectBorder;
+#if ANDROID || WINDOWS
+            var points = new List<PointF>()
+            { 
+                rect.LTPoint,
+                rect.RTPoint,
+                rect.RBPoint,
+                rect.LBPoint,
+                rect.LTPoint
+            };
+            newAnnot.AddInkPoints(points, defaultWay);
+            newAnnot.InkColor = color;
+#endif
+#if ANDROID || WINDOWS
+            page.SaveNewContent();
+            //Assert.NotNull(newAnnot.GetInkPoints());
+#endif
+            var data = _fixture.Save(doc);
+            PdfSaveExtension.Save(_fixture, doc, $"{this.GetType().Name}_{nameof(AddAnnotation_Ink_Points_Test)}{(defaultWay?"":"_ByKey")}_Result.pdf");
+
+            var resultDoc = _fixture.LoadPdfDocument(data, null);
+            var resultPage = resultDoc.GetPage(0);
+            var resultAnnot = resultPage.GetAnnotations()[0];
+            Assert.Equal(subtype, resultAnnot.AnnotationType);
+#if ANDROID || WINDOWS
+            var resultPoints = (resultAnnot as PdfInkAnnotation).GetInkPoints();
+            Assert.NotNull(resultPoints);
+#endif
         }
 
         [Theory]

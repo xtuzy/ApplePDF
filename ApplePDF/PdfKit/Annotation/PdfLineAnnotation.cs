@@ -46,7 +46,7 @@ namespace ApplePDF.PdfKit.Annotation
             }
             set
             {
-                SetStringValueForKey($"[{value.Value.Item1.X} {value.Value.Item1.Y} {value.Value.Item2.X} {value.Value.Item2.Y}]", PdfLineAnnotation.Constant.CommonKey.kL);
+                throw new NotImplementedException();
             }
         }
     }

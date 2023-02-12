@@ -2,6 +2,7 @@
 using ApplePDF.PdfKit.Annotation;
 using PDFiumCore;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Text;
@@ -162,7 +163,14 @@ namespace ApplePDF.PdfKit
         {
             // 对象添加到注释
             obj.PageObjTag = 2;
-            return fpdf_annot.FPDFAnnotAppendObject(Annotation, obj.PageObj) == 1;
+            if (fpdf_annot.FPDFAnnotAppendObject(Annotation, obj.PageObj) == 1)
+            {
+                var objectCount = fpdf_annot.FPDFAnnotGetObjectCount(Annotation);
+                obj.Index = objectCount-1;
+                return true;
+            }
+            else
+                return false;
         }
 
         /// <summary>
@@ -176,10 +184,32 @@ namespace ApplePDF.PdfKit
             return fpdf_annot.FPDFAnnotUpdateObject(Annotation, obj.PageObj) == 1;
         }
 
-        protected bool RemoveObjOfAnnot(PdfPageObj obj)
+        /// <summary>
+        /// 移除使用index，没有直接从obj判断index的api，因此其需要根据获取obj的先后判断， 但移除后会造成index变化，因此建议之后重新获取全部obj
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <returns></returns>
+        protected bool RemoveObjOfAnnot(PdfPageObj obj, List<PdfPageObj> sourceObjs)
         {
-            // 文本对象添加到注释
-            return fpdf_annot.FPDFAnnotRemoveObject(Annotation, obj.Index) == 1;
+            if (sourceObjs.Contains(obj))
+            {
+                if (fpdf_annot.FPDFAnnotRemoveObject(Annotation, obj.Index) == 1)
+                {
+                    //之后的注释的index需要更新
+                    var index = sourceObjs.IndexOf(obj);
+                    for (int i = index + 1; i < sourceObjs.Count; i++)
+                        sourceObjs[i].Index = i - 1;
+                    sourceObjs.RemoveAt(index);
+                    obj.PageObjTag = 1;
+                    return true;
+                }
+                else
+                    return false;
+            }
+            else
+            {
+                throw new ArgumentException("移除的对象不在从注释获取的对象列表内.");
+            }
         }
 
         /// <summary>
@@ -191,12 +221,12 @@ namespace ApplePDF.PdfKit
             return fpdf_edit.FPDFPageCountObjects(Page.Page);
         }
 
-        protected PdfPageObj[] GetAllObj()
+        protected List<PdfPageObj> GetAllObj()
         {
             var objectCount = fpdf_annot.FPDFAnnotGetObjectCount(Annotation);
             if (objectCount > 0)
             {
-                var pdfPageObjs = new PdfPageObj[objectCount];
+                var pdfPageObjs = new List<PdfPageObj>();
                 //此处分析注释数据时只当注释只有一个文本和图像对象
                 for (int objIndex = 0; objIndex < objectCount; objIndex++)
                 {
@@ -206,15 +236,15 @@ namespace ApplePDF.PdfKit
                         var objectType = fpdf_edit.FPDFPageObjGetType(obj);
                         if (objectType == (int)PdfPageObjectTypeFlag.TEXT)
                         {
-                            pdfPageObjs[objIndex] = new PdfPageTextObj(obj) { Index = objIndex };
+                            pdfPageObjs.Add(new PdfPageTextObj(obj) { Index = objIndex });
                         }
                         else if (objectType == (int)PdfPageObjectTypeFlag.IMAGE)
                         {
-                            pdfPageObjs[objIndex] = new PdfPageImageObj(obj) { Index = objIndex };
+                            pdfPageObjs.Add(new PdfPageImageObj(obj) { Index = objIndex });
                         }
                         else if (objectType == (int)PdfPageObjectTypeFlag.PATH)
                         {
-                            pdfPageObjs[objIndex] = new PdfPagePathObj(obj) { Index = objIndex };
+                            pdfPageObjs.Add(new PdfPagePathObj(obj) { Index = objIndex });
                         }
                     }
                 }

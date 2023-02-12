@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.Text;
 
 namespace ApplePDF.PdfKit.Annotation
 {
@@ -12,6 +13,14 @@ namespace ApplePDF.PdfKit.Annotation
     /// </summary>
     public class PdfInkAnnotation : PdfAnnotation_CanWritePdfPageObj
     {
+        public class Constant
+        {
+            public class CommonKey
+            {
+                public const string kInkList = "InkList";
+            }
+        }
+
         internal PdfInkAnnotation(PdfPage page, FpdfAnnotationT annotation, PdfAnnotationSubtype type, int index)
             : base(page, annotation, type, index)
         {
@@ -24,23 +33,56 @@ namespace ApplePDF.PdfKit.Annotation
         /// </summary>
         public Color? InkColor { get => GetAnnotColor(); set => SetAnnotColor(value); }
 
-        public bool AddInkPoints(List<PointF> ink)
+        public bool AddInkPoints(List<PointF> ink, bool defaultWay = false)
         {
-            FS_POINTF_[] points = new FS_POINTF_[ink.Count];
-            for (var index = 0; index < ink.Count; index++)
+            //Pdfium有直接设置Pointde的方法, 但测试时发现只有写入的第一个点是正确的,其余为0
+            bool SetInkPointsDefaultInPdfium(List<PointF> ink)
             {
-                points[index] = new FS_POINTF_() { X = ink[index].X, Y = ink[index].Y };
+                FS_POINTF_[] points = new FS_POINTF_[ink.Count];
+                for (var index = 0; index < ink.Count; index++)
+                {
+                    points[index] = new FS_POINTF_() { X = ink[index].X, Y = ink[index].Y };
+                }
+                var success = fpdf_annot.FPDFAnnotAddInkStroke(Annotation, points[0], (ulong)points.LongLength);
+                if (success == -1)
+                    throw new NotImplementedException("Add InkStroke fail");
+                else
+                {
+                    return true;
+                }
             }
-            var success = fpdf_annot.FPDFAnnotAddInkStroke(Annotation, points[0], (ulong)points.LongLength);
-            if (success == -1)
-                throw new NotImplementedException("Add InkStroke fail");
+
+            //这里设置string不对, 但没有设置数组的api
+            bool SetInkPointsUseKey(List<PointF> ink)
+            {
+                var haveOldInk = fpdf_annot.FPDFAnnotHasKey(Annotation, PdfInkAnnotation.Constant.CommonKey.kInkList) == 1;
+                StringBuilder resultStr = new StringBuilder();
+                if( haveOldInk)
+                {
+                    //应该是[[x1,y1,x2,y2]]
+                    var oldPointsListStr = GetStringValueFromKey(PdfInkAnnotation.Constant.CommonKey.kInkList);
+                    resultStr.Append(oldPointsListStr, 0, oldPointsListStr.Length -1);
+                }else
+                    resultStr.Append("[");
+                resultStr.Append("[");
+                foreach(var point in ink)
+                {
+                    resultStr.Append($" {point.X.ToString("0.0000")} {point.Y.ToString("0.0000")}");
+                }
+                resultStr.Append("]]");
+                return SetStringValueForKey(resultStr.ToString(), PdfInkAnnotation.Constant.CommonKey.kInkList);
+            }
+
+            if (defaultWay)
+                return SetInkPointsDefaultInPdfium(ink);
             else
             {
-                return true;
+                throw new NotImplementedException();
+                return SetInkPointsUseKey(ink);
             }
         }
 
-        public void RemoveAllInk()
+        public void RemoveAllInkPoints()
         {
             fpdf_annot.FPDFAnnotRemoveInkList(Annotation);
         }

@@ -63,5 +63,10 @@ namespace ApplePDF.PdfKit
         {
             return !(left == right);
         }
+
+        public PointF LTPoint => Point1;
+        public PointF RTPoint => new PointF(Right, Top);
+        public PointF LBPoint => new PointF(Left, Bottom);
+        public PointF RBPoint => Point2;
     }
 }
