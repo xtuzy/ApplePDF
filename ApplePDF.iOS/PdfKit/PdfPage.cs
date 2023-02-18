@@ -383,7 +383,7 @@ namespace ApplePDF.PdfKit
             return new SizeF(bounds.Width, bounds.Height);
         }
 
-        public bool AddText(PdfFont font, float fontSize, Microsoft.Maui.Graphics.Text.IAttributedText text, double x, double y, double scale = 1)
+        public bool AddGraphics(Action<CoreGraphics.CGContext> graphicsCommand)
         {
             int index = PageIndex;
             // 先绘制到一个新的文档
@@ -402,8 +402,7 @@ namespace ApplePDF.PdfKit
             //ctx.ScaleBy(x: 1, y: -1);
             //ctx.TranslateBy(x: 0, y: -(pageRect?.size.height)!);
             context.DrawPDFPage(page.Page);
-            var platformFont = new Microsoft.Maui.Graphics.Font(font.Font, Microsoft.Maui.Graphics.FontStyleType.Normal);
-            var nsstring = Microsoft.Maui.Graphics.Platform.AttributedTextExtensions.AsNSAttributedString(text, platformFont);
+            graphicsCommand.Invoke(context);
 
             context.RestoreState();
             context.EndPage();
@@ -429,50 +428,14 @@ namespace ApplePDF.PdfKit
 
         public bool AddText(PdfFont font, float fontSize, Color color, string text, double x, double y, double scale = 1)
         {
-            int index = PageIndex;
-            // 先绘制到一个新的文档
-            var pdfData = new Foundation.NSMutableData();//动态数组
-            var context = new CoreGraphics.CGContextPDF(new CGDataConsumer(pdfData));
-            var page = this.Page;
-            CoreGraphics.CGPDFPageInfo info = new CoreGraphics.CGPDFPageInfo();
-            info.ArtBox = page.GetBoundsForBox(iOSPdfKit.PdfDisplayBox.Art);
-            info.CropBox = page.GetBoundsForBox(iOSPdfKit.PdfDisplayBox.Crop);
-            info.MediaBox = page.GetBoundsForBox(iOSPdfKit.PdfDisplayBox.Media);
-            info.TrimBox = page.GetBoundsForBox(iOSPdfKit.PdfDisplayBox.Trim);
-            context.BeginPage(info);//新页面
-            context.InterpolationQuality = CGInterpolationQuality.High;
-            // Draw existing page
-            context.SaveState();
-            //ctx.ScaleBy(x: 1, y: -1);
-            //ctx.TranslateBy(x: 0, y: -(pageRect?.size.height)!);
-            context.DrawPDFPage(page.Page);
-
-            context.SetFillColor(color.ToCGColor());
-            context.SetFont(font.Font);
-            context.SetFontSize(fontSize);
-            context.SetTextDrawingMode(CGTextDrawingMode.Fill);
-            context.ShowTextAtPoint((nfloat)x, (nfloat)y, text);
-
-            context.RestoreState();
-            context.EndPage();
-
-            context.Close();
-            context.Dispose();
-            using var newdoc = PdfKitLib.Instance.LoadPdfDocument(pdfData);
-            //将新文档的新页面插入当前文档
-            using var newdocpage = newdoc.GetPage(0);
-            this.Document.Document.InsertPage(newdocpage.Page, this.PageIndex);
-            var currentdocnewpage = this.Document.Document.GetPage(index);
-            using var currentdocoldpage = this.Document.Document.GetPage(index + 1);
-            this.page = currentdocnewpage;
-            //将旧页面注释转移到新页面
-            foreach (var annot in currentdocoldpage.Annotations)
+            return AddGraphics((context) =>
             {
-                currentdocnewpage.AddAnnotation(annot);
-            }
-            //移除旧页面
-            this.Document.Document.RemovePage(index + 1);
-            return true;
+                context.SetFillColor(color.ToCGColor());
+                context.SetFont(font.Font);
+                context.SetFontSize(fontSize);
+                context.SetTextDrawingMode(CGTextDrawingMode.Fill);
+                context.ShowTextAtPoint((nfloat)x, (nfloat)y, text);
+            });
         }
 
         public bool InsteadText(string oldText, string newText)

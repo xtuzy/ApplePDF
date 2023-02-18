@@ -20,7 +20,7 @@ namespace ApplePDF.PdfKit
 
         public PdfAnnotationSubtype AnnotationType { get; private set; }
 
-        public PdfRectangleF AnnotBox { get => Annotation.Bounds.ToPdfRectangleF(); set => Annotation.Bounds = value.ToCGRect(); }
+        public PdfRectangleF AnnotBox { get => Annotation.Bounds.ToPdfRectangleF(); set => Annotation.Bounds = new CoreGraphics.CGRect(value.Left, value.Bottom, value.Width, value.Height); }
 
         #region AttachmentPoint
 

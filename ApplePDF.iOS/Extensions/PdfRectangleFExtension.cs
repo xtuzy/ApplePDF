@@ -7,7 +7,7 @@ namespace ApplePDF.Extensions
     {
         public static CGRect ToCGRect(this PdfRectangleF rect)
         {
-            return new CGRect(rect.Left, rect.Top, rect.Width, rect.Height);
+            return CGRect.FromLTRB(rect.Left, rect.Top, rect.Width, rect.Height);
         }
 
         public static PdfRectangleF ToPdfRectangleF(this CGRect rect)

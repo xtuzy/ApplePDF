@@ -1,5 +1,4 @@
-﻿using PDFiumCore;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 
@@ -9,10 +8,17 @@ namespace ApplePDF.PdfKit
     {
         public enum SegmentFlag
         {
-            Unknow = PdfSegmentFlag.FPDF_SEGMENT_UNKNOWN,
-            LineTo = PdfSegmentFlag.FPDF_SEGMENT_LINETO,
-            BezierTo = PdfSegmentFlag.FPDF_SEGMENT_BEZIERTO,
-            MoveTo = PdfSegmentFlag.FPDF_SEGMENT_MOVETO
+#if !(IOS || MACCATALYST || MACOS)
+            Unknow = PDFiumCore.PdfSegmentFlag.FPDF_SEGMENT_UNKNOWN,
+            LineTo = PDFiumCore.PdfSegmentFlag.FPDF_SEGMENT_LINETO,
+            BezierTo = PDFiumCore.PdfSegmentFlag.FPDF_SEGMENT_BEZIERTO,
+            MoveTo = PDFiumCore.PdfSegmentFlag.FPDF_SEGMENT_MOVETO
+#else
+            Unknow,
+            LineTo,
+            BezierTo,
+            MoveTo
+#endif
         }
 
         public SegmentFlag Type;

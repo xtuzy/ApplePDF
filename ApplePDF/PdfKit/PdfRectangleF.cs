@@ -9,19 +9,19 @@ namespace ApplePDF.PdfKit
     {
         public static readonly PdfRectangleF Empty;
 
-        public PointF Point1;
-        public PointF Point2;
+        public PointF LeftTopPoint;
+        public PointF RightBottomPoint;
         public static PdfRectangleF FromLTRB(float l, float t, float r, float b)
         {
             PdfRectangleF rect = new PdfRectangleF();
-            rect.Point1 = new PointF(l,t);
-            rect.Point2 = new PointF(r,b);
+            rect.LeftTopPoint = new PointF(l,t);
+            rect.RightBottomPoint = new PointF(r,b);
             return rect;
         }
-        public float Left => Point1.X <= Point2.X ? Point1.X : Point2.X;
-        public float Right => Point1.X >= Point2.X ? Point1.X : Point2.X;
-        public float Top => Point1.Y >= Point2.Y ? Point1.Y : Point2.Y;
-        public float Bottom => Point1.Y <= Point2.Y ? Point1.Y : Point2.Y;
+        public float Left => LeftTopPoint.X <= RightBottomPoint.X ? LeftTopPoint.X : RightBottomPoint.X;
+        public float Right => LeftTopPoint.X >= RightBottomPoint.X ? LeftTopPoint.X : RightBottomPoint.X;
+        public float Top => LeftTopPoint.Y >= RightBottomPoint.Y ? LeftTopPoint.Y : RightBottomPoint.Y;
+        public float Bottom => LeftTopPoint.Y <= RightBottomPoint.Y ? LeftTopPoint.Y : RightBottomPoint.Y;
         public float Width => Right - Left;
         public float Height => Top - Bottom;
         public bool IsContainPoint(PointF point)
@@ -64,9 +64,9 @@ namespace ApplePDF.PdfKit
             return !(left == right);
         }
 
-        public PointF LTPoint => Point1;
+        public PointF LTPoint => LeftTopPoint;
         public PointF RTPoint => new PointF(Right, Top);
         public PointF LBPoint => new PointF(Left, Bottom);
-        public PointF RBPoint => Point2;
+        public PointF RBPoint => RightBottomPoint;
     }
 }

@@ -21,8 +21,6 @@
     <Compile Include="..\ApplePDF\PdfKit\IPdfFont.cs" Link="PdfKit\IPdfFont.cs" />
     <Compile Include="..\ApplePDF\PdfKit\PdfDisplayBox.cs" Link="PdfKit\PdfDisplayBox.cs" />
     <Compile Include="..\ApplePDF\PdfKit\PdfRectangleF.cs" Link="PdfKit\PdfRectangleF.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="Microsoft.Maui.Graphics" Version="6.0.7" />
+    <Compile Include="..\ApplePDF\PdfKit\PdfSegmentPath.cs" Link="PdfKit\PdfSegmentPath.cs" />
   </ItemGroup>
 </Project>

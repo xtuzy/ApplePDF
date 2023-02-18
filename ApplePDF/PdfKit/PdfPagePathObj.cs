@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Text;
+using static System.Net.WebRequestMethods;
 
 namespace ApplePDF.PdfKit
 {
@@ -11,17 +12,21 @@ namespace ApplePDF.PdfKit
     {
         const string TAG = nameof(PdfPagePathObj);
 
+        StringBuilder ApStream = new StringBuilder();
+        bool generateApStream = true;
         public PdfPagePathObj(FpdfPageobjectT pageObj) : base(pageObj, TypeFlag.Path)
         {
         }
 
         /// <summary>
         /// Support ink and stamp. Because <see cref="fpdf_annot.FPDFAnnotAppendObject"/> only support them.
+        /// Path中的位置应该是相对/Rect的值, Pdfium存储path时会计算成相对page的值，而iOS的是相对注释的，我们在外层适配iOS。
+        /// 内部转化成Pdfium的实现， 因此需要指定注释的原点。
         /// </summary>
         /// <param name="pathList"></param>
         /// <param name="color"></param>
         /// <param name="pathWidth"></param>
-        public void AddPath(List<PdfSegmentPath> pathList)
+        public void AddPath(List<PdfSegmentPath> pathList, PointF origrinPoint = default)
         {
             foreach (var path in pathList)
             {
@@ -30,32 +35,54 @@ namespace ApplePDF.PdfKit
                     case PdfSegmentPath.SegmentFlag.Unknow:
                         break;
                     case PdfSegmentPath.SegmentFlag.LineTo:
-                        if (fpdf_edit.FPDFPathLineTo(PageObj, path.Position.X, path.Position.Y) == 0)
+                        var xL = path.Position.X + origrinPoint.X;
+                        var yL = path.Position.Y + origrinPoint.Y;
+                        if (generateApStream) { ApStream.Append($"{xL.ToString("0.####")} {yL.ToString("0.####")} {OpCodes.l.Name} "); }
+                        if (fpdf_edit.FPDFPathLineTo(PageObj, xL, yL) == 0)
                             Debug.WriteLine($"{TAG}:Fail set LineTo to path obj of annot");
                         break;
                     case PdfSegmentPath.SegmentFlag.BezierTo:
                         var tempPath = path as PdfBezierSegmentPath;
                         if (tempPath != null)
-                            if (fpdf_edit.FPDFPathBezierTo(PageObj, tempPath.ControlPoint1.X, tempPath.ControlPoint1.Y, tempPath.ControlPoint2.X, tempPath.ControlPoint2.Y, tempPath.Position.X, tempPath.Position.Y) == 0)
+                        {
+                            var xB = tempPath.Position.X + origrinPoint.X;
+                            var yB = tempPath.Position.Y + origrinPoint.Y;
+                            var xC1B = tempPath.ControlPoint1.X + origrinPoint.X;
+                            var yC1B = tempPath.ControlPoint1.Y + origrinPoint.Y;
+                            var xC2B = tempPath.ControlPoint2.X + origrinPoint.X;
+                            var yC2B = tempPath.ControlPoint2.Y + origrinPoint.Y;
+                            if (generateApStream) { ApStream.Append($"{xC1B.ToString("0.####")} {yC1B.ToString("0.####")} {xC2B.ToString("0.####")} {yC2B.ToString("0.####")} {xB.ToString("0.####")} {yB.ToString("0.####")} {OpCodes.c.Name} "); }
+                            if (fpdf_edit.FPDFPathBezierTo(PageObj, xC1B, yC1B, xC2B, yC2B, xB, yB) == 0)
                                 Debug.WriteLine($"{TAG}:Fail set BezierTo to path obj of annot");
+                        }
                         break;
                     case PdfSegmentPath.SegmentFlag.MoveTo:
-                        if (fpdf_edit.FPDFPathMoveTo(PageObj, path.Position.X, path.Position.Y) == 0)
+                        var xM = path.Position.X + origrinPoint.X;
+                        var yM = path.Position.Y + origrinPoint.Y;
+                        if (generateApStream) { ApStream.Append($"{xM.ToString("0.####")} {yM.ToString("0.####")} {OpCodes.m.Name} "); }
+                        if (fpdf_edit.FPDFPathMoveTo(PageObj, xM, yM) == 0)
                             Debug.WriteLine($"{TAG}:Fail set MoveTo to path obj of annot");
                         break;
                 }
                 if (path.IsCloseToStart)
                 {
+                    if (generateApStream) { ApStream.Append($"{OpCodes.h.Name} "); }
                     fpdf_edit.FPDFPathClose(PageObj);
                 }
             }
         }
 
-        public List<PdfSegmentPath> GetPath()
+        /// <summary>
+        /// Pdfium和iOS都根据/BBox绘图，iOS获取的Path是相对/BBox的，无论/BBox是0还是/Rect，但Pdfium获取不到/BBox值，所以我不知道/AP中坐标是相对谁的。
+        /// 从 <see href="https://bugs.chromium.org/p/pdfium/issues/detail?id=1404&q=bbox&can=1"/>我们知道设置AP时需要设置/InkList，从其它软件写的注释中我也发现了这点。/InkList坐标代表了AP的Path。
+        /// 而且确定相对Page，那么对照可以得出AP中是否是相对Page，相对Page，那就需要减去/Rect，获得相对/Rect的Path。
+        /// </summary>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        public List<PdfSegmentPath> GetPath(PointF origrinPoint = default)
         {
             var paths = new List<PdfSegmentPath>();
             var segmentCount = fpdf_edit.FPDFPathCountSegments(PageObj);
-
             float x = 0;
             float y = 0;
             for (int segmentIndex = 0; segmentIndex < segmentCount; segmentIndex++)
@@ -78,17 +105,17 @@ namespace ApplePDF.PdfKit
                             && fpdf_edit.FPDFPathSegmentGetType(segment2) == (int)PdfSegmentFlag.FPDF_SEGMENT_BEZIERTO)
                         {
                             if (fpdf_edit.FPDFPathSegmentGetPoint(segment, ref x, ref y) == 1)
-                                path.ControlPoint1 = new PointF(x, y);
+                                path.ControlPoint1 = new PointF(x - origrinPoint.X, y - origrinPoint.Y);
                             else
                                 throw new Exception("Fail to get BEZIER segment, because can't get right control points");
 
                             if (fpdf_edit.FPDFPathSegmentGetPoint(segment1, ref x, ref y) == 1)
-                                path.ControlPoint2 = new PointF(x, y);
+                                path.ControlPoint2 = new PointF(x - origrinPoint.X, y - origrinPoint.Y);
                             else
                                 throw new Exception("Fail to get BEZIER segment, because can't get right control points");
 
-                            if (fpdf_edit.FPDFPathSegmentGetPoint(segment1, ref x, ref y) == 1)
-                                path.Position = new PointF(x, y);
+                            if (fpdf_edit.FPDFPathSegmentGetPoint(segment2, ref x, ref y) == 1)
+                                path.Position = new PointF(x - origrinPoint.X, y - origrinPoint.Y);
                             else
                                 throw new Exception("Fail to get BEZIER segment, because can't get right control points");
                             paths.Add(path);
@@ -116,7 +143,7 @@ namespace ApplePDF.PdfKit
                             {
                                 path.IsCloseToStart = true;
                             }
-                            path.Position = new PointF(x, y);
+                            path.Position = new PointF(x - origrinPoint.X, y - origrinPoint.Y);
                             paths.Add(path);
                         }
                     }
@@ -125,16 +152,36 @@ namespace ApplePDF.PdfKit
             return paths;
         }
 
-        public void SetStrokeWidth(float pathWidth)
+        public new void SetStrokeColor(Color? strokeColor)
         {
-            if (fpdf_edit.FPDFPageObjSetStrokeWidth(PageObj, pathWidth) == 0)
-                Debug.WriteLine($"{TAG}:Fail set StrokeWidth to PageObj of annot");
+            if (generateApStream && strokeColor != null)
+                ApStream.Append($"{strokeColor.Value.R} {strokeColor.Value.G} {strokeColor.Value.B} {OpCodes.RG.Name} ");
+            base.SetStrokeColor(strokeColor);
         }
 
-        public void SetDrawMode(bool useStrokeMode = true, PdfFillMode fillMode = PdfFillMode.FPDF_FILLMODE_NONE)
+        public new bool SetMatrix(float a, float b, float c, float d, float e, float f)
         {
-            if (fpdf_edit.FPDFPathSetDrawMode(PageObj, (int)fillMode, useStrokeMode == true ? 1 : 0) == 0)
-                Debug.WriteLine($"{TAG}:Fail set DrawMode to PageObj of annot");
+            if (generateApStream) ApStream.Append($"{a.ToString("0.####")} {b.ToString("0.####")} {c.ToString("0.####")} {d.ToString("0.###")} {e.ToString("0.####")} {f.ToString("0.####")} {OpCodes.cm.Name} ");
+            return base.SetMatrix(a, b, c, d, e, f);
+        }
+
+        public void SetStrokeWidth(float pathWidth)
+        {
+            if (generateApStream)
+                ApStream.Append($"{pathWidth.ToString("0.##")} {OpCodes.w.Name} ");
+            if (fpdf_edit.FPDFPageObjSetStrokeWidth(PageObj, pathWidth) == 0)
+                throw new OperationCanceledException($"{TAG}:Fail set StrokeWidth to PageObj of annot");
+        }
+
+        public void SetDrawMode(bool useStrokeMode = true, PdfFillMode useFillMode = PdfFillMode.FPDF_FILLMODE_NONE)
+        {
+            if (generateApStream)
+            {
+                if (useStrokeMode)
+                    ApStream.Append($"{OpCodes.S.Name} ");
+            }
+            if (fpdf_edit.FPDFPathSetDrawMode(PageObj, (int)useFillMode, useStrokeMode == true ? 1 : 0) == 0)
+                throw new OperationCanceledException($"{TAG}:Fail set DrawMode to PageObj of annot");
         }
 
         public (bool useStrokeMode, PdfFillMode fillMode) GetDrawMode()
@@ -142,7 +189,7 @@ namespace ApplePDF.PdfKit
             int useStrokeMode = -1;
             int fillMode = -1;
             if (fpdf_edit.FPDFPathGetDrawMode(PageObj, ref fillMode, ref useStrokeMode) == 0)
-                Debug.WriteLine($"{TAG}:Fail set DrawMode to PageObj of annot");
+                throw new OperationCanceledException($"{TAG}:Fail set DrawMode to PageObj of annot");
             return (useStrokeMode == 1 ? true : false, (PdfFillMode)(fillMode));
         }
 
@@ -157,6 +204,8 @@ namespace ApplePDF.PdfKit
 
         public bool SetLineCap(PdfLineCap cap)
         {
+            if (generateApStream)
+                ApStream.Append($"{(int)cap} {OpCodes.S.Name} ");
             return fpdf_edit.FPDFPageObjSetLineCap(PageObj, (int)cap) == 1;
         }
 
@@ -165,15 +214,25 @@ namespace ApplePDF.PdfKit
             return (PdfLineJoin)fpdf_edit.FPDFPageObjGetLineJoin(PageObj);
         }
 
-        public bool GetLineJoin(PdfLineJoin join)
+        public bool SetLineJoin(PdfLineJoin join)
         {
+            if (generateApStream)
+                ApStream.Append($"{(int)join} {OpCodes.j.Name}");
             return fpdf_edit.FPDFPageObjSetLineJoin(PageObj, (int)join) == 1;
         }
 
-        public static PdfPagePathObj Create(PointF startPoint)
+        public static PdfPagePathObj Create(PointF startPoint, bool generateApStream = true)
         {
             //自己新建的需要标记tag,因为没有添加到pdf就需要主动释放资源
-            return new PdfPagePathObj(fpdf_edit.FPDFPageObjCreateNewPath(startPoint.X, startPoint.Y)) { PageObjTag = 1 };
+            return new PdfPagePathObj(fpdf_edit.FPDFPageObjCreateNewPath(startPoint.X, startPoint.Y)) { PageObjTag = 1, generateApStream = generateApStream };
+        }
+
+        public string GenerateApStr() => ApStream.ToString();
+
+        protected override void Dispose(bool disposing)
+        {
+            ApStream = null;
+            base.Dispose(disposing);
         }
     }
 
@@ -188,7 +247,7 @@ namespace ApplePDF.PdfKit
         {
             if (fpdf_edit.FPDFImageObjSetBitmap(page.Page, page.PageIndex, PageObj, bitmap) == 0)
             {
-                Debug.WriteLine($"{TAG}:Fail to set bitmap to imageObj");
+                throw new OperationCanceledException($"{TAG}:Fail to set bitmap to imageObj");
             }
         }
 
@@ -198,7 +257,7 @@ namespace ApplePDF.PdfKit
             var bitmap = fpdfview.FPDFBitmapCreateEx(imageSize.Width, imageSize.Height, (int)FPDFBitmapFormat.BGRA, imageBuffer, imageSize.Width * 4);
             if (bitmap == null)
             {
-                throw new Exception($"{TAG}:Failed to create a pdf bitmap");
+                throw new OperationCanceledException($"{TAG}:Failed to create a pdf bitmap");
             }
             SetImage(page, bitmap);
         }
@@ -275,6 +334,20 @@ namespace ApplePDF.PdfKit
         public static PdfPageTextObj Create(PdfDocument doc, PdfFont font, float fontSize)
         {
             return new PdfPageTextObj(fpdf_edit.FPDFPageObjCreateTextObj(doc.Document, font.Font, fontSize)) { PageObjTag = 1 };
+        }
+    }
+
+    public class PdfPageFormObj : PdfPageObj
+    {
+        const string TAG = nameof(PdfPageFormObj);
+        public PdfPageFormObj(FpdfPageobjectT pageObj) : base(pageObj, TypeFlag.Form)
+        {
+            var count = fpdf_edit.FPDFFormObjCountObjects(PageObj);
+            for (int i = 0; i < count; i++)
+            {
+                var obj = fpdf_edit.FPDFFormObjGetObject(PageObj, (uint)i);
+                var type = (TypeFlag)fpdf_edit.FPDFPageObjGetType(obj);
+            }
         }
     }
 }

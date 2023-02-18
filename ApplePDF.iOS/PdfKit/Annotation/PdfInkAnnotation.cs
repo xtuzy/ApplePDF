@@ -1,4 +1,7 @@
 ﻿using ApplePDF.Extensions;
+using CoreGraphics;
+using Foundation;
+using System.Collections.Generic;
 using System.Drawing;
 #if IOS || MACCATALYST
 using PlatformPath = UIKit.UIBezierPath;
@@ -8,8 +11,8 @@ using PlatformPath = AppKit.NSBezierPath;
 namespace ApplePDF.PdfKit.Annotation
 {
     /// <summary>
-    /// Ink的生成有两种,一种使用<see cref="InkListPaths"/>和<see cref="AnnotColor"/>,
-    /// 另一种使用<see cref="PdfPagePathObj"/>, 建议使用后者
+    /// pdf有inklist key存储点，但在ios中通过inklist key和path获得的结果都是path，因此iOS上请直接使用path，pdfium上
+    /// 先尝试获取<see cref="PdfPagePathObj"/>，如果没有再获取inkpoints
     /// </summary>
     public class PdfInkAnnotation : PdfAnnotation
     {

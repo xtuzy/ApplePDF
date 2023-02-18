@@ -140,7 +140,7 @@ namespace ApplePDF.PdfKit
         /// </summary>
         /// <param name="annotColor"></param>
         /// <returns>Return true if success</returns>
-        protected bool SetAnnotColor(Color? annotColor)
+        public bool SetAnnotColor(Color? annotColor)
         {
             // 设置颜色,我们不管其它软件是否使用对象来设置颜色,我们用最简单的方式
             if (annotColor != null)
@@ -166,7 +166,7 @@ namespace ApplePDF.PdfKit
             if (fpdf_annot.FPDFAnnotAppendObject(Annotation, obj.PageObj) == 1)
             {
                 var objectCount = fpdf_annot.FPDFAnnotGetObjectCount(Annotation);
-                obj.Index = objectCount-1;
+                obj.Index = objectCount - 1;
                 return true;
             }
             else
@@ -245,6 +245,10 @@ namespace ApplePDF.PdfKit
                         else if (objectType == (int)PdfPageObjectTypeFlag.PATH)
                         {
                             pdfPageObjs.Add(new PdfPagePathObj(obj) { Index = objIndex });
+                        }
+                        else if (objectType == (int)PdfPageObjectTypeFlag.FORM)
+                        {
+                            pdfPageObjs.Add(new PdfPageFormObj(obj) { Index = objIndex });
                         }
                     }
                 }
@@ -397,6 +401,30 @@ namespace ApplePDF.PdfKit
         }
 
         #endregion
+
+        public bool SetFlags(FPDFAnnotationFlag flag)
+        {
+            return fpdf_annot.FPDFAnnotSetFlags(Annotation, (int)flag) == 1;
+        }
+
+        public FPDFAnnotationFlag GetFlags()
+        {
+            return (FPDFAnnotationFlag)fpdf_annot.FPDFAnnotGetFlags(Annotation);
+        }
+
+        public bool SetBorder(float horizontal_radius, float vertical_radius, float border_width)
+        {
+            return fpdf_annot.FPDFAnnotSetBorder(Annotation, horizontal_radius, vertical_radius, border_width) == 1;
+        }
+
+        public (float horizontal_radius, float vertical_radius, float border_width) GetBorder()
+        {
+            float xR = -1;
+            float yR = -1;
+            float w = -1;
+            fpdf_annot.FPDFAnnotGetBorder(Annotation, ref xR, ref yR, ref w);
+            return (xR, yR, w);
+        }
 
         /// <summary>
         /// Close this annot and release resource.

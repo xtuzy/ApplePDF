@@ -44,10 +44,6 @@ namespace ApplePDF.PdfKit.Annotation
                 }
                 return null;
             }
-            set
-            {
-                throw new NotImplementedException();
-            }
         }
     }
 }

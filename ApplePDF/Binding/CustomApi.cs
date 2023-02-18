@@ -177,4 +177,46 @@ namespace PDFiumCore
         }
 
     }
+
+    public partial class fpdf_annot
+    {
+        /// <summary>
+        /// 连续内存
+        /// </summary>
+        [StructLayout(LayoutKind.Sequential, Size = 8)]
+        public struct FS_POINTF_Fix
+        {
+            public float X;
+            public float Y;
+        }
+
+        /// <summary>
+        /// see <see cref="FPDFAnnotAddInkStroke(FpdfAnnotationT, FS_POINTF_, ulong)"/>
+        /// </summary>
+        /// <param name="annot"></param>
+        /// <param name="points"></param>
+        /// <param name="point_count"></param>
+        /// <returns></returns>
+        public static int FPDFAnnotAddInkStrokeTryFix(global::PDFiumCore.FpdfAnnotationT annot, ref FS_POINTF_Fix[] points, ulong point_count)
+        {
+            var __arg0 = annot is null ? IntPtr.Zero : annot.__Instance;
+            //var __arg1 = points is null ? __IntPtr.Zero : points.__Instance;
+            GCHandle pinned = GCHandle.Alloc(points, GCHandleType.Pinned);
+            IntPtr __arg1 = pinned.AddrOfPinnedObject();
+            var __ret = __Internal.FPDFAnnotAddInkStroke(__arg0, __arg1, point_count);
+            pinned.Free();
+            return __ret;
+        }
+
+        public static uint FPDFAnnotGetInkListPathTryFix(global::PDFiumCore.FpdfAnnotationT annot, uint path_index, ref FS_POINTF_Fix[] points, uint length)
+        {
+            var __arg0 = annot is null ? IntPtr.Zero : annot.__Instance;
+            //var __arg2 = buffer is null ? __IntPtr.Zero : buffer.__Instance;
+            GCHandle pinned = GCHandle.Alloc(points, GCHandleType.Pinned);
+            IntPtr __arg2 = pinned.AddrOfPinnedObject();
+            var __ret = __Internal.FPDFAnnotGetInkListPath(__arg0, path_index, __arg2, length);
+            pinned.Free();
+            return __ret;
+        }
+    }
 }

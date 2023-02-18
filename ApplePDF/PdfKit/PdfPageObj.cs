@@ -113,6 +113,10 @@ namespace ApplePDF.PdfKit
             }
         }
 
+        /// <summary>
+        /// <para>|a c e|</para>
+        /// <para>|b d f|</para>
+        /// </summary>
         public void SetTranform(double a, double b, double c, double d, double e, double f)
         {
             fpdf_edit.FPDFPageObjTransform(PageObj, a, b, c, d, e, f);
@@ -142,6 +146,22 @@ namespace ApplePDF.PdfKit
             matrix.E = e;
             matrix.F = f;
             return fpdf_edit.FPDFPageObjSetMatrix(PageObj, matrix) == 1;
+        }
+
+        /// <summary>
+        /// 获取/BBox的值, 见PDF32000_2008(8.10.2 Form Dictionaries)
+        /// </summary>
+        public PdfRectangleF Bounds
+        {
+            get
+            {
+                float l = 0;
+                float t = 0;
+                float r = 0;
+                float b = 0;
+                fpdf_edit.FPDFPageObjGetBounds(PageObj, ref l, ref b, ref r, ref t);
+                return PdfRectangleF.FromLTRB(l, t, r, b);
+            }
         }
 
         /// <summary>
