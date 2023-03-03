@@ -363,7 +363,7 @@ namespace ApplePDF.PdfKit
             var success = textObj.SetText(text);
             if (success)
             {
-                textObj.SetFillColor(color);
+                textObj.FillColor = color;
                 textObj.SetTranform(scale, 0, 0, scale, x, y);//设置位置
                 AppendObj(textObj);
                 return true;

@@ -1,4 +1,5 @@
 ﻿using ApplePDF.Extensions;
+using CoreGraphics;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -29,5 +30,10 @@ namespace ApplePDF.PdfKit.Annotation
         public string? Text { get => Annotation.Contents; set => Annotation.Contents = value; }
 
         public Color? TextColor { get => Annotation.FontColor.ToColor(); set => Annotation.FontColor = value.Value.ToUIColor(); }
+#if MACOS
+        public AppKit.NSFont? Font { get => Annotation.Font; set => Annotation.Font = value; }
+#else
+        public UIKit.UIFont? Font { get => Annotation.Font; set => Annotation.Font = value; }
+#endif
     }
 }

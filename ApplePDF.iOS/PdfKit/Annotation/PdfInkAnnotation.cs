@@ -22,6 +22,7 @@ namespace ApplePDF.PdfKit.Annotation
         }
 
         public Color StrokeColor { get => Annotation.Color.ToColor(); set => Annotation.Color = value.ToUIColor(); }
+        public Color? FillColor { get => Annotation.InteriorColor.ToColor(); set => Annotation.InteriorColor = value.Value.ToUIColor(); }
 
         public PlatformPath[] InkListPaths { get => Annotation.Paths; }
         

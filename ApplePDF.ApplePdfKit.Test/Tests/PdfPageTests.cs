@@ -421,20 +421,20 @@ namespace ApplePDF.Test
             var rectPathObj = PdfPagePathObj.Create(new PointF(100, 100));
             rectPathObj.AddPath(PdfSegmentPath.GenerateRectSegments(300, 300, 100, 200));
             rectPathObj.AddPath(PdfSegmentPath.GenerateRoundRectSegments(250, 350, 100, 200, 20));
-            rectPathObj.SetStrokeColor(Color.HotPink);
-            rectPathObj.SetFillColor(Color.Gray);
+            rectPathObj.StrokeColor = Color.HotPink;
+            rectPathObj.FillColor = (Color.Gray);
             rectPathObj.SetDrawMode(true);
             var circlPpathObj = PdfPagePathObj.Create(new PointF(100, 100));
             circlPpathObj.SetDrawMode(true);
             circlPpathObj.AddPath(PdfSegmentPath.GenerateTriangleSegments(new PointF(100, 100), new PointF(100, 400), new PointF(200, 400)));
             circlPpathObj.AddPath(PdfSegmentPath.GenerateCircleSegments(100, 300, 300));
-            circlPpathObj.SetFillColor(Color.Red);
-            circlPpathObj.SetStrokeColor(Color.Blue);
+            circlPpathObj.FillColor = Color.Red;
+            circlPpathObj.StrokeColor = Color.Blue;
             var arcPathObj = PdfPagePathObj.Create(new PointF(100, 100));
             arcPathObj.SetDrawMode(true);
             arcPathObj.AddPath(PdfSegmentPath.GenerateArcSegments(300, 300, 100, 300 + -360, 180));
-            arcPathObj.SetStrokeColor(Color.Green);
-            arcPathObj.SetStrokeWidth(5);
+            arcPathObj.StrokeColor = Color.Green;
+            arcPathObj.StrokeWidth = 5;
             pageReader.AppendObj(rectPathObj);
             pageReader.AppendObj(circlPpathObj);
             pageReader.AppendObj(arcPathObj);
@@ -459,8 +459,8 @@ namespace ApplePDF.Test
                             break;
                         case PdfPageObj.TypeFlag.Path:
                             var pathObj = obj as PdfPagePathObj;
-                            var fillColor = pathObj.GetFillColor();
-                            var strokeColor = pathObj.GetStrokeColor();
+                            var fillColor = pathObj.FillColor;
+                            var strokeColor = pathObj.StrokeColor;
                             var path = pathObj.GetPath();
                             break;
                         case PdfPageObj.TypeFlag.Image:

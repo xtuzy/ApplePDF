@@ -8,7 +8,6 @@ namespace ApplePDF.PdfKit
 {
     public interface IPdfFont
     {
-        PlatformPdfFont Font { get; }
         string Name { get; }
     }
 }

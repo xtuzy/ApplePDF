@@ -2,6 +2,7 @@
 using System;
 using System.Diagnostics;
 using System.Drawing;
+using System.Numerics;
 
 namespace ApplePDF.PdfKit
 {
@@ -45,15 +46,36 @@ namespace ApplePDF.PdfKit
         /// <summary>
         /// Support ink and stamp. Because <see cref="fpdf_annot.FPDFAnnotAppendObject"/> only support them.
         /// </summary>
-        /// <param name="strokeColor"></param>
-        public void SetStrokeColor(Color? strokeColor)
+        public Color? FillColor
         {
-            // text stroke color
-            if (strokeColor != null)
+            get
             {
-                if (fpdf_edit.FPDFPageObjSetStrokeColor(PageObj, strokeColor.Value.R, strokeColor.Value.G, strokeColor.Value.B, strokeColor.Value.A) == 0)
+                // 颜色
+                uint R = 0;
+                uint G = 0;
+                uint B = 0;
+                uint A = 0;
+                var success = fpdf_edit.FPDFPageObjGetFillColor(PageObj, ref R, ref G, ref B, ref A) == 1;
+                if (success)
                 {
-                    Debug.WriteLine($"{TAG}:Fail to set stroke color to obj");
+                    return System.Drawing.Color.FromArgb((int)A, (int)R, (int)G, (int)B);
+                }
+                else
+                {
+                    Debug.WriteLine($"{TAG}:No fill color");
+                    return null;
+                }
+            }
+
+            set
+            {
+                // text fill color
+                if (value.HasValue)
+                {
+                    if (fpdf_edit.FPDFPageObjSetFillColor(PageObj, value.Value.R, value.Value.G, value.Value.B, value.Value.A) == 0)
+                    {
+                        Debug.WriteLine($"{TAG}:Fail to set fill color to obj");
+                    }
                 }
             }
         }
@@ -61,55 +83,37 @@ namespace ApplePDF.PdfKit
         /// <summary>
         /// Support ink and stamp. Because <see cref="fpdf_annot.FPDFAnnotAppendObject"/> only support them.
         /// </summary>
-        /// <param name="fillColor"></param>
-        public void SetFillColor(Color? fillColor)
+        public Color? StrokeColor
         {
-            // text fill color
-            if (fillColor != null)
+            get
             {
-                if (fpdf_edit.FPDFPageObjSetFillColor(PageObj, fillColor.Value.R, fillColor.Value.G, fillColor.Value.B, fillColor.Value.A) == 0)
+                // 颜色
+                uint R = 0;
+                uint G = 0;
+                uint B = 0;
+                uint A = 0;
+                var success = fpdf_edit.FPDFPageObjGetStrokeColor(PageObj, ref R, ref G, ref B, ref A) == 1;
+
+                if (success)
                 {
-                    Debug.WriteLine($"{TAG}:Fail to set fill color to obj");
+                    return System.Drawing.Color.FromArgb((int)A, (int)R, (int)G, (int)B);
+                }
+                else
+                {
+                    Debug.WriteLine($"{TAG}:No stroke color");
+                    return null;
                 }
             }
-        }
 
-        public Color? GetFillColor()
-        {
-            // 颜色
-            uint R = 0;
-            uint G = 0;
-            uint B = 0;
-            uint A = 0;
-            var success = fpdf_edit.FPDFPageObjGetFillColor(PageObj, ref R, ref G, ref B, ref A) == 1;
-            if (success)
+            set
             {
-                return System.Drawing.Color.FromArgb((int)A, (int)R, (int)G, (int)B);
-            }
-            else
-            {
-                Debug.WriteLine($"{TAG}:No fill color");
-                return null;
-            }
-        }
-
-        public Color? GetStrokeColor()
-        {
-            // 颜色
-            uint R = 0;
-            uint G = 0;
-            uint B = 0;
-            uint A = 0;
-            var success = fpdf_edit.FPDFPageObjGetStrokeColor(PageObj, ref R, ref G, ref B, ref A) == 1;
-
-            if (success)
-            {
-                return System.Drawing.Color.FromArgb((int)A, (int)R, (int)G, (int)B);
-            }
-            else
-            {
-                Debug.WriteLine($"{TAG}:No stroke color");
-                return null;
+                if (value.HasValue)
+                {
+                    if (fpdf_edit.FPDFPageObjSetStrokeColor(PageObj, value.Value.R, value.Value.G, value.Value.B, value.Value.A) == 0)
+                    {
+                        Debug.WriteLine($"{TAG}:Fail to set stroke color to obj");
+                    }
+                }
             }
         }
 
@@ -122,30 +126,34 @@ namespace ApplePDF.PdfKit
             fpdf_edit.FPDFPageObjTransform(PageObj, a, b, c, d, e, f);
         }
 
-        public FS_MATRIX_? GetMatrix()
+        public Matrix3x2? Matrix
         {
-            // |          | a b 0 |
-            // | matrix = | c d 0 |
-            // |          | e f 1 |
-            var matrix = new FS_MATRIX_();
+            get
+            {
+                // |          | a b 0 |
+                // | matrix = | c d 0 |
+                // |          | e f 1 |
+                var matrix = new FS_MATRIX_();
 
-            if (fpdf_edit.FPDFPageObjGetMatrix(PageObj, matrix) == 1)
-                return matrix;
-            else
-                return default;
-        }
+                if (fpdf_edit.FPDFPageObjGetMatrix(PageObj, matrix) == 1)
+                    return new Matrix3x2(matrix.A, matrix.B, matrix.C, matrix.D, matrix.E, matrix.F);
+                else
+                    return null;
+            }
 
-        public bool SetMatrix(float a, float b, float c, float d, float e, float f)
-        {
-            var matrix = new FS_MATRIX_();
-            matrix.A = a;
-            matrix.B = b;
-            matrix.C = c;
+            set
+            {
+                if (!value.HasValue) return;
+                var matrix = new FS_MATRIX_();
+                matrix.A = value.Value.M11;
+                matrix.B = value.Value.M12;
+                matrix.C = value.Value.M21;
 
-            matrix.D = d;
-            matrix.E = e;
-            matrix.F = f;
-            return fpdf_edit.FPDFPageObjSetMatrix(PageObj, matrix) == 1;
+                matrix.D = value.Value.M22;
+                matrix.E = value.Value.M31;
+                matrix.F = value.Value.M32;
+                fpdf_edit.FPDFPageObjSetMatrix(PageObj, matrix);
+            }
         }
 
         /// <summary>

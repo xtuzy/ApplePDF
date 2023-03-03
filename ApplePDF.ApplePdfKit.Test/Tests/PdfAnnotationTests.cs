@@ -201,8 +201,8 @@ namespace ApplePDF.ApplePdfKit.Test.Tests
             var newAnnot = page.AddAnnotation(subtype) as PdfCircleAnnotation;
             newAnnot.AnnotBox = rect;
             newAnnot.StrokeColor = color;
-#if ANDROID || WINDOWS
-            page.SaveNewContent();
+#if IOS || MACCATALYST
+            newAnnot.FillColor = Color.Green;
 #endif
             var data = _fixture.Save(doc);
             PdfSaveExtension.Save(_fixture, doc, $"{this.GetType().Name}_{nameof(AddAnnotation_Circle_Test)}_Result.pdf");
@@ -217,59 +217,53 @@ namespace ApplePDF.ApplePdfKit.Test.Tests
 
         [Theory]
         [InlineData("Docs/mytest/mytest_edit_annotation.pdf", PdfAnnotationSubtype.Ink)]
-        public void AddAnnotation_Ink_Path_Test(string filePath, PdfAnnotationSubtype subtype)
+        public void AddAnnotation_Ink_Path_CURD_Test(string filePath, PdfAnnotationSubtype subtype)
         {
-            var color = Color.Green;
+            //test data
+            var strokeColor = Color.Green; 
+            var fillColor = Color.Blue;
+            var strokeWidth = 5;
+            var pathRect = PdfRectangleF.FromLTRB(50, 300, 300, 50);
+            var segments = new List<PdfSegmentPath>()
+            {
+                new PdfSegmentPath(){Type = PdfSegmentPath.SegmentFlag.MoveTo, Position = new PointF(pathRect.Left - pathRect.Left, pathRect.Top - pathRect.Bottom)},
+                new PdfSegmentPath(){Type = PdfSegmentPath.SegmentFlag.LineTo, Position = new PointF(pathRect.Right - pathRect.Left, pathRect.Top - pathRect.Bottom)},
+                new PdfSegmentPath(){Type = PdfSegmentPath.SegmentFlag.LineTo, Position = new PointF(pathRect.Right - pathRect.Left, pathRect.Bottom - pathRect.Bottom)},
+                //new PdfSegmentPath(){Type = PdfSegmentPath.SegmentFlag.LineTo, Position = new PointF(pathRect.Left - pathRect.Left, pathRect.Bottom - pathRect.Bottom), IsCloseToStart = true }
+            };
+            var annotBox = PdfRectangleF.FromLTRB(49, 501, 501, 49);
             var doc = LoadPdfDocument(filePath, null);
             var page = doc.GetPage(0);
             var size = page.GetSize();
-            var rect = PdfRectangleF.FromLTRB(50, 300, 300, 50);
             var newAnnot = page.AddAnnotation(subtype) as PdfInkAnnotation;
-            newAnnot.AnnotBox = PdfRectangleF.FromLTRB(49, 501, 501, 49);
+            newAnnot.AnnotBox = annotBox;
 #if ANDROID || WINDOWS
-            newAnnot.SetAnnotColor(Color.Red);
             newAnnot = page.GetAnnotations()[0] as PdfInkAnnotation;
-            var path = PdfPagePathObj.Create(new PointF(rect.Left, rect.Bottom));
-            newAnnot.AppendObj(path);
-            //path.SetTranform(1, 0, 0, 1, 33, 44);
-            var bbox = path.Bounds;
-            path.SetStrokeColor(Color.Green);
-            path.SetFillColor(Color.Blue);
-            path.SetStrokeWidth(5);
+            var path = PdfPagePathObj.Create(new PointF(pathRect.Left, pathRect.Bottom));
+            path.StrokeColor = strokeColor;
+            path.FillColor = fillColor;
+            path.StrokeWidth = 5;
+            path.LineCap = PdfPagePathObj.PdfLineCap.Square;
+            path.LineJoin = PdfPagePathObj.PdfLineJoin.Round;
             //相对路径，原点是/Rect
-            var segments = new List<PdfSegmentPath>()
-            {
-                new PdfSegmentPath(){Type = PdfSegmentPath.SegmentFlag.MoveTo, Position = new PointF(rect.Left - rect.Left, rect.Top - rect.Bottom)},
-                new PdfSegmentPath(){Type = PdfSegmentPath.SegmentFlag.LineTo, Position = new PointF(rect.Right - rect.Left, rect.Top - rect.Bottom)},
-                new PdfSegmentPath(){Type = PdfSegmentPath.SegmentFlag.LineTo, Position = new PointF(rect.Right - rect.Left, rect.Bottom - rect.Bottom)},
-                new PdfSegmentPath(){Type = PdfSegmentPath.SegmentFlag.LineTo, Position = new PointF(rect.Left - rect.Left, rect.Bottom - rect.Bottom), IsCloseToStart = true }
-            };
+            List<PointF> points = path.GenerateInkPoints(segments, newAnnot.AnnotBox.LBPoint);
             path.AddPath(segments, newAnnot.AnnotBox.LBPoint);
-            path.SetDrawMode(true, PDFiumCore.PdfFillMode.FPDF_FILLMODE_ALTERNATE);
-            //spath.SetMatrix(1, 0, 0, 1, rect.Left, rect.Bottom);
-            newAnnot.UpdateObj(path);
-            //pdfium的obj操作生产apstream，但生成的不能显示，因此我们需要替换它
-            //newAnnot.SetAppearenceStr(path.GenerateApStr());
-#elif IOS || MACCATALYST       
+            path.SetDrawMode(true, PdfPagePathObj.PdfFillMode.None);
+            newAnnot.AppendObj(path);
+            //生成/AP时也需要设置InkPoints
+            newAnnot.AddInkPoints(points);
+#elif IOS || MACCATALYST
             var path = new UIKit.UIBezierPath();
-            //path.MoveTo(new CoreGraphics.CGPoint(rect.Left, rect.Top));
-            //path.AddLineTo(new CoreGraphics.CGPoint(rect.Left, rect.Top));
-            //path.AddLineTo(new CoreGraphics.CGPoint(rect.Right, rect.Top));
-            //path.AddLineTo(new CoreGraphics.CGPoint(rect.Right, rect.Bottom));
-            //path.AddLineTo(new CoreGraphics.CGPoint(rect.Left, rect.Bottom));
-
-            path.MoveTo(new CoreGraphics.CGPoint(rect.Left - rect.Left, rect.Top - rect.Bottom));
-            path.AddLineTo(new CoreGraphics.CGPoint(rect.Left - rect.Left, rect.Top - rect.Bottom));
-            path.AddLineTo(new CoreGraphics.CGPoint(rect.Right - rect.Left, rect.Top - rect.Bottom));
-            path.AddLineTo(new CoreGraphics.CGPoint(rect.Right - rect.Left, rect.Bottom - rect.Bottom));
-            path.AddLineTo(new CoreGraphics.CGPoint(rect.Left - rect.Left, rect.Bottom - rect.Bottom));
-            path.ClosePath();
+            path.AddPath(segments);
             path.LineWidth = 5;
+            path.LineCapStyle = CoreGraphics.CGLineCap.Square;
+            path.LineJoinStyle = CoreGraphics.CGLineJoin.Round;
             newAnnot.AddPath(path);
-            newAnnot.StrokeColor = color;
+            newAnnot.StrokeColor = strokeColor;
+            newAnnot.FillColor = fillColor;
 #endif
             var data = _fixture.Save(doc);
-            PdfSaveExtension.Save(_fixture, doc, $"{this.GetType().Name}_{nameof(AddAnnotation_Ink_Path_Test)}_Result.pdf");
+            PdfSaveExtension.Save(_fixture, doc, $"{this.GetType().Name}_{nameof(AddAnnotation_Ink_Path_CURD_Test)}_Result.pdf");
 
             var resultDoc = _fixture.LoadPdfDocument(data, null);
             var resultPage = resultDoc.GetPage(0);
@@ -280,8 +274,23 @@ namespace ApplePDF.ApplePdfKit.Test.Tests
             var resultinkpoints = ink.GetInkPoints();
             var objs = ink.PdfPageObjs;
             Assert.NotNull(objs);
-            var resultInk = objs[0] as PdfPagePathObj;
-            var resultPath = resultInk.GetPath();
+            var resultInk = objs[0] as PdfPagePathObj; 
+            
+            var inkPointFirst = ink.GetInkPoints()[0][0];
+            var paths = resultInk.GetPath();
+            if (paths[0].Type == PdfSegmentPath.SegmentFlag.MoveTo)
+            {
+                var pathFirst = paths[0].Position;
+                if ((int)pathFirst.X == (int)inkPointFirst.X && (int)pathFirst.Y == (int)inkPointFirst.Y)///AP以page为原点的
+                {
+                    var relativePaths = resultInk.GetPath(ink.AnnotBox.LBPoint);
+                }
+                else
+                {
+                    Assert.True((int)inkPointFirst.X == (int)(ink.AnnotBox.Left + pathFirst.X));
+                    Assert.True((int)inkPointFirst.Y == (int)(ink.AnnotBox.Bottom + pathFirst.Y));
+                }
+            }
 #elif IOS || MACCATALYST
             var ink = resultAnnot as PdfInkAnnotation;
             var resultInk = ink.InkListPaths[0];

@@ -431,7 +431,7 @@ namespace ApplePDF.PdfKit
             return AddGraphics((context) =>
             {
                 context.SetFillColor(color.ToCGColor());
-                context.SetFont(font.Font);
+                context.SetFont(font.GetFont<CGFont>());
                 context.SetFontSize(fontSize);
                 context.SetTextDrawingMode(CGTextDrawingMode.Fill);
                 context.ShowTextAtPoint((nfloat)x, (nfloat)y, text);

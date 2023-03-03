@@ -4,16 +4,34 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Text;
-using static System.Net.WebRequestMethods;
 
 namespace ApplePDF.PdfKit
 {
     public class PdfPagePathObj : PdfPageObj
     {
+        public enum PdfFillMode
+        {
+            None = PDFiumCore.PdfFillMode.FPDF_FILLMODE_NONE,
+            Alternate = PDFiumCore.PdfFillMode.FPDF_FILLMODE_ALTERNATE,
+            Winding = PDFiumCore.PdfFillMode.FPDF_FILLMODE_WINDING
+        }
+
+        public enum PdfLineCap
+        {
+            Butt = PDFiumCore.PdfLineCap.FPDF_LINECAP_BUTT,
+            Round = PDFiumCore.PdfLineCap.FPDF_LINECAP_ROUND,
+            Square = PDFiumCore.PdfLineCap.FPDF_LINECAP_PROJECTING_SQUARE,
+        }
+
+        public enum PdfLineJoin
+        {
+            Miter = PDFiumCore.PdfLineJoin.FPDF_LINEJOIN_MITER,
+            Round = PDFiumCore.PdfLineJoin.FPDF_LINEJOIN_ROUND,
+            Bevel = PDFiumCore.PdfLineJoin.FPDF_LINEJOIN_BEVEL,
+        }
+
         const string TAG = nameof(PdfPagePathObj);
 
-        StringBuilder ApStream = new StringBuilder();
-        bool generateApStream = true;
         public PdfPagePathObj(FpdfPageobjectT pageObj) : base(pageObj, TypeFlag.Path)
         {
         }
@@ -37,7 +55,6 @@ namespace ApplePDF.PdfKit
                     case PdfSegmentPath.SegmentFlag.LineTo:
                         var xL = path.Position.X + origrinPoint.X;
                         var yL = path.Position.Y + origrinPoint.Y;
-                        if (generateApStream) { ApStream.Append($"{xL.ToString("0.####")} {yL.ToString("0.####")} {OpCodes.l.Name} "); }
                         if (fpdf_edit.FPDFPathLineTo(PageObj, xL, yL) == 0)
                             Debug.WriteLine($"{TAG}:Fail set LineTo to path obj of annot");
                         break;
@@ -51,7 +68,6 @@ namespace ApplePDF.PdfKit
                             var yC1B = tempPath.ControlPoint1.Y + origrinPoint.Y;
                             var xC2B = tempPath.ControlPoint2.X + origrinPoint.X;
                             var yC2B = tempPath.ControlPoint2.Y + origrinPoint.Y;
-                            if (generateApStream) { ApStream.Append($"{xC1B.ToString("0.####")} {yC1B.ToString("0.####")} {xC2B.ToString("0.####")} {yC2B.ToString("0.####")} {xB.ToString("0.####")} {yB.ToString("0.####")} {OpCodes.c.Name} "); }
                             if (fpdf_edit.FPDFPathBezierTo(PageObj, xC1B, yC1B, xC2B, yC2B, xB, yB) == 0)
                                 Debug.WriteLine($"{TAG}:Fail set BezierTo to path obj of annot");
                         }
@@ -59,14 +75,12 @@ namespace ApplePDF.PdfKit
                     case PdfSegmentPath.SegmentFlag.MoveTo:
                         var xM = path.Position.X + origrinPoint.X;
                         var yM = path.Position.Y + origrinPoint.Y;
-                        if (generateApStream) { ApStream.Append($"{xM.ToString("0.####")} {yM.ToString("0.####")} {OpCodes.m.Name} "); }
                         if (fpdf_edit.FPDFPathMoveTo(PageObj, xM, yM) == 0)
                             Debug.WriteLine($"{TAG}:Fail set MoveTo to path obj of annot");
                         break;
                 }
                 if (path.IsCloseToStart)
                 {
-                    if (generateApStream) { ApStream.Append($"{OpCodes.h.Name} "); }
                     fpdf_edit.FPDFPathClose(PageObj);
                 }
             }
@@ -152,34 +166,27 @@ namespace ApplePDF.PdfKit
             return paths;
         }
 
-        public new void SetStrokeColor(Color? strokeColor)
+        public float? StrokeWidth
         {
-            if (generateApStream && strokeColor != null)
-                ApStream.Append($"{strokeColor.Value.R} {strokeColor.Value.G} {strokeColor.Value.B} {OpCodes.RG.Name} ");
-            base.SetStrokeColor(strokeColor);
-        }
-
-        public new bool SetMatrix(float a, float b, float c, float d, float e, float f)
-        {
-            if (generateApStream) ApStream.Append($"{a.ToString("0.####")} {b.ToString("0.####")} {c.ToString("0.####")} {d.ToString("0.###")} {e.ToString("0.####")} {f.ToString("0.####")} {OpCodes.cm.Name} ");
-            return base.SetMatrix(a, b, c, d, e, f);
-        }
-
-        public void SetStrokeWidth(float pathWidth)
-        {
-            if (generateApStream)
-                ApStream.Append($"{pathWidth.ToString("0.##")} {OpCodes.w.Name} ");
-            if (fpdf_edit.FPDFPageObjSetStrokeWidth(PageObj, pathWidth) == 0)
-                throw new OperationCanceledException($"{TAG}:Fail set StrokeWidth to PageObj of annot");
-        }
-
-        public void SetDrawMode(bool useStrokeMode = true, PdfFillMode useFillMode = PdfFillMode.FPDF_FILLMODE_NONE)
-        {
-            if (generateApStream)
+            set
             {
-                if (useStrokeMode)
-                    ApStream.Append($"{OpCodes.S.Name} ");
+                if(value.HasValue)
+                    if (fpdf_edit.FPDFPageObjSetStrokeWidth(PageObj, value.Value) == 0)
+                        throw new OperationCanceledException($"{TAG}:Fail set StrokeWidth to PageObj of annot");
             }
+
+            get
+            {
+                float w = 0;
+                if (fpdf_edit.FPDFPageObjGetStrokeWidth(PageObj, ref w) == 1)
+                    return w;
+                else
+                    return null;
+            }
+        }
+
+        public void SetDrawMode(bool useStrokeMode = true, PdfFillMode useFillMode = PdfFillMode.None)
+        {
             if (fpdf_edit.FPDFPathSetDrawMode(PageObj, (int)useFillMode, useStrokeMode == true ? 1 : 0) == 0)
                 throw new OperationCanceledException($"{TAG}:Fail set DrawMode to PageObj of annot");
         }
@@ -197,41 +204,51 @@ namespace ApplePDF.PdfKit
         /// return value see <see cref="PdfLineCap"/>. Maybe linecap have more type, so i return int.
         /// </summary>
         /// <returns>fail when return -1</returns>
-        public int GetLineCap()
+        public PdfLineCap LineCap
         {
-            return fpdf_edit.FPDFPageObjGetLineCap(PageObj);
+            get
+            {
+                return (PdfLineCap)fpdf_edit.FPDFPageObjGetLineCap(PageObj);
+            }
+
+            set
+            {
+                fpdf_edit.FPDFPageObjSetLineCap(PageObj, (int)value);
+            }
         }
 
-        public bool SetLineCap(PdfLineCap cap)
+        public PdfLineJoin LineJoin
         {
-            if (generateApStream)
-                ApStream.Append($"{(int)cap} {OpCodes.S.Name} ");
-            return fpdf_edit.FPDFPageObjSetLineCap(PageObj, (int)cap) == 1;
-        }
+            get
+            {
+                return (PdfLineJoin)fpdf_edit.FPDFPageObjGetLineJoin(PageObj);
+            }
 
-        public PdfLineJoin GetLineJoin()
-        {
-            return (PdfLineJoin)fpdf_edit.FPDFPageObjGetLineJoin(PageObj);
-        }
-
-        public bool SetLineJoin(PdfLineJoin join)
-        {
-            if (generateApStream)
-                ApStream.Append($"{(int)join} {OpCodes.j.Name}");
-            return fpdf_edit.FPDFPageObjSetLineJoin(PageObj, (int)join) == 1;
+            set
+            {
+                fpdf_edit.FPDFPageObjSetLineJoin(PageObj, (int)value);
+            }
         }
 
         public static PdfPagePathObj Create(PointF startPoint, bool generateApStream = true)
         {
             //自己新建的需要标记tag,因为没有添加到pdf就需要主动释放资源
-            return new PdfPagePathObj(fpdf_edit.FPDFPageObjCreateNewPath(startPoint.X, startPoint.Y)) { PageObjTag = 1, generateApStream = generateApStream };
+            return new PdfPagePathObj(fpdf_edit.FPDFPageObjCreateNewPath(startPoint.X, startPoint.Y)) { PageObjTag = 1 };
         }
 
-        public string GenerateApStr() => ApStream.ToString();
+        /// <summary>
+        /// Set obj will generate /AP, need set /InkList. <see cref="https://bugs.chromium.org/p/pdfium/issues/detail?id=1404&q=bbox&can=1"/>
+        /// </summary>
+        public List<PointF> GenerateInkPoints(List<PdfSegmentPath> path, PointF originalPoint)
+        {
+            List<PointF> points = new List<PointF>();
+            foreach (var segment in path)
+                points.Add(new PointF(segment.Position.X + originalPoint.X, segment.Position.Y + originalPoint.Y));
+            return points;
+        }
 
         protected override void Dispose(bool disposing)
         {
-            ApStream = null;
             base.Dispose(disposing);
         }
     }
